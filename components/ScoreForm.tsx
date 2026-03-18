@@ -135,7 +135,7 @@ export function ScoreForm() {
             <option value="">{t('selectTohop')}</option>
             {tohopCodes.map(tc => (
               <option key={tc.code} value={tc.code}>
-                {tc.code} ({tc.subjects.join(', ')})
+                {tc.code}{tc.label_vi ? ` — ${tc.label_vi}` : ` (${tc.subjects.join(', ')})`}
               </option>
             ))}
           </select>
