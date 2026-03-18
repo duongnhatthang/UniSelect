@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import type { RecommendResult } from '../lib/recommend/types';
 import { TierBadge } from './TierBadge';
+import { StalenessIndicator } from './StalenessIndicator';
 
 interface ResultsListProps {
   results: RecommendResult[];
@@ -64,6 +65,12 @@ export function ResultsList({ results, loading, userScore }: ResultsListProps) {
                 </p>
                 <p className="text-gray-600 text-sm truncate">{result.major_name_vi}</p>
                 <p className="text-xs text-gray-400 mt-1">{result.tohop_code}</p>
+                <div className="mt-1">
+                  <StalenessIndicator
+                    scrapedAt={result.scraped_at}
+                    sourceUrl={result.source_url}
+                  />
+                </div>
               </div>
               <div className="text-right flex-shrink-0">
                 <p className="font-semibold text-gray-900">{result.weighted_cutoff.toFixed(1)}</p>

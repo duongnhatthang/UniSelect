@@ -52,7 +52,7 @@ export function ScoreForm() {
     const num = value === '' ? null : parseFloat(value);
     setParams({ score: num });
     if (num !== null && (num < 10.0 || num > 30.0)) {
-      setScoreError('Diem phai tu 10.0 den 30.0');
+      setScoreError(t('enterScore'));
     } else {
       setScoreError('');
     }

@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import type { Tier } from '../lib/recommend/types';
 
 const TIER_STYLES = {
@@ -7,9 +8,10 @@ const TIER_STYLES = {
 } as const;
 
 export function TierBadge({ tier }: { tier: Tier }) {
+  const t = useTranslations('common');
   return (
     <span className={`inline-block px-2 py-0.5 text-xs font-medium border rounded-full ${TIER_STYLES[tier]}`}>
-      {tier}
+      {t(tier)}
     </span>
   );
 }

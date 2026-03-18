@@ -30,6 +30,16 @@
     "language": "VI",
     "searchPlaceholder": "Search universities...",
     "filterByTohop": "Filter by subject combination",
-    "allTohop": "All combinations"
+    "allTohop": "All combinations",
+    "shareLink": "Share link",
+    "trend": {
+      "rising": "Rising",
+      "falling": "Falling",
+      "stable": "Stable"
+    },
+    "offlinePage": {
+      "title": "You are offline",
+      "message": "Please check your internet connection and try again."
+    }
   }
 }
