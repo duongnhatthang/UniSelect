@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 07-adapter-verification/07-01-PLAN.md
-last_updated: "2026-03-18T22:18:05.503Z"
+stopped_at: Completed 07-adapter-verification/07-02-PLAN.md
+last_updated: "2026-03-18T22:28:18.024Z"
 last_activity: 2026-03-17 — Roadmap created; all 14 v1 requirements mapped across 5 phases
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 19
-  completed_plans: 17
+  completed_plans: 18
   percent: 0
 ---
 
@@ -68,6 +68,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-infrastructure-hardening P01 | 2min | 2 tasks | 5 files |
 | Phase 06-tech-debt-cleanup P01 | 2min | 2 tasks | 10 files |
 | Phase 07-adapter-verification P01 | 2min | 2 tasks | 4 files |
+| Phase 07-adapter-verification P02 | 8min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,9 @@ Recent decisions affecting current work:
 - [Phase 07-adapter-verification]: BVH adapter matches 'thpt' keyword first in scoreIdx — PTIT uses THPT (100) as column name, not generic diem chuan
 - [Phase 07-adapter-verification]: SPH and TLA entries get candidate tuyensinh URLs but static_verified remains false until Plan 02 confirms table presence
 - [Phase 07-adapter-verification]: KHA and NTH entries annotated as PDF/Google Drive — permanently not viable for cheerio scraping
+- [Phase 07-adapter-verification]: DCN treated as Playwright adapter -- tuyensinh.haui.edu.vn SSL issues handled by headless browser
+- [Phase 07-adapter-verification]: vi.hoisted() required for Playwright/fs mocks in dcn.test.ts and gha.test.ts -- same pattern as Phase 01 vitest mock factories
+- [Phase 07-adapter-verification]: PaddleOCR warm-up step added to CI -- pre-downloads models before scraper runs to avoid slow first-run
 
 ### Pending Todos
 
@@ -137,6 +141,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T22:18:05.500Z
-Stopped at: Completed 07-adapter-verification/07-01-PLAN.md
+Last session: 2026-03-18T22:28:18.021Z
+Stopped at: Completed 07-adapter-verification/07-02-PLAN.md
 Resume file: None
