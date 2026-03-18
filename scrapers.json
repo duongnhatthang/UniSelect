@@ -1,0 +1,44 @@
+[
+  {
+    "id": "MINISTRY",
+    "adapter": "ministry",
+    "url": "https://thisinh.thitotnghiepthpt.edu.vn/",
+    "note": "Ministry portal — URL must be manually verified before first run. See CONTEXT.md blocker.",
+    "static_verified": false
+  },
+  {
+    "id": "BKA",
+    "adapter": "bka",
+    "url": "https://hust.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "KHA",
+    "adapter": "kha",
+    "url": "https://www.neu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "NTH",
+    "adapter": "nth",
+    "url": "https://ftu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "GHA",
+    "adapter": "gha",
+    "url": "https://utc.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "DCN",
+    "adapter": "dcn",
+    "url": "https://www.haui.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  }
+]
