@@ -19,6 +19,16 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install PaddleOCR
+        run: pip install paddleocr
+      - name: Warm up PaddleOCR models
+        run: python3 -c "from paddleocr import PaddleOCR; PaddleOCR(lang='vi', use_gpu=False, show_log=False)"
       - name: Run scraper shard ${{ matrix.shard }}/6
         run: npx tsx lib/scraper/run.ts
         env:

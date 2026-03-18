@@ -471,9 +471,9 @@
   {
     "id": "SPH",
     "adapter": "sph",
-    "url": "https://hnue.edu.vn/Tuyensinh",
-    "note": "Candidate: needs URL verification for cutoff score table page",
-    "static_verified": false
+    "url": "https://hnue.edu.vn/Tuyensinh--Dai-hoc-chinh-quy/diem-trung-tuyen",
+    "note": "Static HTML adapter candidate. Verified pattern 2026-03-18. URL may need annual update.",
+    "static_verified": true
   },
   {
     "id": "TDD",
@@ -499,9 +499,9 @@
   {
     "id": "TLA",
     "adapter": "tla",
-    "url": "https://www.tlu.edu.vn/tuyen-sinh",
-    "note": "Candidate: needs URL verification for cutoff score table page",
-    "static_verified": false
+    "url": "https://tuyensinh.tlu.edu.vn/diem-chuan",
+    "note": "Static HTML adapter candidate. Verified pattern 2026-03-18. URL may need annual update.",
+    "static_verified": true
   },
   {
     "id": "TMA",
