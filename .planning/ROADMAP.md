@@ -46,12 +46,11 @@ Plans:
   2. /api/recommend returns a tiered list (dream / practical / safe) given a tổ hợp code and total score, using multi-year cutoff trend weighting
   3. Static lookup endpoints (universities, tổ hợp codes) are edge-cached and return in under 200ms on repeat requests
   4. Supabase connection pooling (PgBouncer) is configured and the API does not exhaust connections under concurrent requests
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md — Shared types, API helpers, DB timeout utility, and TDD recommendation engine
+- [ ] 02-02-PLAN.md — All six route handlers (tohop, years, universities, universities/[id], scores, recommend) with caching, pagination, and tests
 
 ### Phase 3: Frontend PWA
 **Goal**: Every user-facing feature works end-to-end: score entry, recommendations, nguyện vọng list builder, search, data staleness display, and both Vietnamese and English languages
@@ -114,7 +113,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 3/3 | Complete   | 2026-03-18 |
-| 2. Core API and Algorithm | 0/3 | Not started | - |
+| 2. Core API and Algorithm | 0/2 | Not started | - |
 | 3. Frontend PWA | 0/4 | Not started | - |
 | 4. Scraper Expansion | 0/3 | Not started | - |
 | 5. Infrastructure Hardening | 0/3 | Not started | - |
