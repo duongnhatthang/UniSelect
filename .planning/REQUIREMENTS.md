@@ -82,26 +82,26 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PIPE-01 | Phase ? | Pending |
-| PIPE-02 | Phase ? | Pending |
-| PIPE-03 | Phase ? | Pending |
-| PIPE-04 | Phase ? | Pending |
-| PIPE-05 | Phase ? | Pending |
-| SRCH-01 | Phase ? | Pending |
-| SRCH-02 | Phase ? | Pending |
-| SCOR-01 | Phase ? | Pending |
-| SCOR-02 | Phase ? | Pending |
-| NGVG-01 | Phase ? | Pending |
-| I18N-01 | Phase ? | Pending |
-| I18N-02 | Phase ? | Pending |
-| INFRA-01 | Phase ? | Pending |
-| INFRA-02 | Phase ? | Pending |
+| PIPE-01 | Phase 1 | Pending |
+| PIPE-02 | Phase 1 | Pending |
+| PIPE-03 | Phase 1 | Pending |
+| PIPE-04 | Phase 4 | Pending |
+| PIPE-05 | Phase 3 | Pending |
+| SRCH-01 | Phase 3 | Pending |
+| SRCH-02 | Phase 3 | Pending |
+| SCOR-01 | Phase 3 | Pending |
+| SCOR-02 | Phase 3 | Pending |
+| NGVG-01 | Phase 3 | Pending |
+| I18N-01 | Phase 3 | Pending |
+| I18N-02 | Phase 3 | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 14 total
-- Mapped to phases: 0
-- Unmapped: 14 ⚠️
+- Mapped to phases: 14
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 after initial definition*
+*Last updated: 2026-03-17 after roadmap creation — all 14 requirements mapped*
