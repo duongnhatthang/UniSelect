@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-data-foundation/01-01-PLAN.md
-last_updated: "2026-03-18T06:56:45.667Z"
+stopped_at: Completed 01-data-foundation/01-02-PLAN.md
+last_updated: "2026-03-18T07:05:43.468Z"
 last_activity: 2026-03-17 — Roadmap created; all 14 v1 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01-data-foundation P01 | 6min | 2 tasks | 12 files |
+| Phase 01-data-foundation P02 | 6min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,9 @@ Recent decisions affecting current work:
 - [Init]: Validation layer (score range, tổ hợp format, encoding) must ship before any data reaches production
 - [Phase 01-data-foundation]: Use timestamp with withTimezone:true instead of timestamptz — drizzle-orm 0.45.x dropped the timestamptz alias
 - [Phase 01-data-foundation]: DB connection always via Supabase pooler URL (port 6543) with prepare:false for serverless transaction-mode safety
+- [Phase 01-data-foundation]: Use vi.hoisted() for Vitest mock references in vi.mock() factories — avoids ReferenceError from hoisting
+- [Phase 01-data-foundation]: Mock drizzle-orm sql as tagged template function not Proxy — sql is called as a tag, must be callable
+- [Phase 01-data-foundation]: scrapeRuns insert is plain insert (no upsert) — run records are append-only logs
 
 ### Pending Todos
 
@@ -79,6 +83,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T06:56:45.665Z
-Stopped at: Completed 01-data-foundation/01-01-PLAN.md
+Last session: 2026-03-18T07:05:43.465Z
+Stopped at: Completed 01-data-foundation/01-02-PLAN.md
 Resume file: None
