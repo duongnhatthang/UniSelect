@@ -1,0 +1,22 @@
+name: Scrape staleness alert
+
+on:
+  schedule:
+    - cron: '0 8 * * *'   # Daily at 08:00 UTC — after overnight scrape completes
+  workflow_dispatch:        # Manual trigger for ad-hoc checks
+
+jobs:
+  check-staleness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Check scrape staleness
+        run: npx tsx scripts/check-staleness.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          STALENESS_DAYS: '3'   # Tighter window — alert if any university missed for 3+ days
