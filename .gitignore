@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# static JSON snapshots (generated at deploy time by npm run generate-static)
+/public/data/*.json

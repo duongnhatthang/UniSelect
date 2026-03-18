@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate-static": "tsx scripts/generate-static-json.ts",
+    "load-test": "tsx scripts/load-test.ts"
   },
   "dependencies": {
     "@serwist/next": "^9.5.7",
@@ -28,10 +30,12 @@
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
+    "@types/autocannon": "^7.12.7",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.1",
+    "autocannon": "^8.0.0",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.1.7",
