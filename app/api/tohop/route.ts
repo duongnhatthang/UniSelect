@@ -1,4 +1,6 @@
 import type { NextRequest } from 'next/server';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { db } from '../../../lib/db';
 import { tohopCodes } from '../../../lib/db/schema';
 import { withTimeout } from '../../../lib/db/timeout';
@@ -21,9 +23,21 @@ export async function GET(_req: NextRequest) {
     );
   } catch (err) {
     if (err instanceof Error && err.message === 'DB_TIMEOUT') {
-      return errorResponse('DB_UNAVAILABLE', 'Service temporarily unavailable', 503, {
-        'Retry-After': '30',
-      });
+      try {
+        const staticData = JSON.parse(
+          readFileSync(join(process.cwd(), 'public/data/tohop.json'), 'utf-8')
+        );
+        return Response.json(staticData, {
+          headers: {
+            'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=3600',
+            'X-Served-By': 'static-fallback',
+          },
+        });
+      } catch {
+        return errorResponse('DB_UNAVAILABLE', 'Service temporarily unavailable', 503, {
+          'Retry-After': '30',
+        });
+      }
     }
     throw err;
   }
