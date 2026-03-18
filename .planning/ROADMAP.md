@@ -131,7 +131,7 @@ Plans:
   2. Verified adapters successfully scrape and write cutoff scores to the database
   3. scores-by-tohop.json contains real cutoff data after generate-static re-run
   4. JS-rendered and image-based university pages have a documented handling strategy (Playwright for JS, OCR/manual for images)
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] 07-01-PLAN.md — Verification script, BVH (PTIT) adapter fix, scrapers.json URL updates, probe additional candidates
@@ -151,4 +151,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 4. Scraper Expansion | 2/2 | Complete   | 2026-03-18 |
 | 5. Infrastructure Hardening | 3/3 | Complete   | 2026-03-18 |
 | 6. Tech Debt Cleanup | 1/1 | Complete   | 2026-03-18 |
-| 7. Adapter Verification & Data Population | 0/3 | Planned | — |
+| 7. Adapter Verification & Data Population | 1/3 | In Progress|  |
