@@ -37,7 +37,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Infrastructure
 
 - [x] **INFRA-01**: App is deployable on free-tier serverless infrastructure (Vercel + Supabase or equivalent)
-- [ ] **INFRA-02**: App handles July traffic spike without manual intervention (serverless auto-scaling)
+- [x] **INFRA-02**: App handles July traffic spike without manual intervention (serverless auto-scaling)
 
 ## v2 Requirements
 
@@ -95,7 +95,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | I18N-01 | Phase 3 | Complete |
 | I18N-02 | Phase 3 | Complete |
 | INFRA-01 | Phase 1 | Complete |
-| INFRA-02 | Phase 5 | Pending |
+| INFRA-02 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 14 total
