@@ -17,14 +17,14 @@
     "id": "KHA",
     "adapter": "kha",
     "url": "https://www.neu.edu.vn/",
-    "note": "URL path to cutoff page must be verified manually",
+    "note": "Scores published as PDF download -- requires PDF parsing. Not viable for cheerio scraping.",
     "static_verified": false
   },
   {
     "id": "NTH",
     "adapter": "nth",
     "url": "https://ftu.edu.vn/",
-    "note": "URL path to cutoff page must be verified manually",
+    "note": "Scores published via Google Drive link -- not viable for direct scraping.",
     "static_verified": false
   },
   {
@@ -44,9 +44,9 @@
   {
     "id": "BVH",
     "adapter": "bvh",
-    "url": "https://portal.ptit.edu.vn/",
-    "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "url": "https://tuyensinh.ptit.edu.vn/gioi-thieu/xem-diem-cac-nam-truoc/diem-trung-tuyen-2024/",
+    "note": "Verified 2026-03-18: static HTML table with THPT (100) score column. URL is year-specific -- update annually.",
+    "static_verified": true
   },
   {
     "id": "CCM",
@@ -471,8 +471,8 @@
   {
     "id": "SPH",
     "adapter": "sph",
-    "url": "https://hnue.edu.vn/",
-    "note": "URL path to cutoff page must be verified manually",
+    "url": "https://hnue.edu.vn/Tuyensinh",
+    "note": "Candidate: needs URL verification for cutoff score table page",
     "static_verified": false
   },
   {
@@ -499,8 +499,8 @@
   {
     "id": "TLA",
     "adapter": "tla",
-    "url": "https://www.tlu.edu.vn/",
-    "note": "URL path to cutoff page must be verified manually",
+    "url": "https://www.tlu.edu.vn/tuyen-sinh",
+    "note": "Candidate: needs URL verification for cutoff score table page",
     "static_verified": false
   },
   {

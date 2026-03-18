@@ -1,11 +1,11 @@
 /**
- * BVH Adapter — Học viện Công nghệ Bưu chính Viễn thông
+ * BVH Adapter — Học viện Công nghệ Bưu chính Viễn thông (PTIT)
  *
- * TODO: Before setting static_verified: true in scrapers.json:
- * 1. Visit https://portal.ptit.edu.vn/ and find the cutoff scores page (Tuyển sinh -> Điểm chuẩn)
- * 2. View page source (Ctrl+U) and confirm the table is in raw HTML (not JS-rendered)
- * 3. Update the url in scrapers.json to the specific cutoff page URL, not the homepage
- * 4. Verify column headers match the text anchors used below
+ * Verified: 2026-03-18
+ * Page: static HTML table at tuyensinh.ptit.edu.vn
+ * Table headers: TT | Ma nganh/CT | Ten nganh/chuong trinh | BVH | BVS | THPT (100) | TN (302) | KH (410) | DGNL (402)
+ * Note: Score column is "THPT (100)" — the standard THPT exam method. Other columns are alternative admission methods.
+ * TODO: URL contains year (2024). Update annually when new scores publish.
  *
  * University: Học viện Công nghệ Bưu chính Viễn thông
  * Ministry code: BVH
@@ -25,46 +25,77 @@ export const bvhAdapter: ScraperAdapter = {
     const year = new Date().getFullYear() - 1;
 
     $('table').each((_, table) => {
-      const headers = $(table)
-        .find('th, thead td')
-        .map((_, el) => $(el).text().trim())
-        .get();
+      const allRows = $(table).find('tr');
+      if (allRows.length < 2) return;
 
+      // Headers may be in <th> or first <tr> <td>
+      let headers: string[];
+      const thHeaders = $(table)
+        .find('th, thead td')
+        .map((_, el) => $(el).text().trim().toLowerCase())
+        .get();
+      if (thHeaders.length > 0) {
+        headers = thHeaders;
+      } else {
+        // Use first row as headers
+        headers = $(allRows[0])
+          .find('td')
+          .map((_, el) => $(el).text().trim().toLowerCase())
+          .get();
+      }
+
+      // Match THPT column first (PTIT uses "THPT (100)"), fallback to generic score columns
       const scoreIdx = headers.findIndex(
-        (h) => h.includes('Diem chuan') || h.includes('diem chuan') || h.includes('Điểm chuẩn')
-      );
-      const tohopIdx = headers.findIndex(
-        (h) => h.includes('To hop') || h.includes('Khoi') || h.includes('to hop') || h.includes('Tổ hợp')
-      );
-      const majorIdx = headers.findIndex(
         (h) =>
-          h.includes('Ma nganh') ||
-          h.includes('Nganh') ||
+          h.includes('thpt') || // matches "THPT (100)" on PTIT
+          h.includes('diem chuan') ||
+          h.includes('diem trung tuyen')
+      );
+
+      // Match major/program code column
+      const codeIdx = headers.findIndex(
+        (h) =>
           h.includes('ma nganh') ||
-          h.includes('nganh') ||
-          h.includes('Ngành')
+          h.includes('ma xet tuyen') ||
+          h.includes('nganh')
+      );
+
+      // PTIT table has no tohop column — emit empty string, normalizer handles it
+      const tohopIdx = headers.findIndex(
+        (h) =>
+          h.includes('to hop') ||
+          h.includes('khoi') ||
+          h.includes('to hop') ||
+          h.includes('to hop xet tuyen')
       );
 
       if (scoreIdx === -1) return;
 
-      $(table)
-        .find('tbody tr')
-        .each((_, tr) => {
-          const cells = $(tr)
-            .find('td')
-            .map((_, td) => $(td).text().trim())
-            .get();
-          if (cells.length === 0) return;
+      // Skip the header row (first row), process the rest
+      allRows.slice(1).each((_, tr) => {
+        const cells = $(tr)
+          .find('td')
+          .map((_, td) => $(td).text().trim())
+          .get();
+        if (cells.length < 3) return;
 
-          rows.push({
-            university_id: 'BVH',
-            major_raw: cells[majorIdx] ?? '',
-            tohop_raw: cells[tohopIdx] ?? '',
-            year,
-            score_raw: cells[scoreIdx] ?? '',
-            source_url: url,
-          });
+        const majorCode = codeIdx !== -1 ? cells[codeIdx] : '';
+        const scoreRaw = cells[scoreIdx] ?? '';
+
+        // Skip section headers (e.g., "I", "II") and empty rows
+        if (!majorCode || !scoreRaw) return;
+        // Skip non-numeric major codes (section headers like "Chuong trinh chuan")
+        if (!/^\d/.test(majorCode)) return;
+
+        rows.push({
+          university_id: 'BVH',
+          major_raw: majorCode,
+          tohop_raw: tohopIdx !== -1 ? (cells[tohopIdx] ?? '') : '',
+          year,
+          score_raw: scoreRaw,
+          source_url: url,
         });
+      });
     });
 
     if (rows.length === 0) {
