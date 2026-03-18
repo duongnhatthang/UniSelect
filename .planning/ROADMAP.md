@@ -97,12 +97,12 @@ Plans:
   3. Core Web Vitals on the score entry page meet targets: LCP under 2.5s and TTI under 3s on simulated 4G mobile
   4. Scrape failure alerts fire automatically when a university has not been updated within the expected staleness window
   5. The app remains fully functional (reads from cache/CDN) during a Supabase cold start or temporary unavailability
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
-- [ ] 05-03: TBD
+- [ ] 05-01-PLAN.md — Static JSON generator script, public/data/ CDN layer, Supabase resilience fallback in route handlers
+- [ ] 05-02-PLAN.md — Scrape staleness alert: check-staleness.ts script + GitHub Actions daily workflow
+- [ ] 05-03-PLAN.md — Load test script (autocannon, 50 concurrent, 1% error threshold) + Core Web Vitals optimization
 
 ## Progress
 
