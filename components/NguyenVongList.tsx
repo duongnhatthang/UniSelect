@@ -21,7 +21,10 @@ export function NguyenVongList({ results, userScore }: NguyenVongListProps) {
 
   const [nguyenVong, setNguyenVong] = useQueryState(
     'nv',
-    parseAsJson<NvItem[]>().withDefault([])
+    parseAsJson<NvItem[]>((value): NvItem[] | null => {
+      if (!Array.isArray(value)) return null;
+      return value as NvItem[];
+    }).withDefault([])
   );
 
   const top15 = results.filter(r => r.suggested_top_15);
@@ -54,7 +57,7 @@ export function NguyenVongList({ results, userScore }: NguyenVongListProps) {
               key={`${result.university_id}-${result.major_id}`}
               className="flex items-center gap-3 border rounded-lg p-3 bg-white shadow-sm"
             >
-              <span className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-700">
+              <span data-testid="nv-rank" className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-700">
                 {index + 1}
               </span>
               <div className="flex-1 min-w-0">
