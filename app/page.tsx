@@ -1,7 +1,13 @@
+import dynamic from 'next/dynamic';
 import { getTranslations } from 'next-intl/server';
 import { ScoreForm } from '../components/ScoreForm';
 import { LocaleToggle } from '../components/LocaleToggle';
-import { UniversitySearch } from '../components/UniversitySearch';
+
+// Lazy-load the below-fold university search to reduce initial JS bundle and improve TTI.
+const UniversitySearch = dynamic(
+  () => import('../components/UniversitySearch').then(m => m.UniversitySearch),
+  { loading: () => <div className="animate-pulse h-48 bg-gray-100 rounded" /> }
+);
 
 export default async function Home() {
   const t = await getTranslations('common');
