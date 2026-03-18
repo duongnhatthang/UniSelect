@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-data-foundation/01-02-PLAN.md
-last_updated: "2026-03-18T07:05:43.468Z"
+stopped_at: "Checkpoint 01-data-foundation/01-03: awaiting human verify (pipeline + Vercel deploy)"
+last_updated: "2026-03-18T13:02:17.177Z"
 last_activity: 2026-03-17 — Roadmap created; all 14 v1 requirements mapped across 5 phases
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 01-data-foundation P01 | 6min | 2 tasks | 12 files |
 | Phase 01-data-foundation P02 | 6min | 2 tasks | 6 files |
+| Phase 01-data-foundation P03 | 15min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,9 @@ Recent decisions affecting current work:
 - [Phase 01-data-foundation]: Use vi.hoisted() for Vitest mock references in vi.mock() factories — avoids ReferenceError from hoisting
 - [Phase 01-data-foundation]: Mock drizzle-orm sql as tagged template function not Proxy — sql is called as a tag, must be callable
 - [Phase 01-data-foundation]: scrapeRuns insert is plain insert (no upsert) — run records are append-only logs
+- [Phase 01-data-foundation]: All adapter static_verified flags default to false — adapters will not run until manually audited and enabled
+- [Phase 01-data-foundation]: tsx declared as devDependency so npm ci in GitHub Actions installs it for npx tsx lib/scraper/run.ts
+- [Phase 01-data-foundation]: GitHub Actions uses single job for Phase 1 pilot; matrix sharding deferred to Phase 4
 
 ### Pending Todos
 
@@ -83,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T07:05:43.465Z
-Stopped at: Completed 01-data-foundation/01-02-PLAN.md
+Last session: 2026-03-18T13:02:17.175Z
+Stopped at: Checkpoint 01-data-foundation/01-03: awaiting human verify (pipeline + Vercel deploy)
 Resume file: None

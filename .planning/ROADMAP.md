@@ -12,7 +12,7 @@ UniSelect is built in five phases that follow a strict dependency order: stable 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Data Foundation** - Stable schema, scraper adapter framework, and seed data for the first universities
+- [x] **Phase 1: Data Foundation** - Stable schema, scraper adapter framework, and seed data for the first universities (completed 2026-03-18)
 - [ ] **Phase 2: Core API and Algorithm** - All API endpoints live, recommendation algorithm verified against real data
 - [ ] **Phase 3: Frontend PWA** - Complete user-facing product: score entry, recommendations, nguyện vọng builder, i18n
 - [ ] **Phase 4: Scraper Expansion** - All 78+ university adapters, sharded parallel execution, July peak schedule
@@ -30,7 +30,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Every cutoff score record in the database has a source URL, scraped timestamp, year, tổ hợp code, and score value — no incomplete records pass validation
   4. The university seed list is queryable and contains at least the initial 78+ institutions with their websites
   5. The Next.js + Vercel project deploys successfully on free tier with environment variables connected to Supabase
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 01-01-PLAN.md — Next.js project init, Drizzle schema, DB connection, seed migration, Vitest config
@@ -113,7 +113,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Foundation | 2/3 | In Progress|  |
+| 1. Data Foundation | 3/3 | Complete   | 2026-03-18 |
 | 2. Core API and Algorithm | 0/3 | Not started | - |
 | 3. Frontend PWA | 0/4 | Not started | - |
 | 4. Scraper Expansion | 0/3 | Not started | - |
