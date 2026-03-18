@@ -17,6 +17,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Frontend PWA** - Complete user-facing product: score entry, recommendations, nguyện vọng builder, i18n (completed 2026-03-18)
 - [x] **Phase 4: Scraper Expansion** - All 78+ university adapters, sharded parallel execution, July peak schedule (completed 2026-03-18)
 - [x] **Phase 5: Infrastructure Hardening** - Load testing, edge caching, monitoring — production-ready before July (completed 2026-03-18)
+- [ ] **Phase 6: Tech Debt Cleanup** - Fix TohopCode label_vi, remove orphaned endpoints, package.json scripts, docs gaps
+- [ ] **Phase 7: Adapter Verification & Data Population** - Verify adapter URLs, enable scraping, populate static fallback data
 
 ## Phase Details
 
@@ -104,6 +106,36 @@ Plans:
 - [ ] 05-02-PLAN.md — Scrape staleness alert: check-staleness.ts script + GitHub Actions daily workflow
 - [ ] 05-03-PLAN.md — Load test script (autocannon, 50 concurrent, 1% error threshold) + Core Web Vitals optimization
 
+### Phase 6: Tech Debt Cleanup
+**Goal**: Clean up accumulated tech debt items that affect code quality and operational readiness
+**Depends on**: Phase 5
+**Requirements**: (supports SCOR-01, PIPE-04 — quality improvements)
+**Gap Closure:** Closes tech debt from v1.0 audit
+**Success Criteria** (what must be TRUE):
+  1. ScoreForm tổ hợp dropdown shows Vietnamese labels (not raw codes) via TohopCode.label_vi
+  2. Orphaned /api/scores and /api/years routes removed (no dead code)
+  3. check-staleness registered in package.json scripts
+  4. Phase 4 SUMMARY frontmatter includes PIPE-04 in requirements_completed
+**Plans:** 0/1 plans complete
+
+Plans:
+- [ ] 06-01-PLAN.md — TohopCode label_vi fix, orphaned endpoint removal, package.json script, SUMMARY docs fix
+
+### Phase 7: Adapter Verification & Data Population
+**Goal**: Verify university adapter URLs, enable scraping for verified adapters, and populate static fallback data
+**Depends on**: Phase 6
+**Requirements**: (operationalizes PIPE-01, PIPE-02, PIPE-03, INFRA-02)
+**Gap Closure:** Closes INT-01/FLOW-01, INT-02/FLOW-02 from v1.0 audit
+**Success Criteria** (what must be TRUE):
+  1. At least 5 additional university adapters have verified URLs and static_verified=true
+  2. Verified adapters successfully scrape and write cutoff scores to the database
+  3. scores-by-tohop.json contains real cutoff data after generate-static re-run
+  4. JS-rendered and image-based university pages have a documented handling strategy (Playwright for JS, OCR/manual for images)
+**Plans:** 0/1 plans complete
+
+Plans:
+- [ ] 07-01-PLAN.md — URL audit for 5+ adapters, run scraping, re-generate static data, document JS/image scraping strategy
+
 ## Progress
 
 **Execution Order:**
@@ -116,3 +148,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 3. Frontend PWA | 5/5 | Complete   | 2026-03-18 |
 | 4. Scraper Expansion | 2/2 | Complete   | 2026-03-18 |
 | 5. Infrastructure Hardening | 3/3 | Complete   | 2026-03-18 |
+| 6. Tech Debt Cleanup | 0/1 | Planned | — |
+| 7. Adapter Verification & Data Population | 0/1 | Planned | — |
