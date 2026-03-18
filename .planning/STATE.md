@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-frontend-pwa/03-02-PLAN.md
-last_updated: "2026-03-18T18:17:15.853Z"
+stopped_at: Completed 03-frontend-pwa/03-04-PLAN.md (awaiting Task 2 human-verify checkpoint)
+last_updated: "2026-03-18T18:23:36.995Z"
 last_activity: 2026-03-17 — Roadmap created; all 14 v1 requirements mapped across 5 phases
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 0
 ---
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-frontend-pwa P01 | 7min | 2 tasks | 18 files |
 | Phase 03-frontend-pwa P03 | 5min | 2 tasks | 8 files |
 | Phase 03-frontend-pwa P02 | 15min | 2 tasks | 10 files |
+| Phase 03-frontend-pwa P04 | 3min | 1 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Recent decisions affecting current work:
 - [Phase 03-frontend-pwa]: tohop filter in UniversitySearch shows dropdown but does not filter university list — universities table has no tohop_codes column; applies at recommendation layer
 - [Phase 03-frontend-pwa]: parseAsJson in nuqs 2.8.9 requires a validator argument: parseAsJson(validator) not parseAsJson()
 - [Phase 03-frontend-pwa]: afterEach cleanup() required in jsdom component tests to prevent DOM accumulation across vitest test runs
+- [Phase 03-frontend-pwa]: resolveLocale named export in i18n/request.ts: extracts pure locale logic from Next.js server context for unit testability without mocking cookies()
+- [Phase 03-frontend-pwa]: TierBadge uses t(tier) — tier values exactly match translation keys so t('dream') returns Ước mơ in vi locale
 
 ### Pending Todos
 
@@ -107,6 +110,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T18:17:15.851Z
-Stopped at: Completed 03-frontend-pwa/03-02-PLAN.md
+Last session: 2026-03-18T18:23:32.380Z
+Stopped at: Completed 03-frontend-pwa/03-04-PLAN.md (awaiting Task 2 human-verify checkpoint)
 Resume file: None

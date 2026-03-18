@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Data Foundation** - Stable schema, scraper adapter framework, and seed data for the first universities (completed 2026-03-18)
 - [x] **Phase 2: Core API and Algorithm** - All API endpoints live, recommendation algorithm verified against real data (completed 2026-03-18)
-- [ ] **Phase 3: Frontend PWA** - Complete user-facing product: score entry, recommendations, nguyện vọng builder, i18n
+- [x] **Phase 3: Frontend PWA** - Complete user-facing product: score entry, recommendations, nguyện vọng builder, i18n (completed 2026-03-18)
 - [ ] **Phase 4: Scraper Expansion** - All 78+ university adapters, sharded parallel execution, July peak schedule
 - [ ] **Phase 5: Infrastructure Hardening** - Load testing, edge caching, monitoring — production-ready before July
 
@@ -64,7 +64,7 @@ Plans:
   5. Every displayed cutoff score shows its source and data age (staleness indicator)
   6. The entire app is usable in Vietnamese by default and switches to English on toggle — both languages complete, no untranslated strings
   7. The app is installable as a PWA and loads previously fetched data offline
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [ ] 03-01-PLAN.md — Foundation: API extension (scraped_at/source_url), library install, Serwist + next-intl + nuqs config, root layout, PWA manifest, icons
@@ -114,6 +114,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 3/3 | Complete   | 2026-03-18 |
 | 2. Core API and Algorithm | 2/2 | Complete   | 2026-03-18 |
-| 3. Frontend PWA | 3/4 | In Progress|  |
+| 3. Frontend PWA | 4/4 | Complete   | 2026-03-18 |
 | 4. Scraper Expansion | 0/3 | Not started | - |
 | 5. Infrastructure Hardening | 0/3 | Not started | - |
