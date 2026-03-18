@@ -9,7 +9,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Data Pipeline
 
-- [ ] **PIPE-01**: System maintains a list of Vietnamese universities and their websites, updated via infrequent automated discovery (to add newly created or remove defunct institutions)
+- [x] **PIPE-01**: System maintains a list of Vietnamese universities and their websites, updated via infrequent automated discovery (to add newly created or remove defunct institutions)
 - [ ] **PIPE-02**: System scrapes cutoff scores (điểm chuẩn) from university websites and Ministry portal on a schedule
 - [ ] **PIPE-03**: Scraped data stores historical cutoff scores per university, per major, per tổ hợp (subject combination), and per year
 - [ ] **PIPE-04**: Scraping schedule runs at low frequency during the year and automatically increases frequency during July (peak registration period)
@@ -36,7 +36,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: App is deployable on free-tier serverless infrastructure (Vercel + Supabase or equivalent)
+- [x] **INFRA-01**: App is deployable on free-tier serverless infrastructure (Vercel + Supabase or equivalent)
 - [ ] **INFRA-02**: App handles July traffic spike without manual intervention (serverless auto-scaling)
 
 ## v2 Requirements
@@ -82,7 +82,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PIPE-01 | Phase 1 | Pending |
+| PIPE-01 | Phase 1 | Complete |
 | PIPE-02 | Phase 1 | Pending |
 | PIPE-03 | Phase 1 | Pending |
 | PIPE-04 | Phase 4 | Pending |
@@ -94,7 +94,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NGVG-01 | Phase 3 | Pending |
 | I18N-01 | Phase 3 | Pending |
 | I18N-02 | Phase 3 | Pending |
-| INFRA-01 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 5 | Pending |
 
 **Coverage:**
