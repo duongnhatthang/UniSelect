@@ -13,7 +13,7 @@ UniSelect is built in five phases that follow a strict dependency order: stable 
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Data Foundation** - Stable schema, scraper adapter framework, and seed data for the first universities (completed 2026-03-18)
-- [ ] **Phase 2: Core API and Algorithm** - All API endpoints live, recommendation algorithm verified against real data
+- [x] **Phase 2: Core API and Algorithm** - All API endpoints live, recommendation algorithm verified against real data (completed 2026-03-18)
 - [ ] **Phase 3: Frontend PWA** - Complete user-facing product: score entry, recommendations, nguyện vọng builder, i18n
 - [ ] **Phase 4: Scraper Expansion** - All 78+ university adapters, sharded parallel execution, July peak schedule
 - [ ] **Phase 5: Infrastructure Hardening** - Load testing, edge caching, monitoring — production-ready before July
@@ -46,7 +46,7 @@ Plans:
   2. /api/recommend returns a tiered list (dream / practical / safe) given a tổ hợp code and total score, using multi-year cutoff trend weighting
   3. Static lookup endpoints (universities, tổ hợp codes) are edge-cached and return in under 200ms on repeat requests
   4. Supabase connection pooling (PgBouncer) is configured and the API does not exhaust connections under concurrent requests
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 02-01-PLAN.md — Shared types, API helpers, DB timeout utility, and TDD recommendation engine
@@ -113,7 +113,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 3/3 | Complete   | 2026-03-18 |
-| 2. Core API and Algorithm | 1/2 | In Progress|  |
+| 2. Core API and Algorithm | 2/2 | Complete   | 2026-03-18 |
 | 3. Frontend PWA | 0/4 | Not started | - |
 | 4. Scraper Expansion | 0/3 | Not started | - |
 | 5. Infrastructure Hardening | 0/3 | Not started | - |

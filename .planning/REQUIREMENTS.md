@@ -17,8 +17,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Search & Browse
 
-- [ ] **SRCH-01**: User can search universities by name (Vietnamese diacritic-aware search)
-- [ ] **SRCH-02**: User can filter search results by tổ hợp code (e.g. A00, D01, B00)
+- [x] **SRCH-01**: User can search universities by name (Vietnamese diacritic-aware search)
+- [x] **SRCH-02**: User can filter search results by tổ hợp code (e.g. A00, D01, B00)
 
 ### Score Matching
 
@@ -87,8 +87,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PIPE-03 | Phase 1 | Complete |
 | PIPE-04 | Phase 4 | Pending |
 | PIPE-05 | Phase 3 | Pending |
-| SRCH-01 | Phase 3 | Pending |
-| SRCH-02 | Phase 3 | Pending |
+| SRCH-01 | Phase 3 | Complete |
+| SRCH-02 | Phase 3 | Complete |
 | SCOR-01 | Phase 3 | Complete |
 | SCOR-02 | Phase 3 | Complete |
 | NGVG-01 | Phase 3 | Complete |
