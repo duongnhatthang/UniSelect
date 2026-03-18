@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Data Foundation** - Stable schema, scraper adapter framework, and seed data for the first universities (completed 2026-03-18)
 - [x] **Phase 2: Core API and Algorithm** - All API endpoints live, recommendation algorithm verified against real data (completed 2026-03-18)
 - [x] **Phase 3: Frontend PWA** - Complete user-facing product: score entry, recommendations, nguyện vọng builder, i18n (completed 2026-03-18)
-- [ ] **Phase 4: Scraper Expansion** - All 78+ university adapters, sharded parallel execution, July peak schedule
+- [x] **Phase 4: Scraper Expansion** - All 78+ university adapters, sharded parallel execution, July peak schedule (completed 2026-03-18)
 - [ ] **Phase 5: Infrastructure Hardening** - Load testing, edge caching, monitoring — production-ready before July
 
 ## Phase Details
@@ -81,7 +81,7 @@ Plans:
   2. GitHub Actions matrix jobs run scraper shards in parallel with each shard completing within 30 minutes
   3. The peak-frequency workflow (scrape-peak.yml) runs multiple times per day and can be toggled on/off without code changes
   4. A failed individual university scraper does not block other scrapers — the pipeline is fail-open and logs failures to scrape_runs
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 04-01-PLAN.md — Adapter generator script, 72 new adapter files, scrapers.json expanded to 78 entries
@@ -114,5 +114,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Data Foundation | 3/3 | Complete   | 2026-03-18 |
 | 2. Core API and Algorithm | 2/2 | Complete   | 2026-03-18 |
 | 3. Frontend PWA | 5/5 | Complete   | 2026-03-18 |
-| 4. Scraper Expansion | 1/2 | In Progress|  |
+| 4. Scraper Expansion | 2/2 | Complete   | 2026-03-18 |
 | 5. Infrastructure Hardening | 0/3 | Not started | - |

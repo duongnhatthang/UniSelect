@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-scraper-expansion/04-01-PLAN.md
-last_updated: "2026-03-18T18:53:01.759Z"
+stopped_at: Completed 04-scraper-expansion/04-02-PLAN.md
+last_updated: "2026-03-18T18:56:17.742Z"
 last_activity: 2026-03-17 — Roadmap created; all 14 v1 requirements mapped across 5 phases
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
   percent: 0
 ---
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-frontend-pwa P04 | 3min | 1 tasks | 12 files |
 | Phase 03-frontend-pwa P05 | 3min | 2 tasks | 5 files |
 | Phase 04-scraper-expansion P01 | 3min | 2 tasks | 73 files |
+| Phase 04-scraper-expansion P02 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,9 @@ Recent decisions affecting current work:
 - [Phase 03-frontend-pwa]: array_agg(distinct ...) via sql template tag in subquery — Drizzle has no built-in array aggregation; coalesce to empty array for universities with no cutoff scores
 - [Phase 04-scraper-expansion]: Generator script approach for 72 adapter files — reduces error surface, re-runnable for future university additions
 - [Phase 04-scraper-expansion]: UNIVERSITIES array embedded in generator (not read from DB) — keeps generator self-contained and executable without DB access
+- [Phase 04-scraper-expansion]: 6-shard matrix chosen: 78 universities / 6 = 13 per shard, well within 30min per job
+- [Phase 04-scraper-expansion]: PEAK_SCHEDULE_ENABLED repo variable toggle avoids code changes to switch peak mode on/off
+- [Phase 04-scraper-expansion]: Contract test uses dynamic import loop over scrapers.json — zero test file changes needed for future adapters
 
 ### Pending Todos
 
@@ -115,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T18:53:01.757Z
-Stopped at: Completed 04-scraper-expansion/04-01-PLAN.md
+Last session: 2026-03-18T18:56:17.740Z
+Stopped at: Completed 04-scraper-expansion/04-02-PLAN.md
 Resume file: None
