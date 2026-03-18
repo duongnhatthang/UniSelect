@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 05-infrastructure-hardening/05-02-PLAN.md
-last_updated: "2026-03-18T19:08:23.895Z"
+stopped_at: Completed 05-infrastructure-hardening/05-01-PLAN.md
+last_updated: "2026-03-18T19:09:40.116Z"
 last_activity: 2026-03-17 — Roadmap created; all 14 v1 requirements mapped across 5 phases
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 15
   percent: 0
 ---
 
@@ -64,6 +64,8 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-scraper-expansion P01 | 3min | 2 tasks | 73 files |
 | Phase 04-scraper-expansion P02 | 2min | 2 tasks | 4 files |
 | Phase 05-infrastructure-hardening P02 | 8min | 2 tasks | 2 files |
+| Phase 05-infrastructure-hardening P03 | 8min | 2 tasks | 4 files |
+| Phase 05-infrastructure-hardening P01 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -108,6 +110,12 @@ Recent decisions affecting current work:
 - [Phase 04-scraper-expansion]: Contract test uses dynamic import loop over scrapers.json — zero test file changes needed for future adapters
 - [Phase 05-infrastructure-hardening]: STALENESS_DAYS defaults to 7 in script; workflow hardcodes 3 for tighter production alerting window
 - [Phase 05-infrastructure-hardening]: process.exit(1) on stale detection uses GitHub built-in failure notification — no external alerting service needed
+- [Phase 05-infrastructure-hardening]: UniversitySearch lazy-loaded via next/dynamic — below-fold heavy component; deferring its JS bundle reduces TTI for the above-fold score form
+- [Phase 05-infrastructure-hardening]: Load test runs both endpoints in parallel (Promise.all) — realistic peak simulation, exits 1 on >1% error rate threshold
+- [Phase 05-infrastructure-hardening]: next/font display:swap added explicitly even though next/font may default to swap — makes intent clear and guards against future default changes
+- [Phase 05-infrastructure-hardening]: scores-by-tohop.json keyed by tohop_code for O(1) fallback filter without full scan
+- [Phase 05-infrastructure-hardening]: public/data/*.json excluded from git — generated at deploy time, not version controlled
+- [Phase 05-infrastructure-hardening]: Double-nested try/catch: 503 only if static file is also missing; recommend route excluded from static fallback
 
 ### Pending Todos
 
@@ -122,6 +130,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T19:08:23.893Z
-Stopped at: Completed 05-infrastructure-hardening/05-02-PLAN.md
+Last session: 2026-03-18T19:09:40.114Z
+Stopped at: Completed 05-infrastructure-hardening/05-01-PLAN.md
 Resume file: None

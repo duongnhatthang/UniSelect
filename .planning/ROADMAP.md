@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Core API and Algorithm** - All API endpoints live, recommendation algorithm verified against real data (completed 2026-03-18)
 - [x] **Phase 3: Frontend PWA** - Complete user-facing product: score entry, recommendations, nguyện vọng builder, i18n (completed 2026-03-18)
 - [x] **Phase 4: Scraper Expansion** - All 78+ university adapters, sharded parallel execution, July peak schedule (completed 2026-03-18)
-- [ ] **Phase 5: Infrastructure Hardening** - Load testing, edge caching, monitoring — production-ready before July
+- [x] **Phase 5: Infrastructure Hardening** - Load testing, edge caching, monitoring — production-ready before July (completed 2026-03-18)
 
 ## Phase Details
 
@@ -97,7 +97,7 @@ Plans:
   3. Core Web Vitals on the score entry page meet targets: LCP under 2.5s and TTI under 3s on simulated 4G mobile
   4. Scrape failure alerts fire automatically when a university has not been updated within the expected staleness window
   5. The app remains fully functional (reads from cache/CDN) during a Supabase cold start or temporary unavailability
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 05-01-PLAN.md — Static JSON generator script, public/data/ CDN layer, Supabase resilience fallback in route handlers
@@ -115,4 +115,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Core API and Algorithm | 2/2 | Complete   | 2026-03-18 |
 | 3. Frontend PWA | 5/5 | Complete   | 2026-03-18 |
 | 4. Scraper Expansion | 2/2 | Complete   | 2026-03-18 |
-| 5. Infrastructure Hardening | 1/3 | In Progress|  |
+| 5. Infrastructure Hardening | 3/3 | Complete   | 2026-03-18 |
