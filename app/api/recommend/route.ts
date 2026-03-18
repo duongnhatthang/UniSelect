@@ -47,6 +47,8 @@ export async function GET(req: NextRequest) {
           tohop_code: cutoffScores.tohop_code,
           year: cutoffScores.year,
           score: cutoffScores.score,
+          scraped_at: cutoffScores.scraped_at,
+          source_url: cutoffScores.source_url,
         })
         .from(cutoffScores)
         .innerJoin(universities, eq(cutoffScores.university_id, universities.id))

@@ -19,6 +19,8 @@ vi.mock('../../lib/db/schema', () => ({
     university_id: 'university_id',
     major_id: 'major_id',
     score: 'score',
+    scraped_at: 'scraped_at',
+    source_url: 'source_url',
   },
   universities: { _tag: 'universities', id: 'id', name_vi: 'name_vi' },
   majors: { _tag: 'majors', id: 'id', name_vi: 'name_vi' },
@@ -71,6 +73,8 @@ const makeMockResult = (id: number) => ({
   data_years_limited: false,
   years_available: 3,
   suggested_top_15: id <= 15,
+  scraped_at: '2024-01-15T10:00:00Z',
+  source_url: `https://example.com/university/${id}`,
 });
 
 describe('GET /api/recommend', () => {
@@ -164,6 +168,35 @@ describe('GET /api/recommend', () => {
     const body = await res.json();
     expect(body.error.code).toBe('DB_UNAVAILABLE');
     expect(res.headers.get('Retry-After')).toBe('30');
+  });
+
+  it('response includes scraped_at and source_url per result', async () => {
+    const maxYearChain = makeMaxYearChain(2024);
+    const dataRows = [
+      {
+        university_id: 'BKA', university_name_vi: 'Bách Khoa', major_id: '7480201',
+        major_name_vi: 'CNTT', tohop_code: 'A00', year: 2024, score: '25.00',
+        scraped_at: '2024-01-15T10:00:00Z', source_url: 'https://example.com/bka',
+      },
+    ];
+    const dataChain = makeDataFetchChain(dataRows);
+
+    let callCount = 0;
+    mockDb.select.mockImplementation(() => {
+      callCount++;
+      return callCount === 1 ? maxYearChain : dataChain;
+    });
+
+    const mockResults = [makeMockResult(1)];
+    mockRecommend.mockReturnValue(mockResults);
+
+    const req = new NextRequest('http://localhost/api/recommend?tohop=A00&score=25.0');
+    const res = await GET(req);
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data[0]).toHaveProperty('scraped_at', '2024-01-15T10:00:00Z');
+    expect(body.data[0]).toHaveProperty('source_url', 'https://example.com/university/1');
   });
 
   it('does not set Cache-Control header (personalized endpoint)', async () => {

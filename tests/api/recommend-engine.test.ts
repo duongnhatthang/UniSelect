@@ -13,6 +13,8 @@ function makeRow(
     major_id: '7480201',
     major_name_vi: 'Cong nghe thong tin',
     tohop_code: 'A00',
+    scraped_at: null,
+    source_url: null,
     ...overrides,
   };
 }

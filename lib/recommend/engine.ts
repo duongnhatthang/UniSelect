@@ -100,6 +100,8 @@ export function recommend(input: RecommendInput, rows: CutoffDataRow[]): Recomme
       data_years_limited: yearsCount < 3,
       years_available: yearsCount,
       suggested_top_15: false, // will be set in Step 3
+      scraped_at: representative.scraped_at ?? null,
+      source_url: representative.source_url ?? null,
     });
   }
 

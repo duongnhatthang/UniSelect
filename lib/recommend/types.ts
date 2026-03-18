@@ -13,6 +13,8 @@ export interface CutoffDataRow {
   tohop_code: string;
   year: number;
   score: string;  // STRING from Postgres numeric — must parseFloat before arithmetic
+  scraped_at: string | null;
+  source_url: string | null;
 }
 
 export interface RecommendResult {
@@ -27,4 +29,6 @@ export interface RecommendResult {
   data_years_limited: boolean;
   years_available: number;
   suggested_top_15: boolean;
+  scraped_at: string | null;
+  source_url: string | null;
 }
