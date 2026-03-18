@@ -16,6 +16,9 @@
  *   STALENESS_DAYS  — Number of days before a university is considered stale (default: 7)
  */
 
+import { loadEnvConfig } from '@next/env';
+loadEnvConfig(process.cwd());
+
 import { db } from '../lib/db';
 import { scrapeRuns, universities } from '../lib/db/schema';
 import { max, inArray } from 'drizzle-orm';

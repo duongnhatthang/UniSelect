@@ -9,6 +9,9 @@
  * Requires: DATABASE_URL env var pointing to Supabase pooler (port 6543).
  */
 
+import { loadEnvConfig } from '@next/env';
+loadEnvConfig(process.cwd());
+
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import postgres from 'postgres';
