@@ -96,6 +96,7 @@ metrics:
   completed_date: "2026-03-18"
   tasks_completed: 2
   files_created: 73
+requirements_completed: [PIPE-04]
 ---
 
 # Phase 4 Plan 01: Adapter Generator and Full Registry Summary

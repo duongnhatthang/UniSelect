@@ -29,6 +29,7 @@ metrics:
   tasks_completed: 2
   files_created: 1
   files_modified: 3
+requirements_completed: [PIPE-04]
 ---
 
 # Phase 4 Plan 02: Matrix Sharding and Peak Workflow Summary
