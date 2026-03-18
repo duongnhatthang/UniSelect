@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 05-infrastructure-hardening/05-01-PLAN.md
-last_updated: "2026-03-18T19:13:27.945Z"
+stopped_at: Completed 06-tech-debt-cleanup/06-01-PLAN.md
+last_updated: "2026-03-18T21:33:16.013Z"
 last_activity: 2026-03-17 — Roadmap created; all 14 v1 requirements mapped across 5 phases
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 15
-  completed_plans: 15
+  total_phases: 7
+  completed_phases: 6
+  total_plans: 16
+  completed_plans: 16
   percent: 0
 ---
 
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-infrastructure-hardening P02 | 8min | 2 tasks | 2 files |
 | Phase 05-infrastructure-hardening P03 | 8min | 2 tasks | 4 files |
 | Phase 05-infrastructure-hardening P01 | 2min | 2 tasks | 5 files |
+| Phase 06-tech-debt-cleanup P01 | 2min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,8 @@ Recent decisions affecting current work:
 - [Phase 05-infrastructure-hardening]: scores-by-tohop.json keyed by tohop_code for O(1) fallback filter without full scan
 - [Phase 05-infrastructure-hardening]: public/data/*.json excluded from git — generated at deploy time, not version controlled
 - [Phase 05-infrastructure-hardening]: Double-nested try/catch: 503 only if static file is also missing; recommend route excluded from static fallback
+- [Phase 06-tech-debt-cleanup]: TohopCode interface extended with label_vi: string | null — DB column already existed, type was silently discarding it
+- [Phase 06-tech-debt-cleanup]: Dropdown falls back to subjects list when label_vi is null — same pattern as UniversitySearch.tsx line 94
 
 ### Pending Todos
 
@@ -130,6 +133,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T19:09:40.114Z
-Stopped at: Completed 05-infrastructure-hardening/05-01-PLAN.md
+Last session: 2026-03-18T21:33:16.010Z
+Stopped at: Completed 06-tech-debt-cleanup/06-01-PLAN.md
 Resume file: None
