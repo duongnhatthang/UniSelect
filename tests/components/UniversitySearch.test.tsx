@@ -10,9 +10,9 @@ vi.mock('next-intl', () => ({
 }));
 
 const mockUniversities = [
-  { id: 'BKA', name_vi: '\u0110\u1ea1i h\u1ecdc B\u00e1ch khoa H\u00e0 N\u1ed9i', website_url: null },
-  { id: 'NEU', name_vi: '\u0110\u1ea1i h\u1ecdc Kinh t\u1ebf Qu\u1ed1c d\u00e2n', website_url: null },
-  { id: 'HUT', name_vi: 'Tr\u01b0\u1eddng \u0110\u1ea1i h\u1ecdc X\u00e2y d\u1ef1ng', website_url: null },
+  { id: 'BKA', name_vi: '\u0110\u1ea1i h\u1ecdc B\u00e1ch khoa H\u00e0 N\u1ed9i', website_url: null, tohop_codes: ['A00'] },
+  { id: 'NEU', name_vi: '\u0110\u1ea1i h\u1ecdc Kinh t\u1ebf Qu\u1ed1c d\u00e2n', website_url: null, tohop_codes: ['D01'] },
+  { id: 'HUT', name_vi: 'Tr\u01b0\u1eddng \u0110\u1ea1i h\u1ecdc X\u00e2y d\u1ef1ng', website_url: null, tohop_codes: [] },
 ];
 
 const mockTohop = {
@@ -112,5 +112,42 @@ describe('UniversitySearch', () => {
 
     expect(getByText('A00')).not.toBeNull();
     expect(getByText('D01')).not.toBeNull();
+  });
+
+  it('filters universities by tohop code when dropdown selection changes', async () => {
+    const user = userEvent.setup();
+    const { getByRole, getByText, queryByText } = render(<UniversitySearch />);
+
+    await waitFor(() => {
+      expect(getByText('\u0110\u1ea1i h\u1ecdc B\u00e1ch khoa H\u00e0 N\u1ed9i')).not.toBeNull();
+    });
+
+    const select = getByRole('combobox');
+    await user.selectOptions(select, 'A00');
+
+    await waitFor(() => {
+      expect(getByText('\u0110\u1ea1i h\u1ecdc B\u00e1ch khoa H\u00e0 N\u1ed9i')).not.toBeNull();
+      expect(queryByText('\u0110\u1ea1i h\u1ecdc Kinh t\u1ebf Qu\u1ed1c d\u00e2n')).toBeNull();
+      expect(queryByText('Tr\u01b0\u1eddng \u0110\u1ea1i h\u1ecdc X\u00e2y d\u1ef1ng')).toBeNull();
+    });
+  });
+
+  it('shows all universities when tohop filter is reset to all', async () => {
+    const user = userEvent.setup();
+    const { getByRole, getByText } = render(<UniversitySearch />);
+
+    await waitFor(() => {
+      expect(getByText('\u0110\u1ea1i h\u1ecdc B\u00e1ch khoa H\u00e0 N\u1ed9i')).not.toBeNull();
+    });
+
+    const select = getByRole('combobox');
+    await user.selectOptions(select, 'A00');
+    await user.selectOptions(select, '');
+
+    await waitFor(() => {
+      expect(getByText('\u0110\u1ea1i h\u1ecdc B\u00e1ch khoa H\u00e0 N\u1ed9i')).not.toBeNull();
+      expect(getByText('\u0110\u1ea1i h\u1ecdc Kinh t\u1ebf Qu\u1ed1c d\u00e2n')).not.toBeNull();
+      expect(getByText('Tr\u01b0\u1eddng \u0110\u1ea1i h\u1ecdc X\u00e2y d\u1ef1ng')).not.toBeNull();
+    });
   });
 });

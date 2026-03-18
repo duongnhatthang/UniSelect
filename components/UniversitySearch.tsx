@@ -7,6 +7,7 @@ interface University {
   id: string;
   name_vi: string;
   website_url: string | null;
+  tohop_codes: string[];
 }
 
 interface TohopCode {
@@ -66,7 +67,8 @@ export function UniversitySearch() {
 
   const filtered = universities.filter(u => {
     const matchesName = !query || normalizeVi(u.name_vi).includes(normalizeVi(query));
-    return matchesName;
+    const matchesTohop = !selectedTohop || u.tohop_codes.includes(selectedTohop);
+    return matchesName && matchesTohop;
   });
 
   return (

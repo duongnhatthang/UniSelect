@@ -11,7 +11,7 @@ vi.mock('../../lib/db', () => ({ db: mockDb }));
 
 vi.mock('../../lib/db/schema', () => ({
   universities: { _tag: 'universities', id: 'id' },
-  cutoffScores: { _tag: 'cutoffScores' },
+  cutoffScores: { _tag: 'cutoffScores', university_id: 'university_id', tohop_code: 'tohop_code' },
   majors: { _tag: 'majors' },
   tohopCodes: { _tag: 'tohopCodes' },
 }));
@@ -21,15 +21,24 @@ vi.mock('drizzle-orm', () => ({
   and: vi.fn(),
   gt: vi.fn((_col, _val) => ({ _gt: true })),
   asc: vi.fn((_col) => ({ _asc: true })),
-  sql: (strings: TemplateStringsArray, ..._values: unknown[]) => strings.join(''),
+  sql: Object.assign(
+    (strings: TemplateStringsArray, ..._values: unknown[]) => {
+      const result = strings.join('');
+      return { as: (_alias: string) => result };
+    },
+    { raw: {} }
+  ),
 }));
 
 // Helper to build a chainable Drizzle mock for select queries
 const makeMockSelectChain = (resolvedValue: unknown) => {
   const chain: Record<string, ReturnType<typeof vi.fn>> = {};
   chain.from = vi.fn().mockReturnValue(chain);
+  chain.leftJoin = vi.fn().mockReturnValue(chain);
   chain.where = vi.fn().mockReturnValue(chain);
   chain.orderBy = vi.fn().mockReturnValue(chain);
+  chain.groupBy = vi.fn().mockReturnValue(chain);
+  chain.as = vi.fn().mockReturnValue(chain);
   chain.limit = vi.fn().mockResolvedValue(resolvedValue);
   return chain;
 };
@@ -37,12 +46,13 @@ const makeMockSelectChain = (resolvedValue: unknown) => {
 import { GET as ListGET } from '../../app/api/universities/route';
 import { GET as DetailGET } from '../../app/api/universities/[id]/route';
 
-const makeUni = (id: string) => ({
+const makeUni = (id: string, tohopCodes: string[] = []) => ({
   id,
   name_vi: `University ${id}`,
   name_en: null,
   website_url: null,
   created_at: new Date(),
+  tohop_codes: tohopCodes,
 });
 
 describe('GET /api/universities (list)', () => {
@@ -107,8 +117,11 @@ describe('GET /api/universities (list)', () => {
   it('returns 503 with Retry-After when DB throws DB_TIMEOUT', async () => {
     const chain: Record<string, ReturnType<typeof vi.fn>> = {};
     chain.from = vi.fn().mockReturnValue(chain);
+    chain.leftJoin = vi.fn().mockReturnValue(chain);
     chain.where = vi.fn().mockReturnValue(chain);
     chain.orderBy = vi.fn().mockReturnValue(chain);
+    chain.groupBy = vi.fn().mockReturnValue(chain);
+    chain.as = vi.fn().mockReturnValue(chain);
     chain.limit = vi.fn().mockRejectedValue(new Error('DB_TIMEOUT'));
     mockDb.select.mockReturnValue(chain);
 
@@ -117,6 +130,20 @@ describe('GET /api/universities (list)', () => {
 
     expect(res.status).toBe(503);
     expect(res.headers.get('Retry-After')).toBe('30');
+  });
+
+  it('includes tohop_codes array on each university record', async () => {
+    const mockRows = [makeUni('BKA', ['A00', 'A01']), makeUni('NEU', ['D01'])];
+    const chain = makeMockSelectChain(mockRows);
+    mockDb.select.mockReturnValue(chain);
+
+    const req = new NextRequest('http://localhost/api/universities');
+    const res = await ListGET(req);
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data[0].tohop_codes).toEqual(['A00', 'A01']);
+    expect(body.data[1].tohop_codes).toEqual(['D01']);
   });
 });
 
