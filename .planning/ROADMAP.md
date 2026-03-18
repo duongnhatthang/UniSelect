@@ -30,13 +30,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Every cutoff score record in the database has a source URL, scraped timestamp, year, tổ hợp code, and score value — no incomplete records pass validation
   4. The university seed list is queryable and contains at least the initial 78+ institutions with their websites
   5. The Next.js + Vercel project deploys successfully on free tier with environment variables connected to Supabase
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
-- [ ] 01-04: TBD
+- [ ] 01-01-PLAN.md — Next.js project init, Drizzle schema, DB connection, seed migration, Vitest config
+- [ ] 01-02-PLAN.md — Scraper framework: types, normalizer (TDD), encoding-safe fetch, fail-open runner
+- [ ] 01-03-PLAN.md — Pilot adapters (6), adapter registry, CLI entry point, GitHub Actions workflow
 
 ### Phase 2: Core API and Algorithm
 **Goal**: All API endpoints are live, edge-cached, and the recommendation algorithm produces correct tiered results against real scraped data
@@ -114,7 +113,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Foundation | 0/4 | Not started | - |
+| 1. Data Foundation | 0/3 | Not started | - |
 | 2. Core API and Algorithm | 0/3 | Not started | - |
 | 3. Frontend PWA | 0/4 | Not started | - |
 | 4. Scraper Expansion | 0/3 | Not started | - |
