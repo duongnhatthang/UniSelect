@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-core-api-and-algorithm/02-02-PLAN.md
-last_updated: "2026-03-18T17:21:29.321Z"
+stopped_at: Completed 03-frontend-pwa/03-01-PLAN.md
+last_updated: "2026-03-18T18:06:05.922Z"
 last_activity: 2026-03-17 — Roadmap created; all 14 v1 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 9
+  completed_plans: 6
   percent: 0
 ---
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-data-foundation P03 | 15min | 3 tasks | 14 files |
 | Phase 02-core-api-and-algorithm P01 | 4min | 2 tasks | 6 files |
 | Phase 02-core-api-and-algorithm P02 | 9min | 2 tasks | 13 files |
+| Phase 03-frontend-pwa P01 | 7min | 2 tasks | 18 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,9 @@ Recent decisions affecting current work:
 - [Phase 02-core-api-and-algorithm]: withTimeout uses Promise.race (not postgres.js timeout option) — required for Supabase transaction-mode pooler at port 6543
 - [Phase 02-core-api-and-algorithm]: Relative imports used in route handlers instead of @/ alias — tsconfig paths map @/* to ./src/* which does not exist in this project
 - [Phase 02-core-api-and-algorithm]: anchorYear derived from max(year) DB query per tohop code — ensures results include most recently scraped data regardless of calendar year
+- [Phase 03-frontend-pwa]: Serwist sw.ts uses matcher property and NetworkOnly class instance — sw9.5.7 API change from urlPattern string approach in older docs
+- [Phase 03-frontend-pwa]: Split dev/build scripts: dev=next dev --turbopack, build=next build --webpack — Serwist requires webpack for SW bundling
+- [Phase 03-frontend-pwa]: next-intl without i18n routing: cookie-based locale with NEXT_LOCALE key, router.refresh() on toggle
 
 ### Pending Todos
 
@@ -97,6 +101,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T17:17:11.739Z
-Stopped at: Completed 02-core-api-and-algorithm/02-02-PLAN.md
+Last session: 2026-03-18T18:06:05.920Z
+Stopped at: Completed 03-frontend-pwa/03-01-PLAN.md
 Resume file: None

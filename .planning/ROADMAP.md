@@ -64,13 +64,13 @@ Plans:
   5. Every displayed cutoff score shows its source and data age (staleness indicator)
   6. The entire app is usable in Vietnamese by default and switches to English on toggle — both languages complete, no untranslated strings
   7. The app is installable as a PWA and loads previously fetched data offline
-**Plans**: TBD
+**Plans:** 1/4 plans executed
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
-- [ ] 03-03: TBD
-- [ ] 03-04: TBD
+- [ ] 03-01-PLAN.md — Foundation: API extension (scraped_at/source_url), library install, Serwist + next-intl + nuqs config, root layout, PWA manifest, icons
+- [ ] 03-02-PLAN.md — Score entry (quick + detailed mode), results list with tier colors, nguyen vong builder with URL sharing
+- [ ] 03-03-PLAN.md — University search (diacritic-aware), tohop filter, staleness indicator with 90-day warning
+- [ ] 03-04-PLAN.md — Complete i18n (vi + en), component integration, end-to-end verification checkpoint
 
 ### Phase 4: Scraper Expansion
 **Goal**: All 78+ Vietnamese universities have working scrapers, executing in parallel shards with July peak-frequency scheduling
@@ -114,6 +114,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 3/3 | Complete   | 2026-03-18 |
 | 2. Core API and Algorithm | 2/2 | Complete   | 2026-03-18 |
-| 3. Frontend PWA | 0/4 | Not started | - |
+| 3. Frontend PWA | 1/4 | In Progress|  |
 | 4. Scraper Expansion | 0/3 | Not started | - |
 | 5. Infrastructure Hardening | 0/3 | Not started | - |
