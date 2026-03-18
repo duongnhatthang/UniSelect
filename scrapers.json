@@ -30,9 +30,9 @@
   {
     "id": "GHA",
     "adapter": "gha",
-    "url": "https://utc.edu.vn/",
-    "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "url": "https://tuyensinh.utc.edu.vn/?q=tin-tuyen-sinh/diem-trung-tuyen-dai-hoc-he-chinh-quy-nam-2025",
+    "note": "PaddleOCR adapter (JPEG images). Requires Python + paddleocr in CI. Reference pattern for image pages.",
+    "static_verified": true
   },
   {
     "id": "DCN",

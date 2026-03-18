@@ -1,82 +1,92 @@
 /**
- * GHA Adapter — Trường Đại học Giao thông vận tải (UTC)
+ * GHA Adapter -- Truong Dai hoc Giao thong van tai (UTC)
  *
- * TODO: Before setting static_verified: true in scrapers.json:
- * 1. Visit https://utc.edu.vn/ and find the cutoff scores page (likely under
- *    Tuyển sinh -> Điểm chuẩn or similar navigation path)
- * 2. View page source (Ctrl+U) and confirm the table is in raw HTML (not JS-rendered)
- * 3. Update the url in scrapers.json to the specific cutoff page URL, not just the homepage
- * 4. Verify the column headers match the text anchors used below
+ * Verified: 2026-03-18
+ * Rendering: JPEG images (PaddleOCR required)
+ * URL: https://tuyensinh.utc.edu.vn/?q=tin-tuyen-sinh/diem-trung-tuyen-dai-hoc-he-chinh-quy-nam-2025
+ * Pattern: PaddleOCR reference adapter -- use as template for other image-based pages
  *
- * University: Trường Đại học Giao thông vận tải
+ * University: Truong Dai hoc Giao thong van tai
  * Ministry code: GHA
  * Homepage: https://utc.edu.vn/
- * Selection rationale: Large public engineering university, likely static-rendered cutoff tables
  */
 
-import * as cheerio from 'cheerio';
+import { execSync } from 'child_process';
+import { writeFileSync, readFileSync, unlinkSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { fetchHTML } from '../fetch';
+import * as cheerio from 'cheerio';
 import { RawRow, ScraperAdapter } from '../types';
 
 export const ghaAdapter: ScraperAdapter = {
   id: 'GHA',
   async scrape(url: string): Promise<RawRow[]> {
+    // Step 1: Fetch announcement page to find image URLs
     const html = await fetchHTML(url);
     const $ = cheerio.load(html);
-    const rows: RawRow[] = [];
-    const year = new Date().getFullYear() - 1; // Previous year's cutoff scores
-
-    // Semantic text anchors — find tables by header content, not positional CSS selectors
-    $('table').each((_, table) => {
-      const headers = $(table)
-        .find('th, thead td')
-        .map((_, el) => $(el).text().trim())
-        .get();
-
-      const scoreIdx = headers.findIndex(
-        (h) => h.includes('Diem chuan') || h.includes('diem chuan')
-      );
-      const tohopIdx = headers.findIndex(
-        (h) => h.includes('To hop') || h.includes('Khoi') || h.includes('to hop')
-      );
-      const majorIdx = headers.findIndex(
-        (h) =>
-          h.includes('Ma nganh') ||
-          h.includes('Nganh') ||
-          h.includes('ma nganh') ||
-          h.includes('nganh')
-      );
-
-      // Not a cutoff table — skip
-      if (scoreIdx === -1) return;
-
-      $(table)
-        .find('tbody tr')
-        .each((_, tr) => {
-          const cells = $(tr)
-            .find('td')
-            .map((_, td) => $(td).text().trim())
-            .get();
-          if (cells.length === 0) return;
-
-          rows.push({
-            university_id: 'GHA',
-            major_raw: cells[majorIdx] ?? '',
-            tohop_raw: cells[tohopIdx] ?? '',
-            year,
-            score_raw: cells[scoreIdx] ?? '',
-            source_url: url,
-          });
-        });
+    const imageUrls: string[] = [];
+    $('img').each((_, el) => {
+      const src = $(el).attr('src') ?? '';
+      if (src.match(/diem.*\.(jpg|jpeg|png)/i) || src.match(/page-\d+\.(jpg|jpeg|png)/i)) {
+        const absolute = src.startsWith('http') ? src : new URL(src, url).href;
+        imageUrls.push(absolute);
+      }
     });
 
-    // Minimum-rows assertion (Pitfall 4: JS-rendered page or layout change)
-    if (rows.length === 0) {
-      throw new Error(
-        `GHA adapter returned 0 rows — possible JS rendering or layout change at ${url}`
-      );
+    if (imageUrls.length === 0) {
+      throw new Error(`GHA adapter found 0 score images at ${url}`);
     }
 
+    const rows: RawRow[] = [];
+    const year = new Date().getFullYear() - 1;
+
+    for (const imgUrl of imageUrls) {
+      const res = await fetch(imgUrl);
+      if (!res.ok) continue;
+      const buffer = Buffer.from(await res.arrayBuffer());
+      const tempImg = join(tmpdir(), `gha_score_${Date.now()}.jpg`);
+      const tempOut = join(tmpdir(), `gha_ocr_${Date.now()}.json`);
+
+      try {
+        writeFileSync(tempImg, buffer);
+
+        execSync(`python3 scripts/ocr_table.py "${tempImg}" "${tempOut}"`, {
+          timeout: 120000,
+          cwd: process.cwd(),
+        });
+
+        const ocrResult = JSON.parse(readFileSync(tempOut, 'utf-8'));
+        const lines: string[] = ocrResult.lines ?? [];
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          const majorMatch = line.match(/^(7\d{6})/);
+          if (majorMatch) {
+            const majorCode = majorMatch[1];
+            const tohop = lines[i + 1] ?? '';
+            const score = lines[i + 2] ?? '';
+            if (/\d/.test(score)) {
+              rows.push({
+                university_id: 'GHA',
+                major_raw: majorCode,
+                tohop_raw: tohop,
+                year,
+                score_raw: score.replace(',', '.'),
+                source_url: url,
+              });
+            }
+          }
+        }
+      } finally {
+        try { unlinkSync(tempImg); } catch { /* ignore */ }
+        try { unlinkSync(tempOut); } catch { /* ignore */ }
+      }
+    }
+
+    if (rows.length === 0) {
+      throw new Error(`GHA OCR adapter returned 0 rows from ${imageUrls.length} images at ${url}`);
+    }
     return rows;
   },
 };
