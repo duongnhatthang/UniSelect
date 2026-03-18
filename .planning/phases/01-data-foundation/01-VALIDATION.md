@@ -38,16 +38,14 @@ created: 2026-03-17
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 1-01-xx | 01 | 0 | PIPE-01 | integration (DB) | `npx vitest run tests/db/seed.test.ts` | ❌ W0 | ⬜ pending |
-| 1-02-xx | 02 | 0 | PIPE-02 | unit (mock fetch) | `npx vitest run tests/scraper/adapters/*.test.ts` | ❌ W0 | ⬜ pending |
-| 1-02-xx | 02 | 0 | PIPE-02 | unit (mock DB) | `npx vitest run tests/scraper/runner.test.ts` | ❌ W0 | ⬜ pending |
-| 1-02-xx | 02 | 0 | PIPE-02 | smoke | `npx yaml-lint .github/workflows/scrape-low.yml` | ❌ W0 | ⬜ pending |
-| 1-03-xx | 03 | 0 | PIPE-03 | unit | `npx vitest run tests/scraper/normalizer.test.ts` | ❌ W0 | ⬜ pending |
-| 1-03-xx | 03 | 0 | PIPE-03 | integration (DB) | `npx vitest run tests/db/upsert.test.ts` | ❌ W0 | ⬜ pending |
-| 1-04-xx | 04 | 0 | INFRA-01 | smoke | `npx next build` | ❌ W0 | ⬜ pending |
-| 1-04-xx | 04 | — | INFRA-01 | smoke (manual) | `curl -s -o /dev/null -w "%{http_code}" $VERCEL_URL` | Manual | ⬜ pending |
+| 1-02-xx | 02 | 0 | PIPE-02 | unit (mock HTML) | `npx vitest run tests/scraper/adapters/bka.test.ts` | W0 | pending |
+| 1-02-xx | 02 | 0 | PIPE-02 | unit (mock DB) | `npx vitest run tests/scraper/runner.test.ts` | W0 | pending |
+| 1-02-xx | 02 | 0 | PIPE-02 | smoke | `npx yaml-lint .github/workflows/scrape-low.yml` | W0 | pending |
+| 1-03-xx | 03 | 0 | PIPE-03 | unit | `npx vitest run tests/scraper/normalizer.test.ts` | W0 | pending |
+| 1-04-xx | 04 | 0 | INFRA-01 | smoke | `npx next build` | W0 | pending |
+| 1-04-xx | 04 | — | INFRA-01 | smoke (manual) | `curl -s -o /dev/null -w "%{http_code}" $VERCEL_URL` | Manual | pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: pending / green / red / flaky*
 
 ---
 
@@ -56,9 +54,21 @@ created: 2026-03-17
 - [ ] `vitest.config.mts` — framework config; install vitest + @vitejs/plugin-react + vite-tsconfig-paths
 - [ ] `tests/scraper/normalizer.test.ts` — covers PIPE-03 normalization and rejection logic
 - [ ] `tests/scraper/runner.test.ts` — covers PIPE-02 fail-open behavior and scrape_run logging
-- [ ] `tests/scraper/adapters/bka.test.ts` — covers PIPE-02 adapter contract (mock fetch with sample HTML)
-- [ ] `tests/db/seed.test.ts` — covers PIPE-01 seed row count assertion
-- [ ] `tests/db/upsert.test.ts` — covers PIPE-03 upsert idempotency
+- [ ] `tests/scraper/adapters/bka.test.ts` — covers PIPE-02 adapter behavioral contract (mock fetch with sample HTML fixture, asserts non-empty RawRow[] with expected field shapes)
+- [ ] `tests/scraper/adapters/adapter-contract.test.ts` — covers PIPE-02 adapter shape contract (id: string, scrape: function)
+
+---
+
+## Deferred DB Integration Tests
+
+The following tests were originally planned for Wave 0 but are deferred to manual verification in Plan 01-03 Task 3 (checkpoint:human-verify). They require a live Supabase connection which is not available during CI or automated test runs in Phase 1:
+
+| Deferred Test | Requirement | Reason for Deferral | Manual Verification |
+|---------------|-------------|---------------------|---------------------|
+| `tests/db/seed.test.ts` — PIPE-01: DB seeded with 78+ rows | PIPE-01 | Requires live Supabase DB connection; no test DB provisioning in Phase 1 | Run migration SQL in Supabase SQL Editor, then `SELECT count(*) FROM universities` — expect 78+ |
+| `tests/db/upsert.test.ts` — PIPE-03: upsert idempotency | PIPE-03 | Requires live Supabase DB connection; runner upsert logic is unit-tested via mock in runner.test.ts | After first scrape run, re-run scraper and verify `SELECT count(*) FROM cutoff_scores` does not double |
+
+These tests may be created in Phase 2 when a test database provisioning pattern is established, or if a Supabase local development setup (supabase CLI) is introduced.
 
 ---
 
@@ -67,7 +77,9 @@ created: 2026-03-17
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
 | Vercel deployment responds 200 on `/` | INFRA-01 | Requires live Vercel URL after deploy | `curl -s -o /dev/null -w "%{http_code}" $VERCEL_URL` — expect 200 |
-| Ministry portal điểm chuẩn URL works | PIPE-02 | URL path changes each cycle; requires browser audit | Open portal, navigate to điểm chuẩn page, confirm structured data is accessible for 2025/2026 cycle |
+| Ministry portal cutoff URL works | PIPE-02 | URL path changes each cycle; requires browser audit | Open portal, navigate to cutoff page, confirm structured data is accessible for 2025/2026 cycle |
+| DB seeded with 78+ university rows | PIPE-01 | Requires live Supabase connection | Run migration in SQL Editor, then `SELECT count(*) FROM universities` — expect 78+ |
+| Upsert idempotency | PIPE-03 | Requires live Supabase connection | Run scraper twice, verify row count does not double |
 
 ---
 
