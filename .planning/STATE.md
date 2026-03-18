@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-frontend-pwa/03-04-PLAN.md (all tasks complete, user approved Task 2 checkpoint)
-last_updated: "2026-03-18T18:26:22.758Z"
+stopped_at: Completed 03-frontend-pwa/03-05-PLAN.md (gap closure complete)
+last_updated: "2026-03-18T18:39:39.214Z"
 last_activity: 2026-03-17 — Roadmap created; all 14 v1 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 10
+  completed_plans: 10
   percent: 0
 ---
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-frontend-pwa P03 | 5min | 2 tasks | 8 files |
 | Phase 03-frontend-pwa P02 | 15min | 2 tasks | 10 files |
 | Phase 03-frontend-pwa P04 | 3min | 1 tasks | 12 files |
+| Phase 03-frontend-pwa P05 | 3min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,7 @@ Recent decisions affecting current work:
 - [Phase 03-frontend-pwa]: afterEach cleanup() required in jsdom component tests to prevent DOM accumulation across vitest test runs
 - [Phase 03-frontend-pwa]: resolveLocale named export in i18n/request.ts: extracts pure locale logic from Next.js server context for unit testability without mocking cookies()
 - [Phase 03-frontend-pwa]: TierBadge uses t(tier) — tier values exactly match translation keys so t('dream') returns Ước mơ in vi locale
+- [Phase 03-frontend-pwa]: array_agg(distinct ...) via sql template tag in subquery — Drizzle has no built-in array aggregation; coalesce to empty array for universities with no cutoff scores
 
 ### Pending Todos
 
@@ -110,6 +112,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T18:26:22.755Z
-Stopped at: Completed 03-frontend-pwa/03-04-PLAN.md (all tasks complete, user approved Task 2 checkpoint)
+Last session: 2026-03-18T18:39:39.212Z
+Stopped at: Completed 03-frontend-pwa/03-05-PLAN.md (gap closure complete)
 Resume file: None
