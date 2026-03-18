@@ -1,0 +1,227 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useQueryStates } from 'nuqs';
+import { parseAsString, parseAsFloat } from 'nuqs';
+import { useTranslations } from 'next-intl';
+import type { RecommendResult } from '../lib/recommend/types';
+import type { TohopCode } from '../lib/utils/tohop-subjects';
+import { calculateTotal } from '../lib/utils/calculate-total';
+import { ResultsList } from './ResultsList';
+import { NguyenVongList } from './NguyenVongList';
+
+export function ScoreForm() {
+  const t = useTranslations('common');
+
+  const [params, setParams] = useQueryStates({
+    tohop: parseAsString.withDefault(''),
+    score: parseAsFloat,
+    mode: parseAsString.withDefault('quick'),
+  });
+
+  const [tohopCodes, setTohopCodes] = useState<TohopCode[]>([]);
+  const [subjectScores, setSubjectScores] = useState<Record<string, number>>({});
+  const [results, setResults] = useState<RecommendResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [scoreError, setScoreError] = useState('');
+
+  // Fetch tohop codes on mount
+  useEffect(() => {
+    fetch('/api/tohop')
+      .then(res => res.json())
+      .then((data: { data: TohopCode[] }) => {
+        setTohopCodes(data.data || []);
+      })
+      .catch(() => {});
+  }, []);
+
+  const selectedTohop = tohopCodes.find(t => t.code === params.tohop);
+  const selectedSubjects = selectedTohop?.subjects ?? [];
+
+  // Calculated total for detailed mode
+  const detailedTotal = params.mode === 'detailed' && selectedSubjects.length > 0
+    ? calculateTotal(subjectScores, selectedSubjects)
+    : null;
+
+  function validateScore(value: number | null): boolean {
+    if (value === null || value === undefined) return true;
+    return value >= 10.0 && value <= 30.0;
+  }
+
+  function handleScoreChange(value: string) {
+    const num = value === '' ? null : parseFloat(value);
+    setParams({ score: num });
+    if (num !== null && (num < 10.0 || num > 30.0)) {
+      setScoreError('Diem phai tu 10.0 den 30.0');
+    } else {
+      setScoreError('');
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const totalScore = params.mode === 'quick' ? params.score : detailedTotal;
+    if (!params.tohop || totalScore === null || totalScore === undefined) return;
+    if (!validateScore(totalScore)) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/recommend?tohop=${params.tohop}&score=${totalScore}`);
+      const data: { data: RecommendResult[] } = await res.json();
+      setResults(data.data || []);
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Auto-submit detailed mode when all subjects filled and total >= 10
+  useEffect(() => {
+    if (params.mode === 'detailed' && params.tohop && detailedTotal !== null && detailedTotal >= 10) {
+      setLoading(true);
+      fetch(`/api/recommend?tohop=${params.tohop}&score=${detailedTotal}`)
+        .then(res => res.json())
+        .then((data: { data: RecommendResult[] }) => {
+          setResults(data.data || []);
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailedTotal, params.tohop, params.mode]);
+
+  const activeScore = params.mode === 'quick' ? params.score : detailedTotal;
+
+  return (
+    <div className="w-full max-w-2xl mx-auto px-4">
+      {/* Mode tabs */}
+      <div className="flex gap-2 mb-4 border-b border-gray-200">
+        <button
+          type="button"
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            params.mode === 'quick'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+          onClick={() => setParams({ mode: 'quick' })}
+        >
+          {t('quickMode')}
+        </button>
+        <button
+          type="button"
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            params.mode === 'detailed'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+          onClick={() => setParams({ mode: 'detailed' })}
+        >
+          {t('detailedMode')}
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Tohop selector (shared between modes) */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('selectTohop')}
+          </label>
+          <select
+            value={params.tohop}
+            onChange={e => setParams({ tohop: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="">{t('selectTohop')}</option>
+            {tohopCodes.map(tc => (
+              <option key={tc.code} value={tc.code}>
+                {tc.code} ({tc.subjects.join(', ')})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {params.mode === 'quick' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {t('totalScore')}
+            </label>
+            <input
+              type="number"
+              min={10}
+              max={30}
+              step={0.1}
+              value={params.score ?? ''}
+              onChange={e => handleScoreChange(e.target.value)}
+              placeholder={t('enterScore')}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {scoreError && (
+              <p data-testid="score-error" className="mt-1 text-sm text-red-600">
+                {scoreError}
+              </p>
+            )}
+          </div>
+        )}
+
+        {params.mode === 'detailed' && (
+          <div className="space-y-3">
+            {selectedSubjects.length === 0 && (
+              <p className="text-sm text-gray-500">{t('selectTohop')}</p>
+            )}
+            {selectedSubjects.map(subject => (
+              <div key={subject}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {subject}
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={10}
+                  step={0.1}
+                  value={subjectScores[subject] ?? ''}
+                  onChange={e => {
+                    const val = e.target.value === '' ? undefined : parseFloat(e.target.value);
+                    setSubjectScores(prev => {
+                      const next = { ...prev };
+                      if (val === undefined) delete next[subject];
+                      else next[subject] = val;
+                      return next;
+                    });
+                  }}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            ))}
+            {detailedTotal !== null && (
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">{t('totalScore')}: </span>
+                <span className="text-sm font-semibold text-blue-600">{detailedTotal.toFixed(1)}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {params.mode === 'quick' && (
+          <button
+            type="submit"
+            disabled={!params.tohop || !params.score || !!scoreError || loading}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? t('loading') : t('viewResults')}
+          </button>
+        )}
+      </form>
+
+      <div className="mt-6">
+        <ResultsList results={results} loading={loading} userScore={activeScore ?? 0} />
+      </div>
+
+      {results.length > 0 && (
+        <div className="mt-6">
+          <NguyenVongList results={results} userScore={activeScore ?? 0} />
+        </div>
+      )}
+    </div>
+  );
+}
