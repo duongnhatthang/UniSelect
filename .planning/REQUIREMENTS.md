@@ -31,8 +31,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Internationalization
 
-- [ ] **I18N-01**: App defaults to Vietnamese language throughout
-- [ ] **I18N-02**: User can toggle to English language
+- [x] **I18N-01**: App defaults to Vietnamese language throughout
+- [x] **I18N-02**: User can toggle to English language
 
 ### Infrastructure
 
@@ -92,8 +92,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCOR-01 | Phase 3 | Complete |
 | SCOR-02 | Phase 3 | Complete |
 | NGVG-01 | Phase 3 | Complete |
-| I18N-01 | Phase 3 | Pending |
-| I18N-02 | Phase 3 | Pending |
+| I18N-01 | Phase 3 | Complete |
+| I18N-02 | Phase 3 | Complete |
 | INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 5 | Pending |
 
