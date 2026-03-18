@@ -86,7 +86,7 @@ export function NguyenVongList({ results, userScore }: NguyenVongListProps) {
       {nguyenVong && nguyenVong.length > 0 && (
         <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-xs text-gray-500">
-            {t('nguyenVong')} — URL encoded for sharing
+            {t('shareLink')}
           </p>
         </div>
       )}
