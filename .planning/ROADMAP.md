@@ -64,7 +64,7 @@ Plans:
   5. Every displayed cutoff score shows its source and data age (staleness indicator)
   6. The entire app is usable in Vietnamese by default and switches to English on toggle — both languages complete, no untranslated strings
   7. The app is installable as a PWA and loads previously fetched data offline
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 - [ ] 03-01-PLAN.md — Foundation: API extension (scraped_at/source_url), library install, Serwist + next-intl + nuqs config, root layout, PWA manifest, icons
@@ -114,6 +114,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Data Foundation | 3/3 | Complete   | 2026-03-18 |
 | 2. Core API and Algorithm | 2/2 | Complete   | 2026-03-18 |
-| 3. Frontend PWA | 2/4 | In Progress|  |
+| 3. Frontend PWA | 3/4 | In Progress|  |
 | 4. Scraper Expansion | 0/3 | Not started | - |
 | 5. Infrastructure Hardening | 0/3 | Not started | - |

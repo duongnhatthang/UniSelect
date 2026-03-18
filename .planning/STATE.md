@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-frontend-pwa/03-03-PLAN.md
-last_updated: "2026-03-18T18:14:41.526Z"
+stopped_at: Completed 03-frontend-pwa/03-02-PLAN.md
+last_updated: "2026-03-18T18:17:15.853Z"
 last_activity: 2026-03-17 — Roadmap created; all 14 v1 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
   percent: 0
 ---
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-core-api-and-algorithm P02 | 9min | 2 tasks | 13 files |
 | Phase 03-frontend-pwa P01 | 7min | 2 tasks | 18 files |
 | Phase 03-frontend-pwa P03 | 5min | 2 tasks | 8 files |
+| Phase 03-frontend-pwa P02 | 15min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Recent decisions affecting current work:
 - [Phase 03-frontend-pwa]: next-intl without i18n routing: cookie-based locale with NEXT_LOCALE key, router.refresh() on toggle
 - [Phase 03-frontend-pwa]: cleanup() + afterEach required for jsdom test isolation — screen.getByText finds elements from all renders without it
 - [Phase 03-frontend-pwa]: tohop filter in UniversitySearch shows dropdown but does not filter university list — universities table has no tohop_codes column; applies at recommendation layer
+- [Phase 03-frontend-pwa]: parseAsJson in nuqs 2.8.9 requires a validator argument: parseAsJson(validator) not parseAsJson()
+- [Phase 03-frontend-pwa]: afterEach cleanup() required in jsdom component tests to prevent DOM accumulation across vitest test runs
 
 ### Pending Todos
 
@@ -104,6 +107,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T18:14:41.524Z
-Stopped at: Completed 03-frontend-pwa/03-03-PLAN.md
+Last session: 2026-03-18T18:17:15.851Z
+Stopped at: Completed 03-frontend-pwa/03-02-PLAN.md
 Resume file: None
