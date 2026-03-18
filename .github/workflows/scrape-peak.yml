@@ -1,0 +1,44 @@
+# Peak frequency scraper — runs 4x/day when PEAK_SCHEDULE_ENABLED is 'true'
+#
+# To enable for July peak season:
+#   GitHub repo -> Settings -> Variables -> New repository variable
+#   Name: PEAK_SCHEDULE_ENABLED
+#   Value: true
+#
+# To disable (any other month):
+#   Set PEAK_SCHEDULE_ENABLED to 'false' or delete the variable
+#
+# Manual trigger (workflow_dispatch) always runs regardless of the variable.
+
+name: Scrape cutoff scores (peak frequency)
+
+on:
+  schedule:
+    - cron: '0 1,7,13,19 * * *'   # 4x daily — enable in July via PEAK_SCHEDULE_ENABLED
+  workflow_dispatch:                 # Manual trigger always works
+
+jobs:
+  scrape:
+    # For scheduled runs: only execute when PEAK_SCHEDULE_ENABLED='true'
+    # For manual workflow_dispatch: always execute
+    if: github.event_name == 'workflow_dispatch' || vars.PEAK_SCHEDULE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Run scraper shard ${{ matrix.shard }}/6 (peak)
+        run: npx tsx lib/scraper/run.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_TOTAL: 6
