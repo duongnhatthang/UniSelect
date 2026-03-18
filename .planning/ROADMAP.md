@@ -81,7 +81,7 @@ Plans:
   2. GitHub Actions matrix jobs run scraper shards in parallel with each shard completing within 30 minutes
   3. The peak-frequency workflow (scrape-peak.yml) runs multiple times per day and can be toggled on/off without code changes
   4. A failed individual university scraper does not block other scrapers — the pipeline is fail-open and logs failures to scrape_runs
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 04-01-PLAN.md — Adapter generator script, 72 new adapter files, scrapers.json expanded to 78 entries
@@ -114,5 +114,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Data Foundation | 3/3 | Complete   | 2026-03-18 |
 | 2. Core API and Algorithm | 2/2 | Complete   | 2026-03-18 |
 | 3. Frontend PWA | 5/5 | Complete   | 2026-03-18 |
-| 4. Scraper Expansion | 0/2 | Not started | - |
+| 4. Scraper Expansion | 1/2 | In Progress|  |
 | 5. Infrastructure Hardening | 0/3 | Not started | - |

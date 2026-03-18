@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-frontend-pwa/03-05-PLAN.md (gap closure complete)
-last_updated: "2026-03-18T18:42:51.790Z"
+stopped_at: Completed 04-scraper-expansion/04-01-PLAN.md
+last_updated: "2026-03-18T18:53:01.759Z"
 last_activity: 2026-03-17 — Roadmap created; all 14 v1 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 11
   percent: 0
 ---
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-frontend-pwa P02 | 15min | 2 tasks | 10 files |
 | Phase 03-frontend-pwa P04 | 3min | 1 tasks | 12 files |
 | Phase 03-frontend-pwa P05 | 3min | 2 tasks | 5 files |
+| Phase 04-scraper-expansion P01 | 3min | 2 tasks | 73 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,8 @@ Recent decisions affecting current work:
 - [Phase 03-frontend-pwa]: resolveLocale named export in i18n/request.ts: extracts pure locale logic from Next.js server context for unit testability without mocking cookies()
 - [Phase 03-frontend-pwa]: TierBadge uses t(tier) — tier values exactly match translation keys so t('dream') returns Ước mơ in vi locale
 - [Phase 03-frontend-pwa]: array_agg(distinct ...) via sql template tag in subquery — Drizzle has no built-in array aggregation; coalesce to empty array for universities with no cutoff scores
+- [Phase 04-scraper-expansion]: Generator script approach for 72 adapter files — reduces error surface, re-runnable for future university additions
+- [Phase 04-scraper-expansion]: UNIVERSITIES array embedded in generator (not read from DB) — keeps generator self-contained and executable without DB access
 
 ### Pending Todos
 
@@ -112,6 +115,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T18:39:39.212Z
-Stopped at: Completed 03-frontend-pwa/03-05-PLAN.md (gap closure complete)
+Last session: 2026-03-18T18:53:01.757Z
+Stopped at: Completed 04-scraper-expansion/04-01-PLAN.md
 Resume file: None
