@@ -131,10 +131,11 @@ Plans:
   2. Verified adapters successfully scrape and write cutoff scores to the database
   3. scores-by-tohop.json contains real cutoff data after generate-static re-run
   4. JS-rendered and image-based university pages have a documented handling strategy (Playwright for JS, OCR/manual for images)
-**Plans:** 0/1 plans complete
+**Plans:** 2 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — URL audit for 5+ adapters, run scraping, re-generate static data, document JS/image scraping strategy
+- [ ] 07-01-PLAN.md — Verification script, BVH (PTIT) adapter fix for real table format, scrapers.json URL updates
+- [ ] 07-02-PLAN.md — Playwright DCN adapter, PaddleOCR GHA adapter, CI workflow updates, strategy documentation
 
 ## Progress
 
@@ -149,4 +150,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 4. Scraper Expansion | 2/2 | Complete   | 2026-03-18 |
 | 5. Infrastructure Hardening | 3/3 | Complete   | 2026-03-18 |
 | 6. Tech Debt Cleanup | 1/1 | Complete   | 2026-03-18 |
-| 7. Adapter Verification & Data Population | 0/1 | Planned | — |
+| 7. Adapter Verification & Data Population | 0/2 | Planned | — |
