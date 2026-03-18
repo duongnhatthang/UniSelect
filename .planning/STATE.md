@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-data-foundation/01-03-PLAN.md
-last_updated: "2026-03-18T13:20:03.439Z"
+stopped_at: Completed 02-core-api-and-algorithm/02-01-PLAN.md
+last_updated: "2026-03-18T17:05:54.704Z"
 last_activity: 2026-03-17 — Roadmap created; all 14 v1 requirements mapped across 5 phases
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 5
+  completed_plans: 4
   percent: 0
 ---
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-data-foundation P02 | 6min | 2 tasks | 6 files |
 | Phase 01-data-foundation P03 | 15min | 2 tasks | 14 files |
 | Phase 01-data-foundation P03 | 15min | 3 tasks | 14 files |
+| Phase 02-core-api-and-algorithm P01 | 4min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,8 @@ Recent decisions affecting current work:
 - [Phase 01-data-foundation]: All adapter static_verified flags default to false — adapters will not run until manually audited and enabled
 - [Phase 01-data-foundation]: tsx declared as devDependency so npm ci in GitHub Actions installs it for npx tsx lib/scraper/run.ts
 - [Phase 01-data-foundation]: GitHub Actions uses single job for Phase 1 pilot; matrix sharding deferred to Phase 4
+- [Phase 02-core-api-and-algorithm]: CutoffDataRow.score typed as string matching Postgres numeric return; parseFloat called in engine before arithmetic
+- [Phase 02-core-api-and-algorithm]: withTimeout uses Promise.race (not postgres.js timeout option) — required for Supabase transaction-mode pooler at port 6543
 
 ### Pending Todos
 
@@ -91,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T13:10:44.081Z
-Stopped at: Completed 01-data-foundation/01-03-PLAN.md
+Last session: 2026-03-18T17:05:54.702Z
+Stopped at: Completed 02-core-api-and-algorithm/02-01-PLAN.md
 Resume file: None

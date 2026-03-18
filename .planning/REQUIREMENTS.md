@@ -22,12 +22,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Score Matching
 
-- [ ] **SCOR-01**: User can select a tổ hợp and enter a total score to see a ranked list of universities and majors they qualify for (quick mode)
-- [ ] **SCOR-02**: User can enter individual subject scores; app calculates totals per applicable tổ hợp combinations and shows matched universities (detailed mode)
+- [x] **SCOR-01**: User can select a tổ hợp and enter a total score to see a ranked list of universities and majors they qualify for (quick mode)
+- [x] **SCOR-02**: User can enter individual subject scores; app calculates totals per applicable tổ hợp combinations and shows matched universities (detailed mode)
 
 ### Nguyện Vọng Builder
 
-- [ ] **NGVG-01**: App generates a tiered 15-choice nguyện vọng list (dream / practical / safe) based on student score and tổ hợp using historical cutoff data
+- [x] **NGVG-01**: App generates a tiered 15-choice nguyện vọng list (dream / practical / safe) based on student score and tổ hợp using historical cutoff data
 
 ### Internationalization
 
@@ -89,9 +89,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PIPE-05 | Phase 3 | Pending |
 | SRCH-01 | Phase 3 | Pending |
 | SRCH-02 | Phase 3 | Pending |
-| SCOR-01 | Phase 3 | Pending |
-| SCOR-02 | Phase 3 | Pending |
-| NGVG-01 | Phase 3 | Pending |
+| SCOR-01 | Phase 3 | Complete |
+| SCOR-02 | Phase 3 | Complete |
+| NGVG-01 | Phase 3 | Complete |
 | I18N-01 | Phase 3 | Pending |
 | I18N-02 | Phase 3 | Pending |
 | INFRA-01 | Phase 1 | Complete |
