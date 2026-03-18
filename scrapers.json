@@ -40,5 +40,509 @@
     "url": "https://www.haui.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
     "static_verified": false
+  },
+  {
+    "id": "BVH",
+    "adapter": "bvh",
+    "url": "https://portal.ptit.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "CCM",
+    "adapter": "ccm",
+    "url": "http://hict.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "CMC",
+    "adapter": "cmc",
+    "url": "https://cmc-u.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "DCQ",
+    "adapter": "dcq",
+    "url": "https://utm.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "DDD",
+    "adapter": "ddd",
+    "url": "https://hdiu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "DDL",
+    "adapter": "ddl",
+    "url": "https://epu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "DDN",
+    "adapter": "ddn",
+    "url": "https://dainam.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "DKH",
+    "adapter": "dkh",
+    "url": "https://hup.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "DKK",
+    "adapter": "dkk",
+    "url": "https://uneti.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "DKS",
+    "adapter": "dks",
+    "url": "https://hpu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "DLX",
+    "adapter": "dlx",
+    "url": "http://ulsa.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "DMT",
+    "adapter": "dmt",
+    "url": "https://hunre.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "DNV",
+    "adapter": "dnv",
+    "url": "https://huha.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "DPD",
+    "adapter": "dpd",
+    "url": "https://phuongdong.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "DQK",
+    "adapter": "dqk",
+    "url": "https://hubt.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "DTL",
+    "adapter": "dtl",
+    "url": "https://thanglong.edu.vn/node/1",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "FBU",
+    "adapter": "fbu",
+    "url": "https://fbu.edu.vn/gioi-thieu/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "FPT",
+    "adapter": "fpt",
+    "url": "https://hanoi.fpt.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "GNT",
+    "adapter": "gnt",
+    "url": "http://www.spnttw.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "GTA",
+    "adapter": "gta",
+    "url": "https://utt.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "HBU",
+    "adapter": "hbu",
+    "url": "https://daihochoabinh.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "HCH",
+    "adapter": "hch",
+    "url": "https://www1.napa.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "HCP",
+    "adapter": "hcp",
+    "url": "https://apd.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "HNM",
+    "adapter": "hnm",
+    "url": "https://hnmu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "HPN",
+    "adapter": "hpn",
+    "url": "https://hvpnvn.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "HQT",
+    "adapter": "hqt",
+    "url": "https://www.dav.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "HTA",
+    "adapter": "hta",
+    "url": "http://hocvientoaan.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "HTC",
+    "adapter": "htc",
+    "url": "https://hvtc.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "HTN",
+    "adapter": "htn",
+    "url": "https://vya.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "HVD",
+    "adapter": "hvd",
+    "url": "https://hvdt.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "HVM",
+    "adapter": "hvm",
+    "url": "https://www.vnad.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "HVN",
+    "adapter": "hvn",
+    "url": "https://tuyensinh.vnua.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "HVQ",
+    "adapter": "hvq",
+    "url": "https://www.naem.edu.vn/vi",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "HYD",
+    "adapter": "hyd",
+    "url": "http://vutm.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "KCN",
+    "adapter": "kcn",
+    "url": "https://usth.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "KMA",
+    "adapter": "kma",
+    "url": "https://actvn.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "KTA",
+    "adapter": "kta",
+    "url": "https://hau.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "LDA",
+    "adapter": "lda",
+    "url": "http://dhcd.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "LNH",
+    "adapter": "lnh",
+    "url": "https://vnuf.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "LPH",
+    "adapter": "lph",
+    "url": "https://hlu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "MDA",
+    "adapter": "mda",
+    "url": "http://humg.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "MHN",
+    "adapter": "mhn",
+    "url": "https://hou.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "MTC",
+    "adapter": "mtc",
+    "url": "https://uad.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "MTH",
+    "adapter": "mth",
+    "url": "https://mythuatvietnam.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "NHF",
+    "adapter": "nhf",
+    "url": "https://www.hanu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "NHH",
+    "adapter": "nhh",
+    "url": "https://hvnh.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "NTU",
+    "adapter": "ntu",
+    "url": "https://daihocnguyentrai.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "NVH",
+    "adapter": "nvh",
+    "url": "https://vnam.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "PKA",
+    "adapter": "pka",
+    "url": "https://phenikaa-uni.edu.vn/vi",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "QH",
+    "adapter": "qh",
+    "url": "https://www.vnu.edu.vn/home/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "QHE",
+    "adapter": "qhe",
+    "url": "https://ueb.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "QHF",
+    "adapter": "qhf",
+    "url": "https://ulis.vnu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "QHI",
+    "adapter": "qhi",
+    "url": "https://uet.vnu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "QHJ",
+    "adapter": "qhj",
+    "url": "https://vju.ac.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "QHL",
+    "adapter": "qhl",
+    "url": "https://law.vnu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "QHQ",
+    "adapter": "qhq",
+    "url": "https://tuyensinh.vnuis.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "QHS",
+    "adapter": "qhs",
+    "url": "https://education.vnu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "QHT",
+    "adapter": "qht",
+    "url": "https://hus.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "QHX",
+    "adapter": "qhx",
+    "url": "https://ussh.vnu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "QHY",
+    "adapter": "qhy",
+    "url": "https://ump.vnu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "SKD",
+    "adapter": "skd",
+    "url": "https://skda.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "SPH",
+    "adapter": "sph",
+    "url": "https://hnue.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "TDD",
+    "adapter": "tdd",
+    "url": "https://thanhdo.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "TDH",
+    "adapter": "tdh",
+    "url": "https://hupes.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "TGC",
+    "adapter": "tgc",
+    "url": "https://daotaoajc.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "TLA",
+    "adapter": "tla",
+    "url": "https://www.tlu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "TMA",
+    "adapter": "tma",
+    "url": "https://tmu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "VHD",
+    "adapter": "vhd",
+    "url": "https://viu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "VHH",
+    "adapter": "vhh",
+    "url": "https://huc.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "XDA",
+    "adapter": "xda",
+    "url": "https://huce.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "YHB",
+    "adapter": "yhb",
+    "url": "https://hmu.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
+  },
+  {
+    "id": "YTC",
+    "adapter": "ytc",
+    "url": "https://huph.edu.vn/",
+    "note": "URL path to cutoff page must be verified manually",
+    "static_verified": false
   }
 ]
