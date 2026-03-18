@@ -2,31 +2,28 @@ name: Scrape cutoff scores (low frequency)
 
 on:
   schedule:
-    - cron: '0 2 * * *'   # Daily at 02:00 UTC
-  workflow_dispatch:        # Manual trigger always available
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5]
+      fail-fast: false
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run scraper pipeline
+      - run: npm ci
+      - name: Run scraper shard ${{ matrix.shard }}/6
         run: npx tsx lib/scraper/run.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GITHUB_RUN_ID: ${{ github.run_id }}
-
-# NOTE: Phase 1 uses a single job (5-6 universities).
-# Phase 4 should add matrix sharding when scaling to 78+ universities.
+          SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_TOTAL: 6

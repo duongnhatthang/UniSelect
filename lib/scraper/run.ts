@@ -12,8 +12,12 @@ async function main() {
     process.exit(0);
   }
 
+  const shardIndex = parseInt(process.env.SHARD_INDEX ?? '0', 10);
+  const shardTotal = parseInt(process.env.SHARD_TOTAL ?? '1', 10);
+  const shard = registry.filter((_, i) => i % shardTotal === shardIndex);
+
   const githubRunId = process.env.GITHUB_RUN_ID ?? undefined;
-  await runScraper(registry, githubRunId);
+  await runScraper(shard, githubRunId);
   console.log('[scraper] Scrape run complete.');
 }
 
