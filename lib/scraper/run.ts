@@ -1,7 +1,10 @@
-import { loadRegistry } from './registry';
-import { runScraper } from './runner';
+import { loadEnvConfig } from '@next/env';
+loadEnvConfig(process.cwd());
 
 async function main() {
+  const { loadRegistry } = await import('./registry');
+  const { runScraper } = await import('./runner');
+
   console.log('[scraper] Starting scrape run...');
   const registry = await loadRegistry();
 

@@ -68,7 +68,7 @@ describe('GET /api/tohop', () => {
     expect(res.headers.get('Cache-Control')).toContain('s-maxage=86400');
   });
 
-  it('returns 503 with Retry-After when DB throws DB_TIMEOUT', async () => {
+  it('returns static fallback with X-Served-By header when DB throws DB_TIMEOUT', async () => {
     const chain = {
       from: vi.fn(),
       orderBy: vi.fn(),
@@ -80,9 +80,8 @@ describe('GET /api/tohop', () => {
     const req = new NextRequest('http://localhost/api/tohop');
     const res = await GET(req);
 
-    expect(res.status).toBe(503);
-    const body = await res.json();
-    expect(body.error.code).toBe('DB_UNAVAILABLE');
-    expect(res.headers.get('Retry-After')).toBe('30');
+    // Static fallback files exist, so we get 200 with static data
+    expect(res.status).toBe(200);
+    expect(res.headers.get('X-Served-By')).toBe('static-fallback');
   });
 });

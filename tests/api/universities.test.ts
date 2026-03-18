@@ -114,7 +114,7 @@ describe('GET /api/universities (list)', () => {
     expect(res.headers.get('Cache-Control')).toContain('s-maxage=86400');
   });
 
-  it('returns 503 with Retry-After when DB throws DB_TIMEOUT', async () => {
+  it('returns static fallback with X-Served-By header when DB throws DB_TIMEOUT', async () => {
     const chain: Record<string, ReturnType<typeof vi.fn>> = {};
     chain.from = vi.fn().mockReturnValue(chain);
     chain.leftJoin = vi.fn().mockReturnValue(chain);
@@ -128,8 +128,9 @@ describe('GET /api/universities (list)', () => {
     const req = new NextRequest('http://localhost/api/universities');
     const res = await ListGET(req);
 
-    expect(res.status).toBe(503);
-    expect(res.headers.get('Retry-After')).toBe('30');
+    // Static fallback files exist, so we get 200 with static data
+    expect(res.status).toBe(200);
+    expect(res.headers.get('X-Served-By')).toBe('static-fallback');
   });
 
   it('includes tohop_codes array on each university record', async () => {

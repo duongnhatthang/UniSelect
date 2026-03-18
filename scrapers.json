@@ -233,9 +233,9 @@
   {
     "id": "HTC",
     "adapter": "htc",
-    "url": "https://hvtc.edu.vn/",
-    "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "url": "https://tuyensinh.hvtc.edu.vn/tabid/1699/catid/916/news/38174/TB-vv-Ket-qua-trung-tuyen-he-dai-hoc-chinh-quy-nam-2025/Default.aspx",
+    "note": "Verified 2026-03-18: static HTML table with TT/Mã ngành/Tên ngành/Điểm trúng tuyển columns",
+    "static_verified": true
   },
   {
     "id": "HTN",

@@ -111,7 +111,7 @@ describe('GET /api/scores', () => {
     expect(tohopCall).toBeDefined();
   });
 
-  it('returns 503 with Retry-After on DB_TIMEOUT', async () => {
+  it('returns static fallback with X-Served-By header on DB_TIMEOUT', async () => {
     const chain: Record<string, ReturnType<typeof vi.fn>> = {};
     chain.from = vi.fn().mockReturnValue(chain);
     chain.innerJoin = vi.fn().mockReturnValue(chain);
@@ -123,10 +123,9 @@ describe('GET /api/scores', () => {
     const req = new NextRequest('http://localhost/api/scores');
     const res = await GET(req);
 
-    expect(res.status).toBe(503);
-    const body = await res.json();
-    expect(body.error.code).toBe('DB_UNAVAILABLE');
-    expect(res.headers.get('Retry-After')).toBe('30');
+    // Static fallback files exist, so we get 200 with static data
+    expect(res.status).toBe(200);
+    expect(res.headers.get('X-Served-By')).toBe('static-fallback');
   });
 
   it('returns next_cursor when more rows exist', async () => {

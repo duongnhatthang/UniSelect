@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { cutoffScores, scrapeRuns } from '../db/schema';
+import { cutoffScores, majors, scrapeRuns } from '../db/schema';
 import { normalize } from './normalizer';
 import { ScraperAdapter } from './types';
 import { sql } from 'drizzle-orm';
@@ -26,6 +26,11 @@ export async function runScraper(configs: AdapterConfig[], githubRunId?: string)
           rejectionLog.push(JSON.stringify(raw));
           continue;
         }
+
+        // Ensure major exists (upsert to avoid FK violation)
+        await db.insert(majors)
+          .values({ id: normalized.major_id, name_vi: normalized.major_id })
+          .onConflictDoNothing();
 
         await db.insert(cutoffScores)
           .values({

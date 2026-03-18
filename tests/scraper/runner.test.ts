@@ -10,7 +10,10 @@ const { mockInsert } = vi.hoisted(() => {
   const mockInsert = vi.fn().mockImplementation(() => {
     const valuesForThisInsert = vi.fn().mockImplementation((v: Record<string, unknown>) => {
       capturedInsertValues.push(v);
-      return { onConflictDoUpdate: vi.fn().mockResolvedValue(undefined) };
+      return {
+        onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
+        onConflictDoNothing: vi.fn().mockResolvedValue(undefined),
+      };
     });
     return { values: valuesForThisInsert };
   });
@@ -26,6 +29,7 @@ vi.mock('../../lib/db', () => ({
 
 vi.mock('../../lib/db/schema', () => ({
   cutoffScores: { _tag: 'cutoffScores' },
+  majors: { _tag: 'majors' },
   scrapeRuns: { _tag: 'scrapeRuns' },
 }));
 
@@ -74,6 +78,7 @@ describe('runScraper', () => {
     mockInsert.mockImplementation(() => {
       const valuesFn = vi.fn().mockImplementation((v: Record<string, unknown>) => ({
         onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
+        onConflictDoNothing: vi.fn().mockResolvedValue(undefined),
         _capturedValue: v,
       }));
       return { values: valuesFn };

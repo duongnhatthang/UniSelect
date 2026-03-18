@@ -1,11 +1,10 @@
 /**
  * HTC Adapter — Học viện Tài chính
  *
- * TODO: Before setting static_verified: true in scrapers.json:
- * 1. Visit https://hvtc.edu.vn/ and find the cutoff scores page (Tuyển sinh -> Điểm chuẩn)
- * 2. View page source (Ctrl+U) and confirm the table is in raw HTML (not JS-rendered)
- * 3. Update the url in scrapers.json to the specific cutoff page URL, not the homepage
- * 4. Verify column headers match the text anchors used below
+ * Verified: 2026-03-18
+ * Page: static HTML table with columns: TT, Mã ngành, Tên ngành, Điểm trúng tuyển
+ * Note: No <thead>/<th> — headers are in the first <tr> as <td>.
+ *       No tổ hợp column; HTC programs primarily use A00, emitted as default.
  *
  * University: Học viện Tài chính
  * Ministry code: HTC
@@ -25,46 +24,64 @@ export const htcAdapter: ScraperAdapter = {
     const year = new Date().getFullYear() - 1;
 
     $('table').each((_, table) => {
-      const headers = $(table)
-        .find('th, thead td')
-        .map((_, el) => $(el).text().trim())
-        .get();
+      const allRows = $(table).find('tr');
+      if (allRows.length < 2) return;
 
+      // Headers may be in <th> or first <tr> <td>
+      let headers: string[];
+      const thHeaders = $(table).find('th, thead td').map((_, el) => $(el).text().trim().toLowerCase()).get();
+      if (thHeaders.length > 0) {
+        headers = thHeaders;
+      } else {
+        // Use first row as headers
+        headers = $(allRows[0]).find('td').map((_, el) => $(el).text().trim().toLowerCase()).get();
+      }
+
+      // Match on "điểm trúng tuyển" or "điểm chuẩn"
       const scoreIdx = headers.findIndex(
-        (h) => h.includes('Diem chuan') || h.includes('diem chuan') || h.includes('Điểm chuẩn')
-      );
-      const tohopIdx = headers.findIndex(
-        (h) => h.includes('To hop') || h.includes('Khoi') || h.includes('to hop') || h.includes('Tổ hợp')
-      );
-      const majorIdx = headers.findIndex(
         (h) =>
-          h.includes('Ma nganh') ||
-          h.includes('Nganh') ||
+          h.includes('điểm trúng tuyển') ||
+          h.includes('diem trung tuyen') ||
+          h.includes('điểm chuẩn') ||
+          h.includes('diem chuan')
+      );
+
+      // Match on major/program code column
+      const codeIdx = headers.findIndex(
+        (h) =>
+          h.includes('mã ngành') ||
           h.includes('ma nganh') ||
-          h.includes('nganh') ||
-          h.includes('Ngành')
+          h.includes('mã xét tuyển') ||
+          h.includes('ma xet tuyen')
       );
 
       if (scoreIdx === -1) return;
 
-      $(table)
-        .find('tbody tr')
-        .each((_, tr) => {
-          const cells = $(tr)
-            .find('td')
-            .map((_, td) => $(td).text().trim())
-            .get();
-          if (cells.length === 0) return;
+      // Skip the header row (first row), process the rest
+      allRows.slice(1).each((_, tr) => {
+        const cells = $(tr)
+          .find('td')
+          .map((_, td) => $(td).text().trim())
+          .get();
+        if (cells.length < 3) return;
 
-          rows.push({
-            university_id: 'HTC',
-            major_raw: cells[majorIdx] ?? '',
-            tohop_raw: cells[tohopIdx] ?? '',
-            year,
-            score_raw: cells[scoreIdx] ?? '',
-            source_url: url,
-          });
+        const majorCode = codeIdx !== -1 ? cells[codeIdx] : '';
+        const scoreRaw = cells[scoreIdx] ?? '';
+
+        // Skip section headers (e.g., "I", "II") and empty rows
+        if (!majorCode || !scoreRaw) return;
+        // Skip non-numeric major codes (section headers like "Chương trình chuẩn")
+        if (!/^\d/.test(majorCode)) return;
+
+        rows.push({
+          university_id: 'HTC',
+          major_raw: majorCode,
+          tohop_raw: 'A00',
+          year,
+          score_raw: scoreRaw,
+          source_url: url,
         });
+      });
     });
 
     if (rows.length === 0) {

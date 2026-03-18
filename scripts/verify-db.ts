@@ -1,11 +1,11 @@
 import { loadEnvConfig } from '@next/env';
 loadEnvConfig(process.cwd());
 
-import { db } from '../lib/db';
-import { universities, tohopCodes } from '../lib/db/schema';
-import { sql } from 'drizzle-orm';
-
 async function main() {
+  const { db } = await import('../lib/db');
+  const { universities, tohopCodes } = await import('../lib/db/schema');
+  const { sql } = await import('drizzle-orm');
+
   const uniCount = await db.select({ count: sql<number>`count(*)` }).from(universities);
   const tohopCount = await db.select({ count: sql<number>`count(*)` }).from(tohopCodes);
 
