@@ -37,9 +37,9 @@
   {
     "id": "DCN",
     "adapter": "dcn",
-    "url": "https://www.haui.edu.vn/",
-    "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "url": "https://tuyensinh.haui.edu.vn/diem-chuan-trung-tuyen-dai-hoc",
+    "note": "Playwright adapter (JS-rendered). SSL cert may need verification. Reference pattern for JS pages.",
+    "static_verified": true
   },
   {
     "id": "BVH",
