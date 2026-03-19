@@ -106,7 +106,14 @@ export function ScoreForm() {
   const activeScore = params.mode === 'quick' ? params.score : detailedTotal;
 
   function addToList(result: RecommendResult) {
-    const item: NvItem = { u: result.university_id, m: result.major_id };
+    const item: NvItem = {
+      u: result.university_id,
+      m: result.major_id,
+      un: result.university_name_vi,
+      mn: result.major_name_vi,
+      t: result.tier,
+      wc: result.weighted_cutoff,
+    };
     const already = nguyenVong.some(x => x.u === item.u && x.m === item.m);
     if (!already && nguyenVong.length < 15) {
       setNguyenVong([...nguyenVong, item]);

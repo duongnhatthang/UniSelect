@@ -70,7 +70,7 @@ export function ResultsList({ results, loading, userScore, hasSubmitted, onAddTo
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <TierBadge tier={result.tier} delta={deltaStr} />
+                  <TierBadge tier={result.tier} />
                   <span className={`text-sm ${trend.color}`} aria-label={`trend ${result.trend}`}>
                     {trend.icon}
                   </span>

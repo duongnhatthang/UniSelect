@@ -6,8 +6,12 @@ import { TierBadge } from './TierBadge';
 import { computeDelta } from '../lib/recommend/delta';
 
 export interface NvItem {
-  u: string;
-  m: string;
+  u: string;   // university_id
+  m: string;   // major_id
+  un?: string;  // university_name_vi (for display after reload)
+  mn?: string;  // major_name_vi
+  t?: string;   // tier
+  wc?: number;  // weighted_cutoff
 }
 
 interface NguyenVongListProps {
@@ -70,9 +74,10 @@ export function NguyenVongList({ nguyenVong, setNguyenVong, results, userScore }
             // Insert tier group header before positions 1, 6, 11 (indices 0, 5, 10)
             const header = TIER_HEADERS.find(h => h.index === index && list.length > h.index);
 
-            // Look up full result for display
+            // Look up full result for display; fall back to stored data from NvItem
             const result = results.find(r => r.university_id === item.u && r.major_id === item.m);
-            const deltaStr = result ? computeDelta(userScore, result.weighted_cutoff) : undefined;
+            const cutoff = result?.weighted_cutoff ?? item.wc;
+            const deltaStr = cutoff != null ? computeDelta(userScore, cutoff) : undefined;
 
             return (
               <li key={`${item.u}-${item.m}-${index}`}>
@@ -95,13 +100,13 @@ export function NguyenVongList({ nguyenVong, setNguyenVong, results, userScore }
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <TierBadge tier={result?.tier ?? 'practical'} delta={deltaStr} />
+                      <TierBadge tier={result?.tier ?? item.t ?? 'practical'} />
                     </div>
                     <p className="font-medium text-on-surface text-sm truncate">
-                      {result?.university_name_vi ?? item.u}
+                      {result?.university_name_vi ?? item.un ?? item.u}
                     </p>
                     <p className="text-on-surface-muted text-xs truncate">
-                      {result?.major_name_vi ?? item.m}
+                      {result?.major_name_vi ?? item.mn ?? item.m}
                     </p>
                   </div>
                   <div className="flex flex-col gap-1 flex-shrink-0">
