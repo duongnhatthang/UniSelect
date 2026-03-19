@@ -42,7 +42,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 **Goal**: The scraper pipeline is safe to extend — zero-rows failures are visible, DB writes are efficient, and 70+ copy-pasted adapters are replaced by a single config-driven factory
 **Depends on**: Phase 7 (v1.0 complete)
 **Requirements**: SCRP-01, SCRP-02, SCRP-03, FIX-06
-**Plans:** 3 plans
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] 08-01-PLAN.md — Zero-rows guard and batch transaction inserts in runner
@@ -136,7 +136,7 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 5. Infrastructure Hardening | v1.0 | 3/3 | Complete | 2026-03-18 |
 | 6. Tech Debt Cleanup | v1.0 | 1/1 | Complete | 2026-03-18 |
 | 7. Adapter Verification | v1.0 | 3/3 | Complete | 2026-03-18 |
-| 8. Scraper Foundation | v2.0 | 0/3 | Planning complete | - |
+| 8. Scraper Foundation | 2/3 | In Progress|  | - |
 | 9. Scraper Resilience Testing | v2.0 | 0/? | Not started | - |
 | 10. Auto-Discovery Crawler | v2.0 | 0/? | Not started | - |
 | 11. Bug Fixes & Data Correctness | v2.0 | 0/? | Not started | - |

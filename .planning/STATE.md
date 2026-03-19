@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-03-18T12:00:00.000Z"
-last_activity: 2026-03-18 — v2.0 roadmap created (7 phases, 32 requirements mapped)
+status: planning
+stopped_at: Completed 08-02-PLAN.md
+last_updated: "2026-03-19T04:27:40.669Z"
+last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 2
   percent: 0
 ---
 
@@ -50,6 +50,8 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: Stable
 
 *Updated after each plan completion*
+| Phase 08-scraper-foundation P01 | 2 | 2 tasks | 2 files |
+| Phase 08 P02 | 8 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -63,6 +65,10 @@ Recent decisions affecting current work:
 - [Phase 10]: Auto-discovery writes only to ephemeral `discovery-candidates.json` — scrapers.json is never written by crawler; human gate required
 - [Phase 11]: Delta sign fix must touch both ResultsList.tsx and NguyenVongList.tsx in a single PR with a shared `computeDelta()` utility
 - [Phase 14]: Design tokens (`@theme` block) must be implemented before dark mode — scattered `dark:text-gray-100` classes create a maintenance trap
+- [Phase 08-scraper-foundation]: scrapeRuns audit insert stays OUTSIDE transaction to record even when transaction fails
+- [Phase 08-scraper-foundation]: CHUNK_SIZE=500 for batch inserts to stay under Postgres 65535 parameter limit
+- [Phase 08]: async readFile in DB_TIMEOUT catch block keeps recommend API available with stale data instead of returning 503
+- [Phase 08]: meta.fallback: true in response body surfaces static-data state to frontend without breaking API contract
 
 ### Pending Todos
 
@@ -77,6 +83,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18
-Stopped at: v2.0 roadmap created — all 32 requirements mapped to phases 8-14
+Last session: 2026-03-19T04:27:40.667Z
+Stopped at: Completed 08-02-PLAN.md
 Resume file: None
