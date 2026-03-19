@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import type { RecommendResult } from '../lib/recommend/types';
 import { TierBadge } from './TierBadge';
 import { computeDelta } from '../lib/recommend/delta';
+import { classifyTier } from '../lib/recommend/engine';
 
 export interface NvItem {
   u: string;   // university_id
@@ -100,7 +101,7 @@ export function NguyenVongList({ nguyenVong, setNguyenVong, results, userScore }
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <TierBadge tier={result?.tier ?? item.t ?? 'practical'} />
+                      <TierBadge tier={(cutoff != null ? classifyTier(userScore, cutoff) : null) ?? result?.tier ?? item.t ?? 'practical'} />
                     </div>
                     <p className="font-medium text-on-surface text-sm truncate">
                       {result?.university_name_vi ?? item.un ?? item.u}

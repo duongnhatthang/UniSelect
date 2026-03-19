@@ -20,7 +20,7 @@ const WEIGHTS: Record<number, number[]> = {
   3: [1, 2, 3],
 };
 
-function classifyTier(totalScore: number, weightedCutoff: number): Tier | null {
+export function classifyTier(totalScore: number, weightedCutoff: number): Tier | null {
   const diff = totalScore - weightedCutoff;
   if (diff >= SAFE_MARGIN) return 'safe';               // well above cutoff → easy admission
   if (diff >= PRACTICAL_LOWER && diff <= PRACTICAL_UPPER) return 'practical'; // close match

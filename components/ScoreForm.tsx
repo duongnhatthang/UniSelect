@@ -263,6 +263,17 @@ export function ScoreForm() {
         </div>
       )}
 
+      {/* Nguyện vọng list first — right below input */}
+      <div className="mt-6">
+        <NguyenVongList
+          nguyenVong={nguyenVong}
+          setNguyenVong={setNguyenVongList}
+          results={results}
+          userScore={activeScore ?? 0}
+        />
+      </div>
+
+      {/* Results list below */}
       <div className="mt-6">
         <ResultsList
           results={results}
@@ -271,15 +282,6 @@ export function ScoreForm() {
           hasSubmitted={hasSubmitted}
           onAddToList={addToList}
           nguyenVong={nguyenVong}
-        />
-      </div>
-
-      <div className="mt-6">
-        <NguyenVongList
-          nguyenVong={nguyenVong}
-          setNguyenVong={setNguyenVongList}
-          results={results}
-          userScore={activeScore ?? 0}
         />
       </div>
     </div>

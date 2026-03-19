@@ -10,6 +10,10 @@ vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
 }));
 
+// Cutoffs that produce each tier with userScore=22:
+// dream: cutoff=27 (diff=22-27=-5), practical: cutoff=22 (diff=0), safe: cutoff=18 (diff=4)
+const TIER_CUTOFFS: Record<string, number> = { dream: 27, practical: 22, safe: 18 };
+
 function makeResult(
   id: string,
   tier: RecommendResult['tier'],
@@ -21,7 +25,7 @@ function makeResult(
     major_id: `major-${id}`,
     major_name_vi: `Nganh ${id}`,
     tohop_code: 'A00',
-    weighted_cutoff: 24.0,
+    weighted_cutoff: TIER_CUTOFFS[tier] ?? 22,
     tier,
     trend: 'stable',
     data_years_limited: false,
