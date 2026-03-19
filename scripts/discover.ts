@@ -1,11 +1,147 @@
 import { CheerioCrawler, Configuration } from '@crawlee/cheerio';
 import { MemoryStorage } from '@crawlee/memory-storage';
+import type {
+  BaseHttpClient,
+  HttpRequest,
+  HttpResponse,
+  StreamingHttpResponse,
+  RedirectHandler,
+} from '@crawlee/core';
+import { Readable } from 'stream';
 import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import os from 'os';
 import type { DiscoveryCandidate } from '../lib/scraper/discovery/candidate';
 import { scorePageForCutoffs } from '../lib/scraper/discovery/keyword-scorer';
 import { SCORE_THRESHOLD } from '../lib/scraper/discovery/constants';
+
+/**
+ * A lightweight HTTP client that uses native Node.js `fetch` instead of `got-scraping`.
+ *
+ * This is required for test environments where MSW intercepts native fetch but NOT got-scraping.
+ * CheerioCrawler uses this client for all requests including robots.txt fetches.
+ */
+class FetchHttpClient implements BaseHttpClient {
+  async sendRequest<TResponseType extends 'text' | 'json' | 'buffer' = 'text'>(
+    request: HttpRequest<TResponseType>,
+  ): Promise<HttpResponse<TResponseType>> {
+    const url = request.url.toString();
+    const method = request.method?.toUpperCase() ?? 'GET';
+    const headers = this.buildHeaders(request.headers);
+
+    const response = await fetch(url, {
+      method,
+      headers,
+      body:
+        request.body instanceof Readable
+          ? undefined
+          : (request.body as BodyInit | undefined),
+      signal: request.signal,
+      redirect: request.followRedirect === false ? 'manual' : 'follow',
+    });
+
+    const responseHeaders = this.extractHeaders(response.headers);
+    const responseUrl = response.url || url;
+
+    let body: unknown;
+    if (request.responseType === 'json') {
+      body = await response.json();
+    } else if (request.responseType === 'buffer') {
+      const arrayBuffer = await response.arrayBuffer();
+      body = Buffer.from(arrayBuffer);
+    } else {
+      body = await response.text();
+    }
+
+    return {
+      url: responseUrl,
+      statusCode: response.status,
+      statusMessage: response.statusText,
+      headers: responseHeaders,
+      trailers: {},
+      redirectUrls: [],
+      complete: true,
+      body: body as HttpResponse<TResponseType>['body'],
+      request,
+    };
+  }
+
+  async stream(
+    request: HttpRequest,
+    _onRedirect?: RedirectHandler,
+  ): Promise<StreamingHttpResponse> {
+    const url = request.url.toString();
+    const method = request.method?.toUpperCase() ?? 'GET';
+    const headers = this.buildHeaders(request.headers);
+
+    const response = await fetch(url, {
+      method,
+      headers,
+      signal: request.signal,
+    });
+
+    const responseHeaders = this.extractHeaders(response.headers);
+    const responseUrl = response.url || url;
+
+    if (!response.body) {
+      throw new Error('Response body is null');
+    }
+
+    // Convert Web ReadableStream to Node.js Readable
+    const nodeStream = Readable.fromWeb(
+      response.body as Parameters<typeof Readable.fromWeb>[0],
+    );
+
+    let downloadedBytes = 0;
+    const contentLength = parseInt(response.headers.get('content-length') ?? '0', 10) || 0;
+
+    nodeStream.on('data', (chunk: Buffer) => {
+      downloadedBytes += chunk.length;
+    });
+
+    return {
+      url: responseUrl,
+      statusCode: response.status,
+      statusMessage: response.statusText,
+      headers: responseHeaders,
+      trailers: {},
+      redirectUrls: [],
+      complete: false,
+      stream: nodeStream,
+      request,
+      get downloadProgress() {
+        return {
+          percent: contentLength > 0 ? downloadedBytes / contentLength : 0,
+          transferred: downloadedBytes,
+          total: contentLength || undefined,
+        };
+      },
+      get uploadProgress() {
+        return { percent: 0, transferred: 0 };
+      },
+    };
+  }
+
+  private buildHeaders(
+    headers?: Record<string, string | string[] | undefined>,
+  ): Record<string, string> {
+    const result: Record<string, string> = {};
+    if (!headers) return result;
+    for (const [key, value] of Object.entries(headers)) {
+      if (value === undefined) continue;
+      result[key] = Array.isArray(value) ? value.join(', ') : value;
+    }
+    return result;
+  }
+
+  private extractHeaders(headers: Headers): Record<string, string> {
+    const result: Record<string, string> = {};
+    headers.forEach((value, key) => {
+      result[key] = value;
+    });
+    return result;
+  }
+}
 
 interface ScraperEntry {
   id: string;
@@ -36,6 +172,7 @@ export async function runDiscover(
   const candidates: Map<string, DiscoveryCandidate> = new Map();
 
   let config: Configuration | undefined;
+  const httpClient = options?.useMemoryStorage ? new FetchHttpClient() : undefined;
 
   if (options?.useMemoryStorage) {
     // Test isolation: use in-memory storage to avoid filesystem writes
@@ -52,6 +189,7 @@ export async function runDiscover(
       respectRobotsTxtFile: { userAgent: 'UniSelectBot/1.0' },
       maxConcurrency: 1,
       maxRequestsPerCrawl: 50,
+      ...(httpClient ? { httpClient } : {}),
 
       async requestHandler({ $, request, enqueueLinks }) {
         const { score, reasons } = scorePageForCutoffs(request.url, $);
