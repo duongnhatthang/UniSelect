@@ -43,6 +43,35 @@
       "title": "You are offline",
       "message": "Please check your internet connection and try again."
     },
-    "toggleDarkMode": "Toggle dark mode"
+    "toggleDarkMode": "Toggle dark mode",
+    "tierDream": "Dream",
+    "tierPractical": "Practical",
+    "tierSafe": "Safety",
+    "tierDreamDesc": "Aim high — at least 1 dream school",
+    "tierPracticalDesc": "Your realistic range",
+    "tierSafeDesc": "Schools where you are comfortably above cutoff",
+    "addToList": "Add to preference list",
+    "removeFromList": "Remove from list",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "listFull": "List is full (15/15)",
+    "alreadyInList": "Already in list",
+    "scoreMargin": "Your score is {delta} {direction} cutoff",
+    "emptyStateBeforeSubmission": "Enter your score above to see matching universities"
+  },
+  "ErrorPage": {
+    "title": "Something went wrong",
+    "description": "The application encountered an error. Please try again or return home.",
+    "retry": "Try again",
+    "home": "Go home"
+  },
+  "NotFoundPage": {
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or has been moved.",
+    "backHome": "Go home"
+  },
+  "OnboardingBanner": {
+    "message": "Enter your exam score and subject combination to see matching universities",
+    "dismiss": "Got it"
   }
 }

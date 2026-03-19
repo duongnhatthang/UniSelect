@@ -43,6 +43,35 @@
       "title": "Bạn đang ngoại tuyến",
       "message": "Vui lòng kiểm tra kết nối internet và thử lại."
     },
-    "toggleDarkMode": "Chuyển chế độ tối"
+    "toggleDarkMode": "Chuyển chế độ tối",
+    "tierDream": "Ước mơ",
+    "tierPractical": "Khả thi",
+    "tierSafe": "An toàn",
+    "tierDreamDesc": "Nhắm cao — ít nhất 1 trường ước mơ",
+    "tierPracticalDesc": "Phạm vi thực tế của bạn",
+    "tierSafeDesc": "Trường bạn chắc chắn đủ điểm",
+    "addToList": "Thêm vào nguyện vọng",
+    "removeFromList": "Xóa khỏi nguyện vọng",
+    "moveUp": "Di chuyển lên",
+    "moveDown": "Di chuyển xuống",
+    "listFull": "Danh sách đã đầy (15/15)",
+    "alreadyInList": "Đã có trong nguyện vọng",
+    "scoreMargin": "Điểm bạn {direction} {delta} so với điểm chuẩn",
+    "emptyStateBeforeSubmission": "Nhập điểm thi ở phía trên để xem danh sách trường đại học phù hợp"
+  },
+  "ErrorPage": {
+    "title": "Đã có lỗi xảy ra",
+    "description": "Ứng dụng gặp sự cố. Vui lòng thử lại hoặc quay về trang chủ.",
+    "retry": "Thử lại",
+    "home": "Về trang chủ"
+  },
+  "NotFoundPage": {
+    "title": "Không tìm thấy trang",
+    "description": "Trang bạn đang tìm không tồn tại hoặc đã bị di chuyển.",
+    "backHome": "Về trang chủ"
+  },
+  "OnboardingBanner": {
+    "message": "Nhập điểm thi THPT và tổ hợp của bạn để xem danh sách trường phù hợp",
+    "dismiss": "Đã hiểu"
   }
 }
