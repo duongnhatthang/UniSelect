@@ -16,12 +16,6 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - name: Ping Supabase database
-        run: npx tsx -e "
-          import postgres from 'postgres';
-          const sql = postgres(process.env.DATABASE_URL!, { prepare: false });
-          const result = await sql\`SELECT 1 as ok\`;
-          console.log('keep-alive: database is active', result);
-          await sql.end();
-        "
+        run: npx tsx scripts/keepalive.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
