@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# serwist build artifacts
+public/sw.js
+
 # production
 /build
 
