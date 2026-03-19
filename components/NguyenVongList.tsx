@@ -109,6 +109,15 @@ export function NguyenVongList({ nguyenVong, setNguyenVong, results, userScore }
                       {result?.major_name_vi ?? item.mn ?? item.m}
                     </p>
                   </div>
+                  {/* Score + delta */}
+                  {cutoff != null && (
+                    <div className="text-right flex-shrink-0 mr-1">
+                      <p className="font-semibold text-on-surface text-sm">{cutoff.toFixed(1)}</p>
+                      {deltaStr && (
+                        <p className="text-xs text-on-surface-muted">{deltaStr}</p>
+                      )}
+                    </div>
+                  )}
                   <div className="flex flex-col gap-1 flex-shrink-0">
                     <button
                       type="button"

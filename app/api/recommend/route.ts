@@ -20,10 +20,10 @@ export async function GET(req: NextRequest) {
     return errorResponse('INVALID_PARAMS', 'Valid tohop code required (e.g. A00, D01)', 400);
   }
 
-  // Validate score: must be a float between 10.0 and 30.0
+  // Validate score: must be a float between 0 and 30.0
   const totalScore = parseFloat(scoreStr ?? '');
-  if (isNaN(totalScore) || totalScore < 10.0 || totalScore > 30.0) {
-    return errorResponse('INVALID_PARAMS', 'Score must be between 10.0 and 30.0', 400);
+  if (isNaN(totalScore) || totalScore < 0 || totalScore > 30.0) {
+    return errorResponse('INVALID_PARAMS', 'Score must be between 0 and 30.0', 400);
   }
 
   try {

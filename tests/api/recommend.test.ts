@@ -108,7 +108,7 @@ describe('GET /api/recommend', () => {
   });
 
   it('returns 400 when score is out of range (too low)', async () => {
-    const req = new NextRequest('http://localhost/api/recommend?tohop=A00&score=5.0');
+    const req = new NextRequest('http://localhost/api/recommend?tohop=A00&score=-1.0');
     const res = await GET(req);
 
     expect(res.status).toBe(400);

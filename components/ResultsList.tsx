@@ -19,7 +19,7 @@ interface ResultsListProps {
 const TREND_DISPLAY = {
   rising:  { icon: '↑', color: 'text-amber-600' },  // rising cutoff = harder to get in = warning
   falling: { icon: '↓', color: 'text-green-600' },  // falling cutoff = easier to get in = favorable
-  stable:  { icon: '–', color: 'text-gray-400' },
+  stable:  { icon: '', color: '' },                  // no indicator for stable trend
 } as const;
 
 export function ResultsList({ results, loading, userScore, hasSubmitted, onAddToList, nguyenVong }: ResultsListProps) {

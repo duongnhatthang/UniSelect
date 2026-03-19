@@ -57,13 +57,13 @@ export function ScoreForm() {
 
   function validateScore(value: number | null): boolean {
     if (value === null || value === undefined) return true;
-    return value >= 10.0 && value <= 30.0;
+    return value >= 0 && value <= 30.0;
   }
 
   function handleScoreChange(value: string) {
     const num = value === '' ? null : parseFloat(value);
     setParams({ score: num });
-    if (num !== null && (num < 10.0 || num > 30.0)) {
+    if (num !== null && (num < 0 || num > 30.0)) {
       setScoreError(t('enterScore'));
     } else {
       setScoreError('');
@@ -95,13 +95,20 @@ export function ScoreForm() {
     await fetchRecommendations(params.tohop, totalScore);
   }
 
-  // Auto-submit detailed mode when all subjects filled and total >= 10
+  // Auto-submit when score and tohop are ready (both modes)
   useEffect(() => {
-    if (params.mode === 'detailed' && params.tohop && detailedTotal !== null && detailedTotal >= 10) {
+    if (params.mode === 'detailed' && params.tohop && detailedTotal !== null && detailedTotal >= 0) {
       fetchRecommendations(params.tohop, detailedTotal);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detailedTotal, params.tohop, params.mode]);
+
+  useEffect(() => {
+    if (params.mode === 'quick' && params.tohop && params.score !== null && params.score !== undefined && params.score >= 0 && params.score <= 30) {
+      fetchRecommendations(params.tohop, params.score);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.score, params.tohop, params.mode]);
 
   const activeScore = params.mode === 'quick' ? params.score : detailedTotal;
 
@@ -179,7 +186,7 @@ export function ScoreForm() {
             </label>
             <input
               type="number"
-              min={10}
+              min={0}
               max={30}
               step={0.1}
               value={params.score ?? ''}
@@ -233,15 +240,7 @@ export function ScoreForm() {
           </div>
         )}
 
-        {params.mode === 'quick' && (
-          <button
-            type="submit"
-            disabled={!params.tohop || !params.score || !!scoreError || loading}
-            className="w-full bg-primary text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? t('loading') : t('viewResults')}
-          </button>
-        )}
+        {/* Auto-submit in both modes — no button needed */}
       </form>
 
       {apiError && (
