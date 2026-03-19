@@ -22,6 +22,25 @@ output_path = sys.argv[2]
 
 from paddleocr import PaddleOCR
 
+try:
+    # PaddleOCR 3.x uses predict() and different params
+    ocr = PaddleOCR(lang='vi')
+    result = ocr.predict(image_path)
+    # PaddleOCR 3.x predict returns generator of dicts
+    lines = []
+    for page_result in result:
+        if hasattr(page_result, 'get') and 'rec_texts' in (page_result or {}):
+            lines.extend(page_result['rec_texts'])
+        elif isinstance(page_result, dict) and 'rec_texts' in page_result:
+            lines.extend(page_result['rec_texts'])
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump({'lines': lines}, f, ensure_ascii=False)
+    print(f"OCR extracted {len(lines)} lines from {image_path}", file=sys.stderr)
+    sys.exit(0)
+except (TypeError, AttributeError):
+    pass
+
+# PaddleOCR 2.x API fallback
 ocr = PaddleOCR(use_angle_cls=True, lang='vi', use_gpu=False, show_log=False)
 result = ocr.ocr(image_path, cls=True)
 
