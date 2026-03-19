@@ -123,11 +123,16 @@ Plans:
 **Goal**: GitHub Actions scraping stays within the free-tier minute budget through July peak, and Supabase does not auto-pause during development quiet periods
 **Depends on**: Phase 12
 **Requirements**: INFR-01, INFR-02, INFR-03
+**Plans:** 2 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — PaddleOCR and Playwright caching in scrape workflows + July budget verification
+- [ ] 13-02-PLAN.md — Supabase keep-alive cron workflow
+
 **Success Criteria** (what must be TRUE):
   1. A simulated July peak scraping run (full schedule for one week) consumes fewer than 450 Actions minutes — verified by dry-run calculation or workflow log
   2. PaddleOCR models and Playwright browsers are restored from Actions cache on repeat runs (cache hit logged in workflow output)
   3. A Supabase keep-alive workflow runs `SELECT 1` on a schedule of every 5 days or fewer — visible in workflow history
-**Plans**: TBD
 
 ### Phase 14: UI/UX Redesign
 **Goal**: The UI communicates trust through correct data presentation, students can edit their nguyện vọng list directly, and first-time users understand what the app does and how to use it
@@ -162,8 +167,8 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 10. Auto-Discovery Crawler | 2/2 | Complete    | 2026-03-19 | - |
 | 11. Bug Fixes & Data Correctness | 3/3 | Complete    | 2026-03-19 | - |
 | 12. Testing & CI | 2/2 | Complete    | 2026-03-19 | - |
-| 13. Infrastructure Hardening | v2.0 | 0/? | Not started | - |
+| 13. Infrastructure Hardening | v2.0 | 0/2 | Not started | - |
 | 14. UI/UX Redesign | v2.0 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-03-19 — Phase 12 planning complete (2 plans)*
+*Last updated: 2026-03-19 — Phase 13 planning complete (2 plans)*
