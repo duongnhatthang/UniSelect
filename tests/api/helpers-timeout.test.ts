@@ -28,6 +28,16 @@ describe('withTimeout', () => {
     await expect(raced).rejects.toBeInstanceOf(Error);
     vi.useRealTimers();
   });
+
+  it('clears the timeout timer after promise resolves (no leak)', async () => {
+    vi.useFakeTimers();
+    const clearSpy = vi.spyOn(globalThis, 'clearTimeout');
+    const promise = Promise.resolve('done');
+    await withTimeout(promise, 5000);
+    expect(clearSpy).toHaveBeenCalled();
+    clearSpy.mockRestore();
+    vi.useRealTimers();
+  });
 });
 
 describe('errorResponse', () => {
