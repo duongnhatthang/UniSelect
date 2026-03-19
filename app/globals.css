@@ -1,1 +1,42 @@
 @import "tailwindcss";
+
+/* Dark mode variant: targets .dark class on <html> (set by next-themes attribute="class") */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Font fix: map Next.js Be Vietnam Pro variable to Tailwind's font-sans utility */
+@theme inline {
+  --font-sans: var(--font-be-vietnam);
+}
+
+/* Semantic color tokens that change per theme */
+@layer base {
+  :root {
+    --color-primary: oklch(0.55 0.18 240);
+    --color-primary-hover: oklch(0.48 0.18 240);
+    --color-surface: oklch(1.0 0 0);
+    --color-surface-subtle: oklch(0.97 0 0);
+    --color-on-surface: oklch(0.11 0 0);
+    --color-on-surface-muted: oklch(0.45 0 0);
+    --color-border: oklch(0.92 0 0);
+  }
+  .dark {
+    --color-primary: oklch(0.68 0.18 240);
+    --color-primary-hover: oklch(0.62 0.18 240);
+    --color-surface: oklch(0.13 0 0);
+    --color-surface-subtle: oklch(0.18 0 0);
+    --color-on-surface: oklch(0.95 0 0);
+    --color-on-surface-muted: oklch(0.65 0 0);
+    --color-border: oklch(0.27 0 0);
+  }
+}
+
+/* Register semantic colors as Tailwind utilities */
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-surface: var(--color-surface);
+  --color-surface-subtle: var(--color-surface-subtle);
+  --color-on-surface: var(--color-on-surface);
+  --color-on-surface-muted: var(--color-on-surface-muted);
+  --color-border: var(--color-border);
+}

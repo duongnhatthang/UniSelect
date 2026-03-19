@@ -42,6 +42,7 @@
     "offlinePage": {
       "title": "Bạn đang ngoại tuyến",
       "message": "Vui lòng kiểm tra kết nối internet và thử lại."
-    }
+    },
+    "toggleDarkMode": "Chuyển chế độ tối"
   }
 }
