@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Completed 07-adapter-verification/07-03-PLAN.md
-last_updated: "2026-03-18T22:31:29.071Z"
-last_activity: 2026-03-17 — Roadmap created; all 14 v1 requirements mapped across 5 phases
+status: milestone_complete
+stopped_at: v1.0 milestone complete
+last_updated: "2026-03-19T02:45:00.000Z"
+last_activity: 2026-03-18 — v1.0 MVP shipped, milestone archived
 progress:
   total_phases: 7
   completed_phases: 7
@@ -18,10 +18,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-17)
+See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Give every Vietnamese student the data and strategy to order their nguyện vọng list correctly — because getting the ranking wrong means being locked out of better options permanently.
-**Current focus:** Phase 1 — Data Foundation
+**Current focus:** Planning next milestone (v2 — auto-discovery crawler)
 
 ## Current Position
 
