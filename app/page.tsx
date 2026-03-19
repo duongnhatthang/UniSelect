@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { ScoreForm } from '../components/ScoreForm';
 import { LocaleToggle } from '../components/LocaleToggle';
 import { DarkModeToggle } from '../components/DarkModeToggle';
+import { OnboardingBanner } from '../components/OnboardingBanner';
 
 // Lazy-load the below-fold university search to reduce initial JS bundle and improve TTI.
 const UniversitySearch = dynamic(
@@ -25,6 +26,11 @@ export default async function Home() {
           </div>
         </div>
       </header>
+
+      {/* Onboarding banner */}
+      <div className="max-w-2xl mx-auto px-4 pt-4">
+        <OnboardingBanner />
+      </div>
 
       {/* Main content */}
       <div className="max-w-2xl mx-auto py-6">

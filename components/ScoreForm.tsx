@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useQueryStates } from 'nuqs';
-import { parseAsString, parseAsFloat } from 'nuqs';
+import { useQueryStates, useQueryState } from 'nuqs';
+import { parseAsString, parseAsFloat, parseAsJson } from 'nuqs';
 import { useTranslations } from 'next-intl';
 import type { RecommendResult } from '../lib/recommend/types';
 import type { TohopCode } from '../lib/utils/tohop-subjects';
 import { calculateTotal } from '../lib/utils/calculate-total';
 import { ResultsList } from './ResultsList';
 import { NguyenVongList } from './NguyenVongList';
+import type { NvItem } from './NguyenVongList';
 
 export function ScoreForm() {
   const t = useTranslations('common');
@@ -19,11 +20,20 @@ export function ScoreForm() {
     mode: parseAsString.withDefault('quick'),
   });
 
+  const [nguyenVong, setNguyenVong] = useQueryState(
+    'nv',
+    parseAsJson<NvItem[]>((value): NvItem[] | null => {
+      if (!Array.isArray(value)) return null;
+      return value as NvItem[];
+    }).withDefault([])
+  );
+
   const [tohopCodes, setTohopCodes] = useState<TohopCode[]>([]);
   const [subjectScores, setSubjectScores] = useState<Record<string, number>>({});
   const [results, setResults] = useState<RecommendResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [scoreError, setScoreError] = useState('');
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
   // Fetch tohop codes on mount
@@ -63,6 +73,7 @@ export function ScoreForm() {
   async function fetchRecommendations(tohop: string, score: number) {
     setApiError(null);
     setLoading(true);
+    setHasSubmitted(true);
     try {
       const res = await fetch(`/api/recommend?tohop=${tohop}&score=${score}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -93,6 +104,18 @@ export function ScoreForm() {
   }, [detailedTotal, params.tohop, params.mode]);
 
   const activeScore = params.mode === 'quick' ? params.score : detailedTotal;
+
+  function addToList(result: RecommendResult) {
+    const item: NvItem = { u: result.university_id, m: result.major_id };
+    const already = nguyenVong.some(x => x.u === item.u && x.m === item.m);
+    if (!already && nguyenVong.length < 15) {
+      setNguyenVong([...nguyenVong, item]);
+    }
+  }
+
+  function setNguyenVongList(items: NvItem[]) {
+    setNguyenVong(items);
+  }
 
   return (
     <div className="w-full max-w-2xl mx-auto px-4">
@@ -233,14 +256,24 @@ export function ScoreForm() {
       )}
 
       <div className="mt-6">
-        <ResultsList results={results} loading={loading} userScore={activeScore ?? 0} />
+        <ResultsList
+          results={results}
+          loading={loading}
+          userScore={activeScore ?? 0}
+          hasSubmitted={hasSubmitted}
+          onAddToList={addToList}
+          nguyenVong={nguyenVong}
+        />
       </div>
 
-      {results.length > 0 && (
-        <div className="mt-6">
-          <NguyenVongList results={results} userScore={activeScore ?? 0} />
-        </div>
-      )}
+      <div className="mt-6">
+        <NguyenVongList
+          nguyenVong={nguyenVong}
+          setNguyenVong={setNguyenVongList}
+          results={results}
+          userScore={activeScore ?? 0}
+        />
+      </div>
     </div>
   );
 }
