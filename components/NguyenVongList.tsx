@@ -5,6 +5,7 @@ import { useQueryState, parseAsJson } from 'nuqs';
 import { useTranslations } from 'next-intl';
 import type { RecommendResult } from '../lib/recommend/types';
 import { TierBadge } from './TierBadge';
+import { computeDelta } from '../lib/recommend/delta';
 
 interface NguyenVongListProps {
   results: RecommendResult[];
@@ -49,8 +50,7 @@ export function NguyenVongList({ results, userScore }: NguyenVongListProps) {
 
       <ol className="space-y-2">
         {top15.slice(0, 15).map((result, index) => {
-          const delta = (userScore - result.weighted_cutoff).toFixed(1);
-          const sign = userScore >= result.weighted_cutoff ? '+' : '';
+          const deltaStr = computeDelta(userScore, result.weighted_cutoff);
 
           return (
             <li
@@ -74,7 +74,7 @@ export function NguyenVongList({ results, userScore }: NguyenVongListProps) {
                   {result.weighted_cutoff.toFixed(1)}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {sign}{delta}
+                  {deltaStr}
                 </p>
               </div>
             </li>
