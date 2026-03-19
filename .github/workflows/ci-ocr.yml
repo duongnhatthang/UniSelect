@@ -34,7 +34,7 @@ jobs:
         run: pip install paddleocr Pillow
 
       - name: Warm up / download PaddleOCR models
-        run: python3 -c "from paddleocr import PaddleOCR; PaddleOCR(lang='vi', use_gpu=False)"
+        run: python3 -c "from paddleocr import PaddleOCR; PaddleOCR(lang='vi')"
 
       - name: Generate synthetic test image
         run: python3 tests/fixtures/ocr-smoke-generator.py /tmp/ocr-smoke.jpg

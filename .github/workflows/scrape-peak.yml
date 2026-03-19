@@ -65,7 +65,7 @@ jobs:
       - name: Install PaddleOCR
         run: pip install paddleocr
       - name: Warm up PaddleOCR models
-        run: python3 -c "from paddleocr import PaddleOCR; PaddleOCR(lang='vi', use_gpu=False)"
+        run: python3 -c "from paddleocr import PaddleOCR; PaddleOCR(lang='vi')"
       - name: Run scraper shard ${{ matrix.shard }}/6 (peak)
         run: npx tsx lib/scraper/run.ts
         env:
