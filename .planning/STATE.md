@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
 status: planning
-stopped_at: Completed 14-01-PLAN.md
-last_updated: "2026-03-19T13:29:49.388Z"
+stopped_at: Completed 14-02-PLAN.md
+last_updated: "2026-03-19T13:36:13.783Z"
 last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 18
-  completed_plans: 15
+  completed_plans: 16
   percent: 0
 ---
 
@@ -65,6 +65,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 13 P02 | 1 | 1 tasks | 1 files |
 | Phase 13-infrastructure-hardening P01 | 2 | 2 tasks | 2 files |
 | Phase 14-ui-ux-redesign P01 | 5 | 2 tasks | 7 files |
+| Phase 14-ui-ux-redesign P02 | 4 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,8 @@ Recent decisions affecting current work:
 - [Phase 14-ui-ux-redesign]: next-themes was absent from package.json despite research claiming it was installed — installed at task time; ThemeProvider nesting: NuqsAdapter > ThemeProvider > NextIntlClientProvider
 - [Phase 14-ui-ux-redesign]: DarkModeToggle uses mounted state guard (useEffect + useState) to prevent SSR hydration mismatch on icon choice — server cannot know current theme
 - [Phase 14-ui-ux-redesign]: scripts/discover.ts cheerio type conflict is pre-existing build failure — deferred, not auto-fixed in this plan
+- [Phase 14-ui-ux-redesign]: OnboardingBanner uses useEffect + mounted flag pattern for localStorage — safer against SSR hydration mismatch
+- [Phase 14-ui-ux-redesign]: hasSubmitted state set in fetchRecommendations before fetch call — covers both quick mode submit and detailed mode auto-submit paths
 
 ### Pending Todos
 
@@ -126,6 +129,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T13:29:49.386Z
-Stopped at: Completed 14-01-PLAN.md
+Last session: 2026-03-19T13:36:08.635Z
+Stopped at: Completed 14-02-PLAN.md
 Resume file: None
