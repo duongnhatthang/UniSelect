@@ -20,39 +20,34 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 - ✓ Scraping runs at low frequency during the year, high frequency during peak period (July) — v1.0
 - ✓ Vietnamese-first UI with English language toggle — v1.0
 - ✓ Deployable on serverless/free-tier infrastructure (Vercel + Supabase or equivalent) — v1.0
+- ✓ Config-driven adapter factory replaces 70+ copy-pasted adapters — v2.0
+- ✓ Batch DB inserts with transaction (one round-trip per adapter) — v2.0
+- ✓ Zero-rows guard with distinct `status: 'zero_rows'` logging — v2.0
+- ✓ Static JSON fallback for /api/recommend on DB timeout — v2.0
+- ✓ HTML fixture library (7 edge-case formats) with MSW fake server — v2.0
+- ✓ PaddleOCR CI smoke test with cached model downloads — v2.0
+- ✓ Auto-discovery crawler with keyword scoring and robots.txt compliance — v2.0
+- ✓ Delta sign convention unified (userScore - cutoff everywhere) — v2.0
+- ✓ Trend colors corrected (rising cutoff = amber/warning) — v2.0
+- ✓ NaN score filtering in recommendation engine — v2.0
+- ✓ Error banners with retry replacing silent catch blocks — v2.0
+- ✓ Recommendation engine edge-case tests (13 cases) — v2.0
+- ✓ GitHub Actions CI workflow on PRs — v2.0
+- ✓ Actions cache for PaddleOCR + Playwright, shard optimization for July — v2.0
+- ✓ Supabase keep-alive cron every 5 days — v2.0
+- ✓ Design token system with oklch colors, dark mode, Be Vietnam Pro font fix — v2.0
+- ✓ Editable nguyện vọng list (reorder, add, remove) with URL persistence — v2.0
+- ✓ Onboarding banner, error boundaries, empty states — v2.0
+- ✓ Tier classification corrected: dream = aspirational, safe = easy admission — v2.0
 
 ### Active
 
-<!-- v2.0 scope — priority: scraper expansion > bug fixes/testing > UI/UX -->
-
-**Scraper Expansion (P1)**
-- [ ] Auto-discovery crawler: scan university homepages to find newly published cutoff score pages without manual URL maintenance
-- [ ] Scraper resilience testing: fake local university websites to test against irregular formats and layout changes
-- [ ] PaddleOCR CI integration test: verify full OCR pipeline in GitHub Actions
-- [ ] More university data: expand beyond 6 verified adapters to broader coverage
-- [ ] Batch database inserts in scraper runner (replace N+1 row-by-row upserts)
-- [ ] Extract generic adapter factory (replace 70+ copy-pasted cheerio adapters)
-
-**Bug Fixes & Testing (P2)**
-- [ ] Fix inverted delta sign convention between ResultsList and NguyenVongList
-- [ ] Fix misleading trend colors (rising cutoff = bad for student, should not be green)
-- [ ] Fix null score → NaN propagation in recommendation engine
-- [ ] Fix unsafe `as CutoffDataRow[]` cast (scraped_at Date vs string mismatch)
-- [ ] Fix withTimeout timer leak (clearTimeout on resolution)
-- [ ] Add static fallback for /api/recommend endpoint
-- [ ] Add error handling UI for failed API calls (replace silent .catch(() => {}))
-- [ ] Recommendation engine tests with synthetic/fake data (edge cases, tiers, boundaries)
-- [ ] Add CI workflow for build/test verification on PRs
-
-**UI/UX Redesign (P3)**
-- [ ] Editable nguyện vọng list (drag-to-reorder, add, remove)
-- [ ] Brand identity and design token system
-- [ ] Onboarding/context for first-time users
-- [ ] Tier label explanations with concrete numbers
-- [ ] Dark mode support
-- [ ] Error boundaries (error.tsx, not-found.tsx)
-- [ ] Improved result card information hierarchy
-- [ ] Fix font configuration (Be Vietnam Pro not actually applied)
+<!-- v3.0 scope — to be defined -->
+- [ ] Expand verified adapter coverage beyond 6 universities
+- [ ] Pagination for long university result lists
+- [ ] Drag-to-reorder for nguyện vọng list (optional, up/down buttons are primary)
+- [ ] Score range clarity (lower bound discussion: 0 vs realistic minimum)
+- [ ] TierBadge + StalenessIndicator dark mode color migration
 
 ### Out of Scope
 
@@ -67,45 +62,21 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 - Share card generation (visual screenshot for Zalo/Facebook) — defer to v3+
 - Score scenario comparison mode ("what if I scored 24 vs 25") — defer to v3+
 
-## Current Milestone: v2.0 Scraper Expansion + Quality + UX
-
-**Goal:** Make the scraping pipeline self-sustaining (auto-discovery, resilience testing), fix data correctness bugs found in 7-agent audit, and redesign the UI/UX for trust and usability.
-
-**Target features:**
-- Auto-discovery crawler for newly published cutoff pages
-- Scraper resilience testing with fake university websites
-- PaddleOCR CI integration
-- Generic adapter factory (replace 70+ copy-pasted files)
-- Fix critical data correctness bugs (delta signs, trend colors, NaN scores)
-- Recommendation engine tests with synthetic data
-- Editable nguyện vọng list
-- Brand identity, design tokens, onboarding, dark mode
-
 ## Current State
 
-**Shipped:** v1.0 (2026-03-18)
-**Codebase:** 11,162 LOC TypeScript + Python (PaddleOCR helper)
-**Tech stack:** Next.js 16, Supabase (PostgreSQL), Drizzle ORM, Serwist (PWA), next-intl, nuqs, Playwright, PaddleOCR
-**Verified adapters:** 6 of 78 (HTC, BVH, DCN, GHA, SPH*, TLA* — *URLs need re-verification)
-**Tests:** 349 passing (vitest)
-**Infrastructure:** Vercel (frontend/API), Supabase (DB), GitHub Actions (scraping cron)
+**Shipped:** v2.0 (2026-03-19)
+**Codebase:** ~14,091 LOC TypeScript + Python (PaddleOCR helper)
+**Tech stack:** Next.js 16, Supabase (PostgreSQL), Drizzle ORM, Serwist (PWA), next-intl, nuqs, next-themes, MSW, Crawlee, Playwright, PaddleOCR
+**Verified adapters:** 6 of 78 (config-driven factory for all cheerio adapters)
+**Tests:** 517 passing (vitest)
+**Infrastructure:** Vercel (frontend/API), Supabase (DB), GitHub Actions (scraping cron + CI + PaddleOCR smoke + keepalive)
 
-### Known Tech Debt (from 7-agent audit, 2026-03-18)
-- 72/78 adapters dormant (static_verified: false) — v2 auto-discovery will address
-- 70+ adapter files are copy-pasted — extract generic factory
+### Remaining Tech Debt
+- 72/78 adapters still dormant (static_verified: false) — auto-discovery crawler built but coverage expansion needed
 - Ministry portal adapter is a stub — URL changes yearly
 - SPH/TLA URLs broke after Phase 7 verification — need re-audit
-- PaddleOCR tested locally but not in CI
-- generate-static chained into build script but Vercel may need manual config
-- withTimeout timer leak (setTimeout not cleared)
-- Null score → NaN propagation in recommend engine
-- readFileSync in API fallback paths (blocks event loop)
-- No error.tsx boundaries, no CI workflow
-- Dead src/ directory (unused Next.js scaffold)
-- Font loaded but not applied (font-sans doesn't reference Be Vietnam Pro)
-- Delta sign convention inverted between ResultsList and NguyenVongList
-- Trend colors misleading (green = rising cutoff = bad for student)
-- GitHub Actions July budget: 4x/day × 6 shards exceeds free tier by 3.7x
+- TierBadge and StalenessIndicator use hardcoded colors without dark mode variants
+- `scoreMargin` i18n key defined but unreferenced (tooltip removed per user feedback)
 
 ## Context
 
@@ -139,7 +110,13 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 | 6-shard matrix for GitHub Actions scraping | 78 universities / 6 = 13 per shard, within 30min per job | ✓ Good |
 | next-intl cookie-based locale (no i18n routing) | Simpler deployment, avoids URL rewriting complexity | ✓ Good |
 
-| 7-agent audit before v2.0 | Independent specialist review catches issues self-review misses | — Pending |
+| 7-agent audit before v2.0 | Independent specialist review catches issues self-review misses | ✓ Good — caught 14 tech debt items |
+| Config-driven adapter factory | Single `createCheerioAdapter(config)` replaces 78 copy-paste files | ✓ Good — new adapters need only JSON config |
+| Tier classification inversion | Dream = aspirational (cutoff above score), Safe = easy (cutoff below) | ✓ Good — matches Vietnamese admissions convention |
+| MSW over nock for testing | nock doesn't intercept native Node 18+ fetch; project uses Node 24 | ✓ Good |
+| Crawlee for auto-discovery | Built-in robots.txt, rate limiting, storage management | ✓ Good |
+| next-themes for dark mode | class strategy with oklch semantic tokens | ✓ Good |
+| Score range 0-30 | User feedback: 10-30 was too restrictive | ✓ Good |
 
 ---
-*Last updated: 2026-03-18 after v2.0 milestone kickoff (7-agent audit)*
+*Last updated: 2026-03-19 after v2.0 milestone complete*
