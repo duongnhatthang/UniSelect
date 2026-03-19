@@ -20,8 +20,8 @@ import { asc, desc, eq, sql } from 'drizzle-orm';
 import { universities, cutoffScores, tohopCodes } from '../lib/db/schema';
 
 if (!process.env.DATABASE_URL) {
-  console.error('ERROR: DATABASE_URL env var is required');
-  process.exit(1);
+  console.warn('WARN: DATABASE_URL not set — skipping static JSON generation (using pre-committed files)');
+  process.exit(0);
 }
 
 // Use pooler URL (port 6543) with prepare: false — same as lib/db/index.ts
