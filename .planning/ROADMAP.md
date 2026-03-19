@@ -29,7 +29,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 **Milestone Goal:** Make the scraping pipeline self-sustaining (auto-discovery, resilience testing), fix data correctness bugs found in the 7-agent audit, and redesign the UI/UX for trust and usability.
 
 - [x] **Phase 8: Scraper Foundation** — Generic adapter factory, batch inserts, zero-rows guard, static /api/recommend fallback (completed 2026-03-19)
-- [ ] **Phase 9: Scraper Resilience Testing** — Fake HTTP server, HTML fixture library, PaddleOCR CI job
+- [x] **Phase 9: Scraper Resilience Testing** — Fake HTTP server, HTML fixture library, PaddleOCR CI job (completed 2026-03-19)
 - [ ] **Phase 10: Auto-Discovery Crawler** — Crawlee-based spider, keyword scoring, rate limiting, human-review output
 - [ ] **Phase 11: Bug Fixes & Data Correctness** — Delta signs, trend colors, NaN propagation, type safety, timer leak, async I/O, error UI
 - [ ] **Phase 12: Testing & CI** — Engine edge-case tests, CI workflow on PRs, dead src/ removal, sw.js gitignore
