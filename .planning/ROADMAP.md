@@ -34,7 +34,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [x] **Phase 11: Bug Fixes & Data Correctness** — Delta signs, trend colors, NaN propagation, type safety, timer leak, async I/O, error UI (completed 2026-03-19)
 - [x] **Phase 12: Testing & CI** — Engine edge-case tests, CI workflow on PRs, dead src/ removal, sw.js gitignore (completed 2026-03-19)
 - [x] **Phase 13: Infrastructure Hardening** — Actions cache, shard optimization, Supabase keep-alive (completed 2026-03-19)
-- [ ] **Phase 14: UI/UX Redesign** — Design tokens, font fix, error boundaries, editable list, onboarding, dark mode, empty states
+- [x] **Phase 14: UI/UX Redesign** — Design tokens, font fix, error boundaries, editable list, onboarding, dark mode, empty states (completed 2026-03-19)
 
 ## Phase Details
 
@@ -138,7 +138,7 @@ Plans:
 **Goal**: The UI communicates trust through correct data presentation, students can edit their nguyện vọng list directly, and first-time users understand what the app does and how to use it
 **Depends on**: Phase 11
 **Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, UI-07, UI-08, UI-09
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [ ] 14-01-PLAN.md — Design tokens, font fix, and dark mode (UI-01, UI-02, UI-08)
@@ -175,7 +175,7 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 11. Bug Fixes & Data Correctness | 3/3 | Complete    | 2026-03-19 | - |
 | 12. Testing & CI | 2/2 | Complete    | 2026-03-19 | - |
 | 13. Infrastructure Hardening | 2/2 | Complete    | 2026-03-19 | - |
-| 14. UI/UX Redesign | 3/4 | In Progress|  | - |
+| 14. UI/UX Redesign | 4/4 | Complete   | 2026-03-19 | - |
 
 ---
 *Last updated: 2026-03-19 — Phase 14 planning complete (4 plans)*

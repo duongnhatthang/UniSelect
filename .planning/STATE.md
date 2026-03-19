@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
 status: planning
-stopped_at: Completed 14-03-PLAN.md
-last_updated: "2026-03-19T13:38:59.187Z"
+stopped_at: Completed 14-04-PLAN.md
+last_updated: "2026-03-19T13:45:48.108Z"
 last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 18
-  completed_plans: 17
+  completed_plans: 18
   percent: 0
 ---
 
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 14-ui-ux-redesign P01 | 5 | 2 tasks | 7 files |
 | Phase 14-ui-ux-redesign P02 | 4 | 2 tasks | 7 files |
 | Phase 14-ui-ux-redesign P03 | 396 | 2 tasks | 7 files |
+| Phase 14-ui-ux-redesign P04 | 291 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -119,6 +120,8 @@ Recent decisions affecting current work:
 - [Phase 14-ui-ux-redesign]: NguyenVongList state lifted to ScoreForm — NguyenVongList becomes pure presentational; ScoreForm owns nuqs nv state and coordinates both ResultsList and NguyenVongList
 - [Phase 14-ui-ux-redesign]: TierBadge uses React useState for tap-toggle — CSS-only hover has no mobile touch equivalent; tap support required for score margin tooltip on mobile
 - [Phase 14-ui-ux-redesign]: Tier grouping headers use position index (not result.tier) — 5+5+5 strategy is about slot positions, not matching schools to their computed tier
+- [Phase 14-ui-ux-redesign]: scripts/discover.ts cheerio type conflict fixed by excluding scripts/ from tsconfig and casting $ as any — minimal fix to unblock build without altering crawlee architecture
+- [Phase 14-ui-ux-redesign]: NguyenVongList null guard (nguyenVong ?? []) added for robustness against nuqs mock returning null in tests
 
 ### Pending Todos
 
@@ -133,6 +136,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T13:38:59.184Z
-Stopped at: Completed 14-03-PLAN.md
+Last session: 2026-03-19T13:45:48.105Z
+Stopped at: Completed 14-04-PLAN.md
 Resume file: None
