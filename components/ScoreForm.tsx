@@ -95,17 +95,19 @@ export function ScoreForm() {
     await fetchRecommendations(params.tohop, totalScore);
   }
 
-  // Auto-submit when score and tohop are ready (both modes)
+  // Auto-submit with debounce to prevent blinking on keystroke
   useEffect(() => {
     if (params.mode === 'detailed' && params.tohop && detailedTotal !== null && detailedTotal >= 0) {
-      fetchRecommendations(params.tohop, detailedTotal);
+      const timer = setTimeout(() => fetchRecommendations(params.tohop, detailedTotal!), 400);
+      return () => clearTimeout(timer);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detailedTotal, params.tohop, params.mode]);
 
   useEffect(() => {
     if (params.mode === 'quick' && params.tohop && params.score !== null && params.score !== undefined && params.score >= 0 && params.score <= 30) {
-      fetchRecommendations(params.tohop, params.score);
+      const timer = setTimeout(() => fetchRecommendations(params.tohop, params.score!), 400);
+      return () => clearTimeout(timer);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.score, params.tohop, params.mode]);

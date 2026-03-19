@@ -21,7 +21,7 @@
     "quickMode": "Nhập nhanh",
     "detailedMode": "Nhập chi tiết",
     "totalScore": "Tổng điểm",
-    "enterScore": "Nhập điểm (10.0 - 30.0)",
+    "enterScore": "Nhập điểm (0 - 30)",
     "selectTohop": "Chọn tổ hợp",
     "viewResults": "Xem kết quả",
     "noResults": "Không có kết quả phù hợp",
@@ -31,7 +31,8 @@
     "searchPlaceholder": "Tìm trường đại học...",
     "filterByTohop": "Lọc theo tổ hợp",
     "allTohop": "Tất cả tổ hợp",
-    "shareLink": "Chia sẻ liên kết",
+    "shareLink": "Chia sẻ danh sách nguyện vọng qua URL",
+    "copyLink": "Sao chép",
     "apiError": "Có lỗi xảy ra. Vui lòng thử lại.",
     "retry": "Thử lại",
     "trend": {

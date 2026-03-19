@@ -54,13 +54,13 @@ describe('recommend', () => {
 
   describe('tier boundary classification', () => {
     // All tests use cutoff=20, diff = total_score - cutoff
-    // Constants: dream >= 3, practical: -1..2, safe: -5..-2, excluded < -5
+    // safe >= 3 (above cutoff, easy), practical: -1..2, dream: -5..-2 (aspirational), excluded < -5
 
-    it('classifies as dream when diff = 3 (cutoff=20, score=23)', () => {
+    it('classifies as safe when diff = 3 (cutoff=20, score=23)', () => {
       const input: RecommendInput = { tohop_code: 'A00', total_score: 23 };
       const result = recommend(input, [row({ score: '20' })]);
       expect(result).toHaveLength(1);
-      expect(result[0].tier).toBe('dream');
+      expect(result[0].tier).toBe('safe');
     });
 
     it('classifies as practical at lower boundary: diff = -1 (cutoff=20, score=19)', () => {
@@ -77,18 +77,18 @@ describe('recommend', () => {
       expect(result[0].tier).toBe('practical');
     });
 
-    it('classifies as safe at upper boundary: diff = -2 (cutoff=20, score=18)', () => {
+    it('classifies as dream at upper boundary: diff = -2 (cutoff=20, score=18)', () => {
       const input: RecommendInput = { tohop_code: 'A00', total_score: 18 };
       const result = recommend(input, [row({ score: '20' })]);
       expect(result).toHaveLength(1);
-      expect(result[0].tier).toBe('safe');
+      expect(result[0].tier).toBe('dream');
     });
 
-    it('classifies as safe at lower boundary: diff = -5 (cutoff=20, score=15)', () => {
+    it('classifies as dream at lower boundary: diff = -5 (cutoff=20, score=15)', () => {
       const input: RecommendInput = { tohop_code: 'A00', total_score: 15 };
       const result = recommend(input, [row({ score: '20' })]);
       expect(result).toHaveLength(1);
-      expect(result[0].tier).toBe('safe');
+      expect(result[0].tier).toBe('dream');
     });
 
     it('returns empty when excluded: diff = -6 (cutoff=20, score=14)', () => {
@@ -100,18 +100,18 @@ describe('recommend', () => {
 
   describe('pool size edge cases', () => {
     it('returns only dream and safe results when 0-practical pool (no practical matches)', () => {
-      // score=24 (diff=4) = dream; score=17 (diff=-3) = safe; nothing in -1..2 range = no practical
+      // score=24 (diff=4) = safe; score=27 (diff=-3) = dream; nothing in -1..2 range = no practical
       const rows = [
-        row({ university_id: 'U1', major_id: 'M1', score: '20' }),  // diff=4 → dream
-        row({ university_id: 'U2', major_id: 'M2', score: '27' }),  // diff=-6 → excluded
-        row({ university_id: 'U3', major_id: 'M3', score: '21' }),  // diff=3 → dream boundary
+        row({ university_id: 'U1', major_id: 'M1', score: '20' }),  // diff=4 → safe
+        row({ university_id: 'U2', major_id: 'M2', score: '27' }),  // diff=-3 → dream
+        row({ university_id: 'U3', major_id: 'M3', score: '21' }),  // diff=3 → safe boundary
       ];
       const input: RecommendInput = { tohop_code: 'A00', total_score: 24 };
       const result = recommend(input, rows);
       const tiers = result.map(r => r.tier);
       expect(tiers).not.toContain('practical');
-      // Both dream entries should be present
-      expect(result.filter(r => r.tier === 'dream')).toHaveLength(2);
+      expect(result.filter(r => r.tier === 'safe')).toHaveLength(2);
+      expect(result.filter(r => r.tier === 'dream')).toHaveLength(1);
     });
 
     it('marks all results as suggested_top_15=true when pool has exactly 15 entries', () => {

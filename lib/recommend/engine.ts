@@ -1,11 +1,14 @@
 import type { CutoffDataRow, RecommendInput, RecommendResult, Tier } from './types';
 
-// Tier classification margins (locked in CONTEXT.md)
-const DREAM_MARGIN = 3;     // student_score >= cutoff + 3
-const PRACTICAL_LOWER = -1; // student_score >= cutoff - 1
-const PRACTICAL_UPPER = 2;  // student_score <= cutoff + 2
-const SAFE_LOWER = -5;      // student_score >= cutoff - 5
-const SAFE_UPPER = -2;      // student_score <= cutoff - 2
+// Tier classification margins
+// diff = totalScore - weightedCutoff
+// Positive diff = student is ABOVE cutoff (safe)
+// Negative diff = student is BELOW cutoff (dream/aspirational)
+const SAFE_MARGIN = 3;       // diff >= 3 → safe (comfortably above cutoff)
+const PRACTICAL_LOWER = -1;  // diff >= -1 → practical (close match)
+const PRACTICAL_UPPER = 2;   // diff <= 2 → practical
+const DREAM_LOWER = -5;      // diff >= -5 → dream (below cutoff, aspirational)
+const DREAM_UPPER = -2;      // diff <= -2 → dream
 
 // Trend threshold: diff > 0.5 = rising, diff < -0.5 = falling, else stable
 const TREND_THRESHOLD = 0.5;
@@ -19,10 +22,10 @@ const WEIGHTS: Record<number, number[]> = {
 
 function classifyTier(totalScore: number, weightedCutoff: number): Tier | null {
   const diff = totalScore - weightedCutoff;
-  if (diff >= DREAM_MARGIN) return 'dream';
-  if (diff >= PRACTICAL_LOWER && diff <= PRACTICAL_UPPER) return 'practical';
-  if (diff >= SAFE_LOWER && diff <= SAFE_UPPER) return 'safe';
-  return null; // below safe threshold — exclude
+  if (diff >= SAFE_MARGIN) return 'safe';               // well above cutoff → easy admission
+  if (diff >= PRACTICAL_LOWER && diff <= PRACTICAL_UPPER) return 'practical'; // close match
+  if (diff >= DREAM_LOWER && diff <= DREAM_UPPER) return 'dream';            // below cutoff → aspirational
+  return null; // too far below cutoff — exclude
 }
 
 function computeTrend(sortedScores: number[]): 'rising' | 'falling' | 'stable' {
@@ -42,9 +45,9 @@ function isSuPham(nameVi: string): boolean {
 }
 
 const TIER_ORDER: Record<Tier, number> = {
-  practical: 0,
-  dream: 1,
-  safe: 2,
+  dream: 0,      // positions 1-5: aspirational reaches
+  practical: 1,  // positions 6-10: realistic matches
+  safe: 2,       // positions 11-15: backup/easy admission
 };
 
 export function recommend(input: RecommendInput, rows: CutoffDataRow[]): RecommendResult[] {
@@ -129,21 +132,19 @@ export function recommend(input: RecommendInput, rows: CutoffDataRow[]): Recomme
     const bSuPham = isSuPham(b.major_name_vi);
     if (aSuPham !== bSuPham) return aSuPham ? 1 : -1;
 
-    // Within-tier sort by score proximity/margin
+    // Within-tier sort
+    if (a.tier === 'dream') {
+      // Descending cutoff (highest aspirational target first)
+      return b.weighted_cutoff - a.weighted_cutoff;
+    }
     if (a.tier === 'practical') {
-      // Ascending distance from cutoff
+      // Ascending distance from cutoff (closest match first)
       const aDist = Math.abs(input.total_score - a.weighted_cutoff);
       const bDist = Math.abs(input.total_score - b.weighted_cutoff);
       return aDist - bDist;
     }
-    if (a.tier === 'dream') {
-      // Descending margin (most clearance first)
-      const aMargin = input.total_score - a.weighted_cutoff;
-      const bMargin = input.total_score - b.weighted_cutoff;
-      return bMargin - aMargin;
-    }
     if (a.tier === 'safe') {
-      // Descending weighted_cutoff (highest cutoff = closest to student = safest choice)
+      // Descending cutoff (best safe choices first)
       return b.weighted_cutoff - a.weighted_cutoff;
     }
 

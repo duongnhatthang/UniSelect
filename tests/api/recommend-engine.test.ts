@@ -21,18 +21,18 @@ function makeRow(
 
 // ─── Test 1: Three-year weighted average ─────────────────────────────────────
 describe('recommend - 3-year weighted average', () => {
-  it('computes correct weighted average and classifies tier (dream)', () => {
+  it('computes correct weighted average and classifies tier (safe — well above cutoff)', () => {
     const rows: CutoffDataRow[] = [
       makeRow({ year: 2023, score: '24.00' }),
       makeRow({ year: 2024, score: '25.00' }),
       makeRow({ year: 2025, score: '26.00' }),
     ];
     // weighted_cutoff = (24*1 + 25*2 + 26*3) / 6 = (24+50+78)/6 = 152/6 ≈ 25.333
-    const input: RecommendInput = { tohop_code: 'A00', total_score: 29.0 }; // 29 >= 25.333 + 3
+    const input: RecommendInput = { tohop_code: 'A00', total_score: 29.0 }; // 29 >= 25.333 + 3 → safe
     const results = recommend(input, rows);
     expect(results).toHaveLength(1);
     expect(results[0].weighted_cutoff).toBeCloseTo(25.333, 2);
-    expect(results[0].tier).toBe('dream');
+    expect(results[0].tier).toBe('safe');
     expect(results[0].data_years_limited).toBe(false);
     expect(results[0].years_available).toBe(3);
   });
@@ -60,13 +60,13 @@ describe('recommend - 2-year data', () => {
       makeRow({ year: 2025, score: '27.00' }),
     ];
     // weighted_cutoff = (24*1 + 27*2) / 3 = (24+54)/3 = 78/3 = 26
-    const input: RecommendInput = { tohop_code: 'A00', total_score: 29.5 }; // >= 26 + 3 = 29 → dream
+    const input: RecommendInput = { tohop_code: 'A00', total_score: 29.5 }; // >= 26 + 3 = 29 → safe
     const results = recommend(input, rows);
     expect(results).toHaveLength(1);
     expect(results[0].weighted_cutoff).toBeCloseTo(26.0, 5);
     expect(results[0].data_years_limited).toBe(true);
     expect(results[0].years_available).toBe(2);
-    expect(results[0].tier).toBe('dream');
+    expect(results[0].tier).toBe('safe');
   });
 });
 
@@ -99,27 +99,27 @@ describe('recommend - exclusion below safe threshold', () => {
     expect(results).toHaveLength(0);
   });
 
-  it('includes pair when student score exactly at safe lower bound (cutoff - 5)', () => {
+  it('includes pair when student score exactly at dream lower bound (cutoff - 5)', () => {
     const rows: CutoffDataRow[] = [
       makeRow({ year: 2025, score: '26.00' }),
     ];
-    // cutoff = 26, safe = 21 to 24, student score = 21 → safe tier (at lower bound)
+    // cutoff = 26, dream = 21 to 24, student score = 21 → dream tier (at lower bound)
     const input: RecommendInput = { tohop_code: 'A00', total_score: 21.0 };
     const results = recommend(input, rows);
     expect(results).toHaveLength(1);
-    expect(results[0].tier).toBe('safe');
+    expect(results[0].tier).toBe('dream');
   });
 });
 
-// ─── Test 5: Dream tier classification ───────────────────────────────────────
-describe('recommend - dream tier', () => {
-  it('classifies as dream when student score >= cutoff + 3', () => {
+// ─── Test 5: Safe tier classification (well above cutoff) ────────────────────
+describe('recommend - safe tier (above cutoff)', () => {
+  it('classifies as safe when student score >= cutoff + 3', () => {
     const rows: CutoffDataRow[] = [
       makeRow({ year: 2025, score: '20.00' }),
     ];
-    const input: RecommendInput = { tohop_code: 'A00', total_score: 23.0 }; // 20 + 3 = 23 → dream
+    const input: RecommendInput = { tohop_code: 'A00', total_score: 23.0 }; // 20 + 3 = 23 → safe
     const results = recommend(input, rows);
-    expect(results[0].tier).toBe('dream');
+    expect(results[0].tier).toBe('safe');
   });
 
   it('classifies as practical (not dream) when student score = cutoff + 2', () => {
@@ -153,24 +153,24 @@ describe('recommend - practical tier', () => {
   });
 });
 
-// ─── Test 7: Safe tier classification ────────────────────────────────────────
-describe('recommend - safe tier', () => {
-  it('classifies as safe when cutoff - 5 <= score <= cutoff - 2', () => {
+// ─── Test 7: Dream tier classification (below cutoff, aspirational) ──────────
+describe('recommend - dream tier (below cutoff)', () => {
+  it('classifies as dream when cutoff - 5 <= score <= cutoff - 2', () => {
     const rows: CutoffDataRow[] = [
       makeRow({ year: 2025, score: '25.00' }),
     ];
-    const input: RecommendInput = { tohop_code: 'A00', total_score: 21.0 }; // 25 - 5 = 20, 25 - 2 = 23, so 21 → safe
+    const input: RecommendInput = { tohop_code: 'A00', total_score: 21.0 }; // 25 - 5 = 20, 25 - 2 = 23, so 21 → dream
     const results = recommend(input, rows);
-    expect(results[0].tier).toBe('safe');
+    expect(results[0].tier).toBe('dream');
   });
 
-  it('classifies as safe at upper bound (cutoff - 2)', () => {
+  it('classifies as dream at upper bound (cutoff - 2)', () => {
     const rows: CutoffDataRow[] = [
       makeRow({ year: 2025, score: '25.00' }),
     ];
-    const input: RecommendInput = { tohop_code: 'A00', total_score: 23.0 }; // exactly cutoff - 2 → safe
+    const input: RecommendInput = { tohop_code: 'A00', total_score: 23.0 }; // exactly cutoff - 2 → dream
     const results = recommend(input, rows);
-    expect(results[0].tier).toBe('safe');
+    expect(results[0].tier).toBe('dream');
   });
 });
 
@@ -210,49 +210,36 @@ describe('recommend - suggested_top_15', () => {
     expect(results.every(r => r.suggested_top_15)).toBe(true);
   });
 
-  it('sorts practical before dream before safe in suggested_top_15 ordering', () => {
-    const rows: CutoffDataRow[] = [
-      // dream: cutoff=15, student=19 (15+4)
-      makeRow({ university_id: 'DREAM', major_id: '7000001', university_name_vi: 'Dream Uni', major_name_vi: 'Dream Major', year: 2025, score: '15.00' }),
-      // practical: cutoff=22, student=22 (22-1<=22<=22+2)
-      makeRow({ university_id: 'PRAC', major_id: '7000002', university_name_vi: 'Prac Uni', major_name_vi: 'Prac Major', year: 2025, score: '22.00' }),
-      // safe: cutoff=25, student=21 (25-5=20<=21<=25-2=23)
-      makeRow({ university_id: 'SAFE', major_id: '7000003', university_name_vi: 'Safe Uni', major_name_vi: 'Safe Major', year: 2025, score: '25.00' }),
-    ];
-    const input: RecommendInput = { tohop_code: 'A00', total_score: 19.0 };
-    // 19 vs dream_cutoff=15: 19>=15+3=18 → dream
-    // 19 vs prac_cutoff=22: 22-1=21, 19<21 → safe threshold = 22-5=17, 22-2=20, 17<=19<=20 → safe... wait
-    // 19 vs safe_cutoff=25: 25-5=20, 19<20 → excluded
-
-    // Let me reconsider the fixture scores so the intended tiers match:
+  it('sorts dream before practical before safe in suggested_top_15 ordering', () => {
+    // New tier semantics:
+    // dream = below cutoff (aspirational), practical = close match, safe = well above cutoff
     // student score = 23
-    // dream: cutoff=19, student=23 → 23>=19+3=22 → dream ✓
-    // practical: cutoff=22, student=23 → 22-1=21<=23<=22+2=24 → practical ✓
-    // safe: cutoff=27, student=23 → 27-5=22<=23<=27-2=25 → safe ✓
-    const rows2: CutoffDataRow[] = [
-      makeRow({ university_id: 'DREAM', major_id: '7000001', university_name_vi: 'Dream Uni', major_name_vi: 'Dream Major', year: 2025, score: '19.00' }),
+    // DREAM: cutoff=27, diff=23-27=-4 → dream (below cutoff, aspirational)
+    // PRAC: cutoff=22, diff=23-22=1 → practical (close match)
+    // SAFE: cutoff=19, diff=23-19=4 → safe (well above cutoff, easy)
+    const rows: CutoffDataRow[] = [
+      makeRow({ university_id: 'DREAM', major_id: '7000001', university_name_vi: 'Dream Uni', major_name_vi: 'Dream Major', year: 2025, score: '27.00' }),
       makeRow({ university_id: 'PRAC', major_id: '7000002', university_name_vi: 'Prac Uni', major_name_vi: 'Prac Major', year: 2025, score: '22.00' }),
-      makeRow({ university_id: 'SAFE', major_id: '7000003', university_name_vi: 'Safe Uni', major_name_vi: 'Safe Major', year: 2025, score: '27.00' }),
+      makeRow({ university_id: 'SAFE', major_id: '7000003', university_name_vi: 'Safe Uni', major_name_vi: 'Safe Major', year: 2025, score: '19.00' }),
     ];
-    const input2: RecommendInput = { tohop_code: 'A00', total_score: 23.0 };
-    const results2 = recommend(input2, rows2);
+    const input: RecommendInput = { tohop_code: 'A00', total_score: 23.0 };
+    const results = recommend(input, rows);
 
-    expect(results2).toHaveLength(3);
-    // All 3 should be marked since <15
-    expect(results2.every(r => r.suggested_top_15)).toBe(true);
+    expect(results).toHaveLength(3);
+    expect(results.every(r => r.suggested_top_15)).toBe(true);
 
     // Verify tier classification
-    const dreamResult = results2.find(r => r.university_id === 'DREAM');
-    const pracResult = results2.find(r => r.university_id === 'PRAC');
-    const safeResult = results2.find(r => r.university_id === 'SAFE');
+    const dreamResult = results.find(r => r.university_id === 'DREAM');
+    const pracResult = results.find(r => r.university_id === 'PRAC');
+    const safeResult = results.find(r => r.university_id === 'SAFE');
     expect(dreamResult?.tier).toBe('dream');
     expect(pracResult?.tier).toBe('practical');
     expect(safeResult?.tier).toBe('safe');
 
-    // Verify sort order: practical first, then dream, then safe
-    const sortedIds = results2.map(r => r.university_id);
-    expect(sortedIds.indexOf('PRAC')).toBeLessThan(sortedIds.indexOf('DREAM'));
-    expect(sortedIds.indexOf('DREAM')).toBeLessThan(sortedIds.indexOf('SAFE'));
+    // Verify sort order: dream first, then practical, then safe
+    const sortedIds = results.map(r => r.university_id);
+    expect(sortedIds.indexOf('DREAM')).toBeLessThan(sortedIds.indexOf('PRAC'));
+    expect(sortedIds.indexOf('PRAC')).toBeLessThan(sortedIds.indexOf('SAFE'));
   });
 });
 
@@ -285,7 +272,7 @@ describe('recommend - trend', () => {
       makeRow({ year: 2025, score: '25.00' }), // diff = 1.0 > 0.5 → rising
     ];
     const input: RecommendInput = { tohop_code: 'A00', total_score: 28.0 };
-    // cutoff = (24*1 + 25*2)/3 = 74/3 ≈ 24.67, 28 >= 24.67+3 = 27.67 → dream
+    // cutoff = (24*1 + 25*2)/3 = 74/3 ≈ 24.67, 28 >= 24.67+3 = 27.67 → safe
     const results = recommend(input, rows);
     expect(results[0].trend).toBe('rising');
   });
@@ -296,7 +283,7 @@ describe('recommend - trend', () => {
       makeRow({ year: 2025, score: '24.00' }), // diff = -2.0 < -0.5 → falling
     ];
     const input: RecommendInput = { tohop_code: 'A00', total_score: 29.0 };
-    // cutoff = (26*1 + 24*2)/3 = 74/3 ≈ 24.67, 29 >= 24.67+3 = 27.67 → dream
+    // cutoff = (26*1 + 24*2)/3 = 74/3 ≈ 24.67, 29 >= 24.67+3 = 27.67 → safe
     const results = recommend(input, rows);
     expect(results[0].trend).toBe('falling');
   });

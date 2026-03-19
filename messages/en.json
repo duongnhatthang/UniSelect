@@ -21,7 +21,7 @@
     "quickMode": "Quick mode",
     "detailedMode": "Detailed mode",
     "totalScore": "Total score",
-    "enterScore": "Enter score (10.0 - 30.0)",
+    "enterScore": "Enter score (0 - 30)",
     "selectTohop": "Select subject combination",
     "viewResults": "View results",
     "noResults": "No matching results",
@@ -31,7 +31,8 @@
     "searchPlaceholder": "Search universities...",
     "filterByTohop": "Filter by subject combination",
     "allTohop": "All combinations",
-    "shareLink": "Share link",
+    "shareLink": "Share your nguyện vọng list via URL",
+    "copyLink": "Copy",
     "apiError": "Something went wrong. Please try again.",
     "retry": "Retry",
     "trend": {

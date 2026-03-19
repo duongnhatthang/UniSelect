@@ -153,12 +153,21 @@ export function NguyenVongList({ nguyenVong, setNguyenVong, results, userScore }
         </ol>
       )}
 
-      {/* Share link hint */}
+      {/* Share link */}
       {list.length > 0 && (
-        <div className="mt-3 p-3 bg-surface-subtle rounded-lg border border-border">
+        <div className="mt-3 p-3 bg-surface-subtle rounded-lg border border-border flex items-center justify-between">
           <p className="text-xs text-on-surface-muted">
             {t('shareLink')}
           </p>
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+            }}
+            className="text-xs font-medium text-primary hover:text-primary-hover transition-colors ml-2"
+          >
+            {t('copyLink')}
+          </button>
         </div>
       )}
     </div>
