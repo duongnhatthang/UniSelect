@@ -74,12 +74,17 @@ Plans:
 **Goal**: Running the discovery crawler against university homepages produces a ranked list of candidate cutoff-page URLs in a review file — without touching scrapers.json or the production database
 **Depends on**: Phase 9
 **Requirements**: SCRP-04, SCRP-05
+**Plans:** 2 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — Keyword scorer, types, constants, and Crawlee dependency install
+- [ ] 10-02-PLAN.md — CheerioCrawler discover.ts script and MSW integration tests
+
 **Success Criteria** (what must be TRUE):
   1. Running `discover.ts` against 3+ fake university homepages (from Phase 9 fixtures) produces a `discovery-candidates.json` with correctly ranked URL candidates
   2. The crawler respects robots.txt: pages disallowed by robots.txt do not appear in discovery output
   3. The crawler does not exceed the configured per-domain rate limit (2-3 second delay between requests to the same domain)
   4. `scrapers.json` is never written by the crawler — all output is ephemeral to `discovery-candidates.json` for human review
-**Plans**: TBD
 
 ### Phase 11: Bug Fixes & Data Correctness
 **Goal**: All known data correctness bugs are fixed atomically — delta signs, trend colors, NaN scores, type mismatches, timer leak, async I/O, and error UI are all corrected in a single phase
@@ -143,11 +148,11 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 7. Adapter Verification | v1.0 | 3/3 | Complete | 2026-03-18 |
 | 8. Scraper Foundation | 3/3 | Complete   | 2026-03-19 | - |
 | 9. Scraper Resilience Testing | 1/2 | In Progress|  | - |
-| 10. Auto-Discovery Crawler | v2.0 | 0/? | Not started | - |
+| 10. Auto-Discovery Crawler | v2.0 | 0/2 | Planned | - |
 | 11. Bug Fixes & Data Correctness | v2.0 | 0/? | Not started | - |
 | 12. Testing & CI | v2.0 | 0/? | Not started | - |
 | 13. Infrastructure Hardening | v2.0 | 0/? | Not started | - |
 | 14. UI/UX Redesign | v2.0 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-03-19 — Phase 9 planning complete (2 plans)*
+*Last updated: 2026-03-19 — Phase 10 planning complete (2 plans)*
