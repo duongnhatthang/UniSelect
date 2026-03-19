@@ -3,6 +3,7 @@ import { Be_Vietnam_Pro } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import { ThemeProvider } from 'next-themes';
 import './globals.css';
 import { OfflineBanner } from '../components/OfflineBanner';
 
@@ -22,13 +23,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale();
   const messages = await getMessages();
   return (
-    <html lang={locale} className={font.variable}>
-      <body className="font-sans antialiased bg-white text-gray-900">
+    <html lang={locale} className={font.variable} suppressHydrationWarning>
+      <body className="font-sans antialiased bg-surface text-on-surface">
         <NuqsAdapter>
-          <NextIntlClientProvider messages={messages}>
-            <OfflineBanner />
-            {children}
-          </NextIntlClientProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <NextIntlClientProvider messages={messages}>
+              <OfflineBanner />
+              {children}
+            </NextIntlClientProvider>
+          </ThemeProvider>
         </NuqsAdapter>
       </body>
     </html>
