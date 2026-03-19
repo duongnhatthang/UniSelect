@@ -42,12 +42,18 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 **Goal**: The scraper pipeline is safe to extend — zero-rows failures are visible, DB writes are efficient, and 70+ copy-pasted adapters are replaced by a single config-driven factory
 **Depends on**: Phase 7 (v1.0 complete)
 **Requirements**: SCRP-01, SCRP-02, SCRP-03, FIX-06
+**Plans:** 3 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — Zero-rows guard and batch transaction inserts in runner
+- [ ] 08-02-PLAN.md — Static JSON fallback for /api/recommend on DB timeout
+- [ ] 08-03-PLAN.md — Config-driven adapter factory and registry migration
+
 **Success Criteria** (what must be TRUE):
   1. Running a verified adapter through the factory-migrated runner produces identical rows in Supabase compared to the original copy-pasted adapter
   2. A scrape run where an adapter returns zero rows logs `status: 'zero_rows'` (not `'ok'`) and the scrape_run record reflects rows_written: 0 with an error message
   3. A university with 200+ cutoff rows writes to Supabase in 2 round-trips (one transaction) instead of N individual upserts
   4. When Supabase is unreachable, `GET /api/recommend` returns a 200 with data from the static scores-by-tohop.json fallback
-**Plans**: TBD
 
 ### Phase 9: Scraper Resilience Testing
 **Goal**: Every adapter format has an HTML fixture and can be integration-tested against a local fake HTTP server without hitting live university servers
@@ -130,7 +136,7 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 5. Infrastructure Hardening | v1.0 | 3/3 | Complete | 2026-03-18 |
 | 6. Tech Debt Cleanup | v1.0 | 1/1 | Complete | 2026-03-18 |
 | 7. Adapter Verification | v1.0 | 3/3 | Complete | 2026-03-18 |
-| 8. Scraper Foundation | v2.0 | 0/? | Not started | - |
+| 8. Scraper Foundation | v2.0 | 0/3 | Planning complete | - |
 | 9. Scraper Resilience Testing | v2.0 | 0/? | Not started | - |
 | 10. Auto-Discovery Crawler | v2.0 | 0/? | Not started | - |
 | 11. Bug Fixes & Data Correctness | v2.0 | 0/? | Not started | - |
@@ -139,4 +145,4 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 14. UI/UX Redesign | v2.0 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-03-18 — v2.0 roadmap created*
+*Last updated: 2026-03-18 — Phase 8 planning complete (3 plans)*
