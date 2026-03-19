@@ -25,7 +25,7 @@ Requirements for v2.0 release. Each maps to roadmap phases. Priority: Scraper Ex
 - [ ] **FIX-03**: Recommendation engine filters out null/unparseable scores before computing weighted averages (no NaN propagation)
 - [ ] **FIX-04**: CutoffDataRow type matches Drizzle return types (scraped_at: Date | null, not string | null)
 - [ ] **FIX-05**: withTimeout clears the setTimeout on promise resolution (no timer leak)
-- [ ] **FIX-06**: /api/recommend falls back to static JSON (scores-by-tohop.json) when Supabase is unreachable
+- [x] **FIX-06**: /api/recommend falls back to static JSON (scores-by-tohop.json) when Supabase is unreachable
 - [ ] **FIX-07**: Failed API calls show visible error banners with retry capability (replace silent .catch(() => {}))
 - [ ] **FIX-08**: readFileSync in API fallback paths replaced with async readFile
 
@@ -95,7 +95,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FIX-03 | Phase 11 | Pending |
 | FIX-04 | Phase 11 | Pending |
 | FIX-05 | Phase 11 | Pending |
-| FIX-06 | Phase 8 | Pending |
+| FIX-06 | Phase 8 | Complete |
 | FIX-07 | Phase 11 | Pending |
 | FIX-08 | Phase 11 | Pending |
 | TEST-01 | Phase 12 | Pending |
