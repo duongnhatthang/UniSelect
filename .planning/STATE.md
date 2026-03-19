@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
 status: planning
-stopped_at: Completed 09-02-PLAN.md
-last_updated: "2026-03-19T04:53:37.443Z"
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-03-19T04:56:14.418Z"
 last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 08 P02 | 8 | 2 tasks | 3 files |
 | Phase 08-scraper-foundation P03 | 297 | 2 tasks | 4 files |
 | Phase 09-scraper-resilience-testing P02 | 1 | 1 tasks | 2 files |
+| Phase 09-scraper-resilience-testing P01 | 2 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Recent decisions affecting current work:
 - [Phase 08-scraper-foundation]: scrapers.json factory_config added to all cheerio adapters including static_verified:false — registry skips them but configs are ready for when URLs are verified
 - [Phase 09-scraper-resilience-testing]: PaddleOCR 3.x models cached at ~/.paddlex (not ~/.paddleocr) with hashFiles key; PADDLE_PDX_MODEL_SOURCE=BOS at job level prevents remote re-check after cache restore
 - [Phase 09]: Synthetic CI test images generated via Pillow script at runtime — no binary fixtures committed to git
+- [Phase 09-scraper-resilience-testing]: Windows-1252 fixture uses iconv.encode() Buffer (not string) to exercise the non-UTF-8 chardet detection branch in fetchHTML
+- [Phase 09-scraper-resilience-testing]: MSW onUnhandledRequest: 'error' enforces zero live network requests during scraper integration test runs
 
 ### Pending Todos
 
@@ -89,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T04:53:37.441Z
-Stopped at: Completed 09-02-PLAN.md
+Last session: 2026-03-19T04:56:14.416Z
+Stopped at: Completed 09-01-PLAN.md
 Resume file: None
