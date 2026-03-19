@@ -1,243 +1,392 @@
-# Technology Stack
+# Stack Research
 
-**Project:** UniSelect — Vietnamese University Admissions PWA
-**Researched:** 2026-03-17
-**Overall confidence:** MEDIUM-HIGH (core choices verified via official docs; library versions from training knowledge where fetch was blocked)
+**Domain:** Vietnamese university admissions PWA — v2.0 additions only
+**Researched:** 2026-03-18
+**Confidence:** MEDIUM-HIGH (versions verified via WebSearch against npm registry; React 19 compatibility issues verified via GitHub issues)
 
----
-
-## Recommended Stack
-
-### Core Framework
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Next.js | 15.x (latest) | Full-stack React framework, SSR + API routes | Native PWA manifest support (`app/manifest.ts`), App Router, Vercel-native deployment, excellent Vietnamese font/i18n handling via `next/font`. Turbopack stable in dev. React 19 included. |
-| React | 19.x | UI library | Bundled with Next.js 15. Server Components reduce JS payload on slow devices — critical for mid-range Android phones on 4G. |
-| TypeScript | 5.x | Type safety | Project has complex domain objects (tổ hợp codes, cutoff records, nguyện vọng slots). Strong typing prevents category errors in matching logic. |
-
-**Why not Vite + React:** Vite is a build tool, not a full-stack framework. You would need to wire up API routes, SSR, manifest handling, and deployment separately. Next.js does all of this with zero config on Vercel and ships smaller bundles via Server Components. The App Router's server-first model means cutoff data queries never reach the client bundle.
-
-**Why not Remix:** Similar capabilities but smaller ecosystem, fewer official integrations, and Vercel support is via adapter rather than native. No material advantage for this use case.
-
-### PWA Layer
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Native Next.js PWA | (built-in) | Web app manifest, installability | Next.js 15 has first-class `app/manifest.ts` support (verified via nextjs.org/docs, March 2026). No library needed for manifest. |
-| Serwist (`@serwist/next`) | ~9.x | Service worker, offline caching | Official Next.js docs explicitly recommend Serwist for offline support (confirmed). Replaces deprecated `next-pwa`. Built on Workbox. Requires webpack config — acceptable for this use case. |
-
-**Why not next-pwa:** next-pwa is effectively abandoned and incompatible with Next.js 14+. Serwist is the maintained successor, explicitly referenced in official Next.js docs.
-
-**Service worker scope:** Cache the current-year cutoff dataset on first load. This enables offline access (critical: students may look up data in exam halls with poor connectivity). Do not try to cache scraper outputs in the service worker — stale data risk is too high. Cache the read API responses only.
-
-### Database
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Supabase (Postgres) | N/A (hosted) | Primary data store for scraped cutoff data, university metadata | Free tier: 500MB database, 2 active projects, 50MB file storage, unlimited API requests with Supabase JS client. Postgres gives full relational queries — critical for multi-axis filtering (university × major × tổ hợp × year). Row-level security for future multi-user features. Supabase pauses free projects after 1 week of inactivity; acceptable since scraper workflows can wake the project. |
-| Drizzle ORM | ~0.30.x | Type-safe query builder for Postgres | Lightweight (~50KB), TypeScript-first, works with Supabase Postgres via `postgres` driver (`postgres.js`). Migration workflow via `drizzle-kit`. Alternative to Prisma which is heavier and has known cold-start issues on serverless. |
-
-**Why not PlanetScale:** PlanetScale ended its free tier in 2024. Not viable for a zero-cost project.
-
-**Why not Turso (libSQL/SQLite):** Turso has a generous free tier but SQLite's lack of native full-text search and the mismatch with Supabase's ecosystem (Auth, RLS, real-time) makes it a worse fit. Supabase's Postgres is the right tool for relational admissions data. Also Drizzle supports both if you need to migrate later.
-
-**Why not Vercel Postgres:** Vercel Postgres (built on Neon) requires the Pro plan for meaningful usage. Not free-tier viable.
-
-**Supabase inactivity caveat:** The free tier pauses databases after 1 week of inactivity. Mitigate by: (a) having the GitHub Actions scraper job ping Supabase on every run, and (b) using Supabase's built-in "prevent project pausing" toggle (now available on free tier in 2024).
-
-### Scraping Layer
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Cheerio | ~1.0.x | HTML parsing for static/server-rendered pages | jQuery-like API, pure Node.js (no browser binaries), ~100KB installed. Works inside Vercel serverless functions and GitHub Actions. The vast majority of Vietnamese university pages and the MOET portal serve full HTML without JavaScript rendering — Cheerio is sufficient. |
-| node-fetch / native `fetch` | built-in (Node 18+) | HTTP requests for scraping | Node.js 18+ includes native `fetch`. No additional HTTP library needed. Set custom User-Agent and respect rate limits to avoid blocks. |
-
-**Why not Playwright:** Playwright installs Chromium/Firefox/WebKit binaries totalling ~300-600MB. This exceeds Vercel's serverless function bundle limit and is impractical in GitHub Actions without caching. Use it only as a last resort for the handful of university pages that require JavaScript rendering (estimate: <5 of 78 sites). If needed, run Playwright exclusively in GitHub Actions (not Vercel functions) where Docker images can pre-cache the browser binary.
-
-**Why not Puppeteer:** Same reason as Playwright — binary size. Puppeteer is also single-browser (Chromium only). Playwright is strictly better if you must use a headless browser.
-
-**Scraping strategy:** Tier the scrapers:
-1. **Tier 1 (Cheerio + fetch):** Ministry portal + majority of university sites (~73/78). Fast, zero overhead.
-2. **Tier 2 (Playwright in GitHub Actions):** JS-rendered pages only (<5 sites). Isolated to scraper workflow, never in API routes.
-
-### Scheduling (Scraping Cron)
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| GitHub Actions (scheduled workflows) | N/A | Run scraper on cron schedule | **Critical:** Vercel Hobby cron is limited to once per day (verified via vercel.com/docs/cron-jobs/usage-and-pricing, March 2026). GitHub Actions schedules support any cron expression (minimum 5-minute intervals) and are **free for public repositories with no minute limits**. UniSelect is open source — zero scheduling cost. |
-
-**Vercel Hobby cron limitation (verified):** Cron jobs on Hobby plan run at most once per day, with ±59 minute precision. This is unsuitable for peak-season scraping (July) where hourly runs are needed. GitHub Actions solves this entirely.
-
-**Scheduling design:**
-- **Off-season (Aug–June):** Daily GitHub Actions run. Scrape MOET portal + ~10 major universities.
-- **Peak season (July, registration period):** Multiple runs per day (e.g., every 4–6 hours). Triggered by date logic in the workflow file.
-- **Scraper writes to Supabase directly** using the service-role key stored as a GitHub Actions secret.
-
-### i18n (Internationalization)
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| next-intl | ~3.x | Vietnamese/English translation, locale routing | Best-in-class i18n for Next.js App Router. Supports Server Components, Client Components, and middleware-based locale detection. Type-safe with TypeScript. Built-in ICU message format for plurals/dates (needed for score display like "điểm chuẩn năm 2024"). Alternative `react-i18next` requires more boilerplate and lacks native App Router Server Component support. |
-
-**Why not react-i18next:** Works well with Pages Router but requires extra bridging for App Router Server Components. next-intl is purpose-built for App Router and has substantially less boilerplate.
-
-**Locale strategy:** `vi` as default locale (no prefix in URL: `/`), `en` at `/en/*`. Middleware handles detection from `Accept-Language` header. All cutoff data labels, university names, and major names stored in Vietnamese; English translations cover UI chrome only.
-
-### Styling
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Tailwind CSS | 4.x | Utility-first styling | Near-zero CSS bundle with purging, mobile-first responsive utilities, excellent performance on low-end devices. v4 removes the PostCSS config step; configure in `app/globals.css` directly. Ideal for the dense, data-heavy tables this app requires. |
-| shadcn/ui | latest | Accessible component library | Unstyled Radix UI primitives + Tailwind + copy-paste model = no dependency bloat. Provides accessible table, dialog, slider, and tooltip components needed for the nguyện vọng builder and score simulator. **Not installed as a package** — components are copied into the repo, so there are no upstream breaking changes. |
-
-**Why not Chakra UI / MUI:** Both are heavy (large JS bundles) and opinionated in ways that conflict with dense Vietnamese data layouts. Tailwind + shadcn gives full control with minimal overhead.
-
-### State Management
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| React built-ins (`useState`, `useReducer`, `useContext`) | built-in | Session state for nguyện vọng list, score input | No account required, no server-side session. The nguyện vọng list (max 15 items) and score inputs are ephemeral session state — `useReducer` with `useContext` is sufficient. No Zustand or Redux needed for this complexity level. |
-| URL state (`nuqs`) | ~1.x | Encode nguyện vọng list + scores in URL | Enables the share-list feature without a backend. `nuqs` is a type-safe URL search parameter library for Next.js App Router. Encodes the full session state as URL params — shareable on Zalo with link preview. |
-
-**Why not Zustand:** Zustand is a fine library but adds unnecessary dependency for state that lives entirely in URL params + React local state. Adds to bundle size on mobile.
-
-### Testing
-
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Vitest | ~2.x | Unit tests for matching algorithm, score calculations | Fast (Vite-based), zero config with Next.js. The nguyện vọng matching logic and tổ hợp calculation are pure functions — ideal for unit testing. Critical to test edge cases (tied scores, boundary conditions). |
-| Playwright | ~1.x | E2E tests for the score input → list generation flow | Same Playwright used for JS-rendering fallback in scrapers. Run in CI on PRs. Focus on the critical user path: enter scores → see ranked list → build nguyện vọng list. |
+> This file documents ONLY the new libraries needed for v2.0 features.
+> Existing stack (Next.js 16, Supabase, Drizzle ORM, Serwist, next-intl, nuqs,
+> Playwright, PaddleOCR, Cheerio, Tailwind v4, vitest) is unchanged.
 
 ---
 
-## Infrastructure Map
+## Recommended Stack — New Additions
 
+### Feature 1: Auto-Discovery Crawler
+
+**Goal:** Crawl university homepages using BFS link-following to find newly published cutoff score pages without manual URL maintenance.
+
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `crawlee` (`@crawlee/cheerio`) | ^3.13.7 | BFS link-discovery crawler with built-in request queue | Wraps Cheerio with `enqueueLinks()` supporting URL glob/regex filtering, depth control, and automatic deduplication. Avoids writing a manual BFS queue. Runs in Node.js with zero browser binary dependency — identical environment to existing GitHub Actions scraper jobs. The `CheerioCrawler` strategy is sufficient because Vietnamese university homepage navigation menus are mostly static HTML; Playwright-based discovery is only needed if a homepage itself requires JS rendering (rare). |
+
+**Installation:**
+```bash
+npm install crawlee
 ```
-[GitHub Actions]
-  scheduled cron (daily off-season, 4x/day in July)
-    → Scraper (Node.js, Cheerio)
-    → Writes to Supabase Postgres
 
-[Vercel (Hobby)]
-  Next.js 15 App
-    → app/manifest.ts         (PWA manifest)
-    → public/sw.js (Serwist)  (service worker, offline cache)
-    → app/[locale]/           (next-intl locale routing: vi / en)
-    → app/api/universities/   (Route Handlers → Supabase query via Drizzle)
-    → app/api/scrape/         (optional manual trigger endpoint, protected)
+**Why not raw Cheerio + custom BFS:** You already use Cheerio for parsing. Crawlee adds the request queue, retry logic, politeness delays, and `enqueueLinks` URL filtering on top — exactly the scaffolding a BFS crawler needs. Rolling this yourself costs 2-3x implementation time with worse edge case coverage.
 
-[Supabase (Free)]
-  Postgres tables:
-    - universities
-    - majors
-    - cutoff_scores (year, university_id, major_id, to_hop, diem_chuan)
-    - scrape_runs (timestamp, status, rows_upserted)
+**Why not Playwright crawler (crawlee's `PlaywrightCrawler`):** Discovery only needs to follow navigation links on static homepages. Playwright adds a 300-600 MB browser binary — already ruled out for GitHub Actions unless specifically needed. Use `CheerioCrawler` for discovery; fall back to `PlaywrightCrawler` only for homepages verified to require JS rendering.
+
+**Why not Crawl4AI / Firecrawl:** Both are Python-first (Crawl4AI) or hosted SaaS (Firecrawl). The scraper pipeline is Node.js/TypeScript running in GitHub Actions. Crawlee is TypeScript-native, same runtime, same toolchain.
+
+**Integration note:** Run the discovery crawler as a separate GitHub Actions job — not inside the API routes. Output is a list of candidate URLs written to Supabase (`url_candidates` table or similar), which the main scraper runner picks up. Keep discovery and data extraction as separate responsibilities.
+
+**URL filtering pattern for cutoff pages:**
+```typescript
+await enqueueLinks({
+  globs: ['**/diem-chuan**', '**/tuyen-sinh**', '**/thong-bao**'],
+  // Exclude navigation anchors, login pages, external links
+  exclude: ['**/login**', '**/admin**'],
+  strategy: 'same-hostname',
+});
 ```
 
 ---
 
-## Alternatives Considered
+### Feature 2: Scraper Resilience Testing (Fake Local HTTP Server)
 
-| Category | Recommended | Alternative | Why Not |
-|----------|-------------|-------------|---------|
-| Framework | Next.js 15 | Vite + React | No full-stack, no SSR, no native Vercel integration |
-| Framework | Next.js 15 | Remix | Smaller ecosystem, Vercel via adapter not natively |
-| Database | Supabase Postgres | PlanetScale | Free tier discontinued 2024 |
-| Database | Supabase Postgres | Turso (libSQL) | Less relational capability; no clear advantage |
-| Database | Supabase Postgres | Vercel Postgres (Neon) | Requires paid plan for usable limits |
-| ORM | Drizzle | Prisma | Heavier bundle, known serverless cold-start issues |
-| Scraping | Cheerio | Playwright (primary) | 300-600MB binary, cannot run in Vercel functions |
-| Scraping | Cheerio | Puppeteer | Same binary size issue as Playwright |
-| PWA | Serwist | next-pwa | Abandoned, incompatible with Next.js 14+ |
-| Scheduling | GitHub Actions | Vercel Cron | Vercel Hobby cron is once/day maximum — insufficient for peak season |
-| i18n | next-intl | react-i18next | Lacks native App Router Server Component support |
-| Styling | Tailwind + shadcn | Chakra UI | Heavy JS bundle, bad for mid-range Android devices |
-| Styling | Tailwind + shadcn | MUI | Same reason; opinionated design conflicts with dense Vietnamese data layouts |
-| State | nuqs + useReducer | Zustand | Overkill for session-only, URL-encodable state |
+**Goal:** Serve static fake HTML files during vitest test runs so scraper adapters can make real HTTP requests to controlled fixtures without hitting live university websites.
+
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `sirv` | ^3.0.2 | Lightweight static file server for Node.js | Used as a local HTTP server in vitest `globalSetup`. Start before tests, stop after. Serves HTML fixture files from `tests/fixtures/` so Cheerio and Playwright adapters make real `fetch()` calls to `http://localhost:PORT/...` — no mocking required. Simpler than Express for static serving. |
+
+**Installation:**
+```bash
+npm install -D sirv
+```
+
+**Why not MSW (Mock Service Worker):** MSW intercepts `fetch()`/`XMLHttpRequest` at the Node.js module level using `@mswjs/interceptors`. It does NOT start an actual HTTP server. The scraper adapter runner calls `fetch(url)` where `url` is the real university URL. For testing, you want to redirect that URL to a local file — which requires either URL substitution at the test boundary or an actual HTTP server. A real server (sirv) is architecturally cleaner: adapters run unmodified, and tests simply pass `http://localhost:PORT/bvh.html` as the URL argument instead of the live URL.
+
+**Why not `http-server` or `serve` CLI:** Both are CLI tools, not importable Node.js modules. `sirv` exports a handler function that integrates directly into a `node:http` server — ideal for `globalSetup`/`teardown` in vitest.
+
+**vitest globalSetup pattern:**
+```typescript
+// tests/setup/static-server.ts
+import { createServer } from 'node:http';
+import sirv from 'sirv';
+
+let server: ReturnType<typeof createServer>;
+
+export async function setup() {
+  const handler = sirv('tests/fixtures', { dev: true });
+  server = createServer(handler);
+  await new Promise<void>(resolve => server.listen(0, resolve));
+  const port = (server.address() as { port: number }).port;
+  process.env.FIXTURE_SERVER_PORT = String(port);
+}
+
+export async function teardown() {
+  await new Promise<void>(resolve => server.close(() => resolve()));
+}
+```
+
+Then in `vitest.config.mts`:
+```typescript
+globalSetup: ['tests/setup/static-server.ts']
+```
+
+Adapters under test receive `http://localhost:${process.env.FIXTURE_SERVER_PORT}/bvh.html` as the URL — no code change to the adapter itself.
+
+**Fixture file structure:**
+```
+tests/fixtures/
+  bvh/
+    normal.html        # Standard table layout
+    no-data.html       # Page exists but no cutoff table
+    malformed.html     # Missing columns, bad encoding
+    changed-layout.html # Simulates post-redesign layout change
+  htc/
+    ...
+```
+
+---
+
+### Feature 3: Drag-and-Drop Reorder for Nguyện Vọng List
+
+**Goal:** Users can drag items up/down to manually reorder their 15-choice nguyện vọng list.
+
+**React 19 compatibility situation (as of March 2026):**
+- `@dnd-kit/core` 6.3.1 — last published ~1 year ago, maintenance concerns, React 19 not explicitly supported (peerDeps: `>=16.8.0` which technically includes 19 via semver)
+- `@hello-pangea/dnd` 18.0.1 — explicitly excludes React 19 in peerDeps (`^16 || ^17 || ^18`)
+- `@atlaskit/pragmatic-drag-and-drop` 1.7.7 — peerDeps also caps at React 18; React 19 issue open with no timeline
+- `motion` (formerly framer-motion) 12.37.0 — React 19 **fully supported** as of v12.27.5 (December 2025); includes `Reorder` component for drag-to-reorder lists
+
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `motion` | ^12.37.0 | Drag-to-reorder list with animation | Only major drag-reorder library with confirmed React 19 support. The `Reorder.Group` + `Reorder.Item` API directly matches the use case: a vertical sortable list of 15 items. Built-in spring animations improve perceived quality. Already likely used or considered for UI polish; adding it for reorder gets animation "for free". |
+
+**Installation:**
+```bash
+npm install motion
+```
+
+**Usage pattern:**
+```tsx
+import { Reorder } from 'motion/react';
+
+function NguyenVongList({ items, onChange }) {
+  return (
+    <Reorder.Group axis="y" values={items} onReorder={onChange}>
+      {items.map(item => (
+        <Reorder.Item key={item.id} value={item}>
+          {/* card content */}
+        </Reorder.Item>
+      ))}
+    </Reorder.Group>
+  );
+}
+```
+
+**Why not `@dnd-kit/core`:** Last release was ~1 year ago (6.3.1). Open GitHub issues about future maintenance and React 19 compatibility. The new `@dnd-kit/react` 0.3.2 API has documented bugs where `onDragEnd` source/target are always identical (GitHub issue #1664, open). Not production-safe for a reorder use case.
+
+**Why not `@hello-pangea/dnd`:** Hard peerDep on React `^16 || ^17 || ^18` — explicitly rejects React 19. Project already runs React 19.2.3.
+
+**Why not native HTML5 drag events:** The HTML5 DnD API has well-known inconsistencies across browsers (especially touch/mobile). Vietnamese students predominantly use Android phones. Native DnD has no touch support without additional libraries — a critical gap.
+
+**Caveat:** Motion's `Reorder` component is **incompatible with Next.js page-level scrolling and routing** (documented known issue). This is acceptable for the nguyện vọng list which lives within a single page section, not across routes. Test explicitly on mobile (touch) before shipping.
+
+---
+
+### Feature 4: Design Token System with Dark Mode (Tailwind v4)
+
+**Goal:** Establish a brand color palette with semantic tokens, plus dark mode toggling without page flash.
+
+**No new libraries needed for tokens.** Tailwind v4's `@theme` directive IS the design token system. Define tokens in `globals.css`:
+
+```css
+@import "tailwindcss";
+
+@theme {
+  /* Brand palette */
+  --color-brand-primary: hsl(221 83% 53%);
+  --color-brand-accent:  hsl(142 71% 45%);
+
+  /* Semantic tokens (light defaults) */
+  --color-surface:         hsl(0 0% 100%);
+  --color-surface-raised:  hsl(220 14% 96%);
+  --color-on-surface:      hsl(222 47% 11%);
+  --color-on-surface-muted: hsl(215 16% 47%);
+  --color-border:          hsl(220 13% 91%);
+
+  /* Typography */
+  --font-sans: 'Be Vietnam Pro', ui-sans-serif, system-ui;
+}
+
+/* Dark mode overrides — CSS-only, no JS config */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@layer base {
+  [data-theme=dark] {
+    --color-surface:          hsl(222 47% 11%);
+    --color-surface-raised:   hsl(217 33% 17%);
+    --color-on-surface:       hsl(210 40% 98%);
+    --color-on-surface-muted: hsl(215 20% 65%);
+    --color-border:           hsl(217 33% 25%);
+  }
+}
+```
+
+Utilities like `bg-surface`, `text-on-surface`, `border-border` are generated automatically from `@theme` variables. No CSS-in-JS, no config file.
+
+**For the toggle (flash-free):** One small library is needed.
+
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `next-themes` | ^0.4.6 | Theme provider for flash-free dark mode toggle | Injects a blocking inline script before page hydration to read `localStorage` and set `data-theme` on `<html>` before React renders — eliminating the white flash on dark-mode users. Uses `attribute="data-theme"` to match the Tailwind `@custom-variant` selector. Alternative is a manual `<script>` in `layout.tsx` — achievable but more fragile to maintain. |
+
+**Installation:**
+```bash
+npm install next-themes
+```
+
+**Integration with Tailwind v4 `@custom-variant`:**
+```tsx
+// app/layout.tsx
+import { ThemeProvider } from 'next-themes';
+
+export default function RootLayout({ children }) {
+  return (
+    <html suppressHydrationWarning>
+      <body>
+        <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+The `attribute="data-theme"` on `ThemeProvider` aligns with the `@custom-variant dark` selector in globals.css. `suppressHydrationWarning` is required because the theme class is set server-unknown.
+
+**Why not OS-preference only (no `next-themes`):** Tailwind v4 defaults to `prefers-color-scheme` via media query — no library needed for system-only mode. But students will want a manual toggle persisted across sessions. `next-themes` adds `localStorage` persistence + flash prevention in ~2KB.
+
+**Why not a manual `<script>` in `layout.tsx`:** Doable, but `next-themes` encodes 4 years of edge cases (hydration, multiple tabs, system preference sync). Not worth reinventing.
+
+---
+
+### Feature 5: Recommendation Engine Tests with Synthetic Data
+
+**Goal:** Test edge cases in the recommendation engine (NaN scores, null scores, boundary conditions, tier assignment) using controlled fake data fixtures.
+
+**No new test runner needed** — vitest is already installed and running 349 tests. The addition is a data generation helper.
+
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `@faker-js/faker` | ^10.3.0 | Generate synthetic university/major/cutoff data for tests | Produces realistic Vietnamese-range scores (10.0–30.0), random university IDs, random tổ hợp codes. Seeded (`faker.seed(42)`) for deterministic snapshots. Eliminates hand-written fixture duplication across 20+ edge case tests. v10 requires Node.js 20+ — check GitHub Actions runner. |
+
+**Installation:**
+```bash
+npm install -D @faker-js/faker
+```
+
+**Factory pattern (recommended over raw faker calls in tests):**
+```typescript
+// tests/factories/cutoff.ts
+import { faker } from '@faker-js/faker';
+import type { CutoffDataRow } from '../../lib/db/schema';
+
+faker.seed(42); // deterministic across CI runs
+
+export function makeCutoffRow(overrides: Partial<CutoffDataRow> = {}): CutoffDataRow {
+  return {
+    university_id: faker.helpers.arrayElement(['BKA', 'BVH', 'DCN', 'GHA', 'HTC']),
+    major_code: faker.string.numeric(7),
+    tohop: faker.helpers.arrayElement(['A00', 'A01', 'B00', 'C00', 'D01']),
+    year: faker.helpers.arrayElement([2022, 2023, 2024]),
+    score: faker.number.float({ min: 15.0, max: 29.5, fractionDigits: 2 }),
+    scraped_at: faker.date.recent().toISOString(),
+    ...overrides,
+  };
+}
+
+export function makeCutoffRows(count: number, overrides?: Partial<CutoffDataRow>) {
+  return Array.from({ length: count }, () => makeCutoffRow(overrides));
+}
+```
+
+**Edge case tests this enables:**
+```typescript
+// Null score propagation (known bug)
+makeCutoffRow({ score: null })
+
+// Boundary: student score exactly equals cutoff
+makeCutoffRow({ score: 24.5 })  // student inputs 24.5
+
+// Tiering: ensure 5+5+5 split with varied score gaps
+makeCutoffRows(15, {}) // mixed scores, verify dream/practical/safe counts
+```
+
+**Why not hand-written fixtures:** 20+ edge cases mean 20+ manually maintained objects. When `CutoffDataRow` type changes (e.g., the `scraped_at: Date vs string` tech debt fix), factory functions update in one place.
+
+**Why not `fishery` + `@faker-js/faker`:** Fishery adds a factory class pattern useful for complex relational objects with associations. `CutoffDataRow` is flat; plain factory functions are sufficient and have zero extra dependency.
+
+---
+
+## Summary: What Gets Added
+
+| Package | Version | Category | New? |
+|---------|---------|----------|------|
+| `crawlee` | ^3.13.7 | Prod dep | YES — auto-discovery crawler |
+| `sirv` | ^3.0.2 | Dev dep | YES — fake HTTP server for scraper tests |
+| `motion` | ^12.37.0 | Prod dep | YES — drag-to-reorder nguyện vọng list |
+| `next-themes` | ^0.4.6 | Prod dep | YES — flash-free dark mode toggle |
+| `@faker-js/faker` | ^10.3.0 | Dev dep | YES — synthetic test data factory |
+
+**Tailwind v4 `@theme` design tokens:** Zero new dependencies. Pure CSS using existing Tailwind v4.
 
 ---
 
 ## Installation
 
 ```bash
-# Create Next.js 15 app
-npx create-next-app@latest uniselect --typescript --tailwind --app --src-dir
+# Production dependencies
+npm install crawlee motion next-themes
 
-# Database
-npm install drizzle-orm postgres
-npm install -D drizzle-kit
-
-# Supabase client
-npm install @supabase/supabase-js
-
-# i18n
-npm install next-intl
-
-# Scraping (runs in GitHub Actions + API routes)
-npm install cheerio
-
-# URL state
-npm install nuqs
-
-# PWA service worker
-npm install @serwist/next serwist
-
-# Dev / test
-npm install -D vitest @vitejs/plugin-react
-npm install -D playwright @playwright/test
+# Dev dependencies
+npm install -D sirv @faker-js/faker
 ```
 
 ---
 
-## Critical Constraints Summary
+## Alternatives Considered
 
-| Constraint | Impact | Mitigation |
-|------------|--------|------------|
-| Vercel Hobby cron: once/day max | Cannot scrape hourly during July peak | Use GitHub Actions scheduled workflows (free for public repos) |
-| Vercel Hobby function: 300s max (with Fluid Compute) | Scraping 78+ universities in one function call would exceed limit | Split scraping into batches; scraper runs in GitHub Actions, not Vercel functions |
-| Supabase free: project pauses after 1 week inactivity | Database unavailable if no traffic for 7 days | Scraper job pings DB on every run; enable "pause prevention" in Supabase dashboard |
-| Vercel Hobby: 12 bundled functions max (Next.js) | Hard limit on API routes | Unlikely to hit this with App Router's bundling behavior; monitor |
-| Playwright binary (~300-600MB) | Cannot run in Vercel functions | Playwright exclusively in GitHub Actions; Cheerio for all Vercel-side scraping |
-
----
-
-## Confidence Assessment
-
-| Area | Confidence | Notes |
-|------|------------|-------|
-| Next.js 15 as framework | HIGH | Official docs verified March 2026 (nextjs.org) |
-| PWA manifest approach | HIGH | Official Next.js docs verified March 2026 |
-| Serwist for service worker | HIGH | Explicitly referenced in official Next.js PWA docs |
-| Vercel Hobby cron (once/day) | HIGH | Verified via vercel.com/docs/cron-jobs/usage-and-pricing March 2026 |
-| Vercel function max duration (300s) | HIGH | Verified via vercel.com/docs/functions/configuring-functions/duration March 2026 |
-| GitHub Actions as scheduler | HIGH | Public repos get free unlimited minutes; well-established pattern |
-| Cheerio for scraping | MEDIUM | Training knowledge; library is mature and stable; version ~1.0 is current as of Aug 2025 training cutoff |
-| Supabase free tier limits | MEDIUM | Training knowledge (500MB DB, pause after 7 days inactivity); verify current limits at supabase.com/pricing before starting |
-| Drizzle ORM version | MEDIUM | Training knowledge; verify current version at npmjs.com/package/drizzle-orm |
-| next-intl version | MEDIUM | Training knowledge; verify at npmjs.com/package/next-intl |
-| serwist version | MEDIUM | Training knowledge; verify at npmjs.com/package/@serwist/next |
-| nuqs compatibility with Next.js 15 | MEDIUM | Library actively maintained; verify Next.js 15 compatibility at npmjs.com/package/nuqs |
-| Tailwind CSS v4 | MEDIUM | Training knowledge as of Aug 2025; verify current config approach (v4 changed PostCSS setup) |
+| Recommended | Alternative | When to Use Alternative |
+|-------------|-------------|-------------------------|
+| `crawlee` | Raw Cheerio + custom BFS | If crawlee's request queue/retry logic is overkill for a one-shot discovery scan (not the case here — retries are valuable for flaky Vietnamese hosting) |
+| `sirv` + vitest `globalSetup` | MSW (`msw/node`) | If testing components that call APIs (use MSW for those); for scraper adapters that make raw HTTP fetches, a real server is more architecturally honest |
+| `motion` Reorder | `@dnd-kit/core` + `@dnd-kit/sortable` | If React 18 or earlier; dnd-kit is well-documented and widely used — but currently last-release ~1 year ago with React 19 compatibility unresolved |
+| `next-themes` | Manual `<script>` in layout.tsx | For projects that never need a user-facing toggle (system preference only); saves 2KB |
+| `@faker-js/faker` | Hand-written fixture objects | For very small test suites (<5 fixtures) where the factory abstraction adds more complexity than it saves |
 
 ---
 
-## Gaps to Address Before Starting
+## What NOT to Use
 
-1. **Verify Supabase free tier limits** — confirm 500MB database and 7-day pause rule are still current at supabase.com/pricing
-2. **Verify current library versions** — run `npm info cheerio version`, `npm info drizzle-orm version`, `npm info next-intl version`, `npm info @serwist/next version` before pinning
-3. **Audit Vietnamese university target pages** — manually check if the MOET portal and top 20 universities render data server-side (Cheerio-compatible) or require JavaScript. This determines Tier 1 vs Tier 2 scraper allocation.
-4. **Confirm Supabase "pause prevention"** — verify the free tier toggle to prevent project pausing exists in the current Supabase dashboard
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| `@hello-pangea/dnd` | peerDeps explicitly cap at React 18; project uses React 19.2.3 | `motion` Reorder |
+| `@atlaskit/pragmatic-drag-and-drop` | React 19 not supported; issue open with no ETA (Jan 2025) | `motion` Reorder |
+| `@dnd-kit/react` (new API, v0.3.2) | Critical bug: `onDragEnd` source/target always identical (issue #1664, open); unstable API | `motion` Reorder or legacy `@dnd-kit/core` if React 18 |
+| `playwright webServer` for fixture serving | Playwright's `webServer` config is for E2E browser tests, not vitest unit tests | `sirv` in vitest `globalSetup` |
+| LLM-based URL classification for auto-discovery | Cost prohibitive (PROJECT.md out-of-scope constraint) | Crawlee + keyword glob patterns on `enqueueLinks` |
+| `fishery` factory library | Adds a class-based factory abstraction that is overkill for flat `CutoffDataRow` objects | Plain factory functions with `@faker-js/faker` |
+
+---
+
+## Version Compatibility
+
+| Package | Requires | Notes |
+|---------|----------|-------|
+| `crawlee` ^3.13.7 | Node.js ≥16 | GitHub Actions default Node (20) is fine |
+| `@faker-js/faker` ^10.3.0 | Node.js ≥20 | v10 raised minimum; verify GitHub Actions runner uses Node 20 |
+| `motion` ^12.37.0 | React ≥18.2 | React 19 fully supported since v12.27.5 (Dec 2025) |
+| `next-themes` ^0.4.6 | Next.js ≥13 | No known Next.js 16 incompatibility |
+| `sirv` ^3.0.2 | Node.js ≥14 | Dev-only; no runtime constraints |
+
+---
+
+## Stack Patterns by Variant
+
+**For auto-discovery — homepage requires JS rendering (rare):**
+- Use `PlaywrightCrawler` from crawlee instead of `CheerioCrawler`
+- Same `enqueueLinks` API, just browser-rendered
+- Only activate when a specific university's homepage is known JS-rendered
+
+**For dark mode — system preference only, no toggle:**
+- Skip `next-themes`
+- Tailwind v4 defaults to `@media (prefers-color-scheme: dark)` with zero config
+- Only add `next-themes` when a user-facing toggle + `localStorage` persistence is needed
+
+**For scraper fixture tests — Playwright-based scrapers:**
+- `sirv` serves the same HTML fixtures
+- The Playwright scraper's `page.goto(url)` hits `http://localhost:PORT/fixture.html`
+- No fixture format change needed; same static HTML works for Cheerio and Playwright scrapers
 
 ---
 
 ## Sources
 
-- Next.js 15 release blog: https://nextjs.org/blog/next-15 (verified March 2026)
-- Next.js PWA guide: https://nextjs.org/docs/app/guides/progressive-web-apps (verified March 2026, docs version 16.1.7)
-- Next.js deployment docs: https://nextjs.org/docs/app/getting-started/deploying (verified March 2026)
-- Vercel cron usage and pricing: https://vercel.com/docs/cron-jobs/usage-and-pricing (verified March 2026)
-- Vercel function duration limits: https://vercel.com/docs/functions/configuring-functions/duration (verified March 2026)
-- Vercel limits overview: https://vercel.com/docs/limits/overview (verified March 2026)
-- Cheerio, Drizzle, next-intl, serwist, nuqs: training knowledge, August 2025 cutoff (MEDIUM confidence — verify versions before use)
-- Supabase free tier: training knowledge, August 2025 cutoff (MEDIUM confidence — verify before use)
+- Crawlee npm: WebSearch confirmed version 3.13.7 (March 2026) — MEDIUM confidence
+- Crawlee `enqueueLinks` docs: https://crawlee.dev/js/docs/examples/crawl-some-links — HIGH confidence
+- sirv npm: WebSearch confirmed version 3.0.2 (September 2025) — MEDIUM confidence
+- sirv + vitest globalSetup pattern: https://eshlox.net/setting-up-a-static-server-for-vitest-tests — MEDIUM confidence
+- MSW comparison: https://mswjs.io/docs/comparison/ — HIGH confidence (does not spawn HTTP servers)
+- motion (framer-motion) npm: WebSearch confirmed version 12.37.0, React 19 supported since 12.27.5 — MEDIUM-HIGH confidence
+- motion Reorder docs: https://motion.dev/docs/react-reorder — HIGH confidence
+- `@dnd-kit/core` 6.3.1 last release ~1 year ago: WebSearch confirmed — MEDIUM confidence
+- `@hello-pangea/dnd` React 19 exclusion: GitHub discussion #810 + peerDeps — HIGH confidence
+- `@atlaskit/pragmatic-drag-and-drop` React 19 issue: GitHub issue #181 (Jan 2025, open) — HIGH confidence
+- `@dnd-kit/react` onDragEnd bug: GitHub issue #1664 (open) — HIGH confidence
+- next-themes 0.4.6: WebSearch confirmed — MEDIUM confidence
+- next-themes + Tailwind v4 data-attribute pattern: https://iifx.dev/en/articles/456423217 — MEDIUM confidence
+- Tailwind v4 @theme + @custom-variant: https://tailwindcss.com/docs/theme + https://tailwindcss.com/docs/dark-mode — HIGH confidence
+- @faker-js/faker 10.3.0: WebSearch confirmed — MEDIUM confidence
+- @faker-js/faker Node.js 20 minimum requirement: https://fakerjs.dev/guide/ — HIGH confidence
+
+---
+*Stack research for: UniSelect v2.0 new feature additions*
+*Researched: 2026-03-18*

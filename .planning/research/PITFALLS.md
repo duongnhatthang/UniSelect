@@ -1,368 +1,425 @@
-# Domain Pitfalls
+# Pitfalls Research
 
-**Domain:** Vietnamese university admissions PWA with web scraping (UniSelect)
-**Researched:** 2026-03-17
-**Confidence note:** WebSearch unavailable during this research session. Findings draw from training knowledge of web scraping engineering, Vietnamese web ecosystem, Vercel/Supabase free-tier constraints, and edu-tech failure patterns. Confidence levels are marked per finding. HIGH confidence = well-established engineering pattern. MEDIUM = domain reasoning from strong analogues. LOW = flag for further validation.
+**Domain:** Vietnamese university admissions PWA — v2.0 feature additions to existing system
+**Researched:** 2026-03-18
+**Confidence:** HIGH — all pitfalls are grounded in direct codebase inspection (runner.ts, ResultsList.tsx, NguyenVongList.tsx, scrape-peak.yml, scrapers.json), known 7-agent audit findings from PROJECT.md, and documented project constraints. No speculative pitfalls.
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites, data integrity failures, or user harm.
+Mistakes that cause rewrites, silent data corruption, or CI pipeline collapse when adding v2 features to the existing system.
 
 ---
 
-### Pitfall 1: CSS Selector / DOM Structure Lock-In (Scraping Brittleness)
+### Pitfall 1: Auto-Discovery Crawler Gets University IP-Banned During July Peak
 
-**What goes wrong:** Scrapers target specific CSS class names or DOM nesting paths (e.g., `table.diem-chuan > tbody > tr:nth-child(2) > td.score`). When a university redesigns its website — even cosmetically — every scraper targeting that site breaks silently or returns garbage data. With 78+ sites, at least several will change structure each year.
-
-**Why it happens:** The path of least resistance when first writing a scraper is to copy the exact selector from browser DevTools. Nobody considers what happens when the site updates.
-
-**Consequences:**
-- Stale or missing cutoff scores with no alert to the user or operator
-- If the scraper "succeeds" but returns wrong data (e.g., a sibling cell), scores are silently wrong — worst case because no error is raised
-- Cascading: a broken scraper may write null or a previous value to the database, leaving no evidence of failure
-
-**Prevention:**
-- Target semantic/structural markers (table headers with known Vietnamese text like "Điểm chuẩn", "Tổ hợp", "Mã ngành") rather than positional selectors. If the header text is present, the data row is reliably adjacent regardless of style changes.
-- Write a schema-level assertion after every scrape: score must be a float between 10.0 and 30.0 (THPT max), tổ hợp code must match a known regex (e.g., `[A-D]\d{2}`), major code must be 7 digits. Reject and alert on failure.
-- Store the raw HTML snapshot alongside parsed data. If a parse fails later, you can re-parse from snapshot without re-scraping.
-- Track a "last successful scrape" timestamp per university in the database. Surface staleness prominently in the UI ("Data last updated: 8 months ago").
-
-**Detection (warning signs):**
-- Score distribution suddenly shifts (e.g., 40 universities return null in a single run)
-- A university's scores are unchanged for more than 12 months despite a new admissions cycle
-- Parsed score is outside the 10.0–30.0 range
-
-**Phase:** Address in Phase 1 (scraping infrastructure). Validation layer must ship before any data is written to the production database.
-
----
-
-### Pitfall 2: Silent Data Corruption via Encoding Mismatch
-
-**What goes wrong:** Vietnamese university websites use a mix of UTF-8, Windows-1258 (VISCII variant), and occasionally TCVN3 encodings. If the HTTP client assumes UTF-8 when the response is Windows-1258, Vietnamese characters are mangled — and the scraper may still "succeed" because it found a table. Major names like "Quản trị kinh doanh" become mojibake. These corrupt strings get stored in the database and displayed to students.
-
-**Why it happens:** Modern HTTP libraries default to UTF-8. The `Content-Type` header may declare the wrong charset, or the HTML `<meta charset>` may be absent. Government and older university sites are the most likely offenders.
-
-**Consequences:**
-- Major names and university names appear garbled in the UI, destroying trust
-- Search/filter breaks for affected records (normalized Vietnamese string won't match mojibake)
-- Diacritics stripped during normalization may collapse distinct majors into the same string
-
-**Prevention:**
-- Always read the raw bytes first. Use `chardet` (Python) or equivalent to detect encoding before decoding.
-- Cross-check: if detected encoding differs from declared charset, log a warning and use detected encoding.
-- After parsing, run a sanity check: if more than 10% of characters in a name field fall outside the expected Vietnamese Unicode range (U+0000–U+024F plus Vietnamese-specific combining marks), treat the record as suspect.
-- Canonicalize all Vietnamese text to NFC normalization form before storage. Do this once at write time, not at query time.
-
-**Detection:**
-- Any character like `Ã`, `â€`, `Â±` in a major or university name
-- Tổ hợp codes containing non-ASCII characters
-- Search returning zero results for a known university name
-
-**Phase:** Phase 1 (scraping infrastructure). Encoding handling must be solved before the data pipeline is built.
-
----
-
-### Pitfall 3: JS-Rendered Pages Treated as Static HTML
-
-**What goes wrong:** Some university websites (and potentially the Ministry portal) render their cutoff score tables via JavaScript (React, Vue, or plain AJAX calls). A pure HTTP GET returns an empty `<div id="app"></div>` with no table data. The scraper sees no error, just an empty result set. This is silently treated as "no data" rather than "render failed."
-
-**Why it happens:** The scraper developer tests on static sites first. When encountering a JS-rendered site, the empty parse result is not distinguished from "university has no published data."
-
-**Consequences:**
-- Entire universities or majors missing from the database
-- No error raised, so the gap is never investigated
-- Users see a university listed (from a static page) but with no score data
-
-**Prevention:**
-- For each university, document during initial mapping whether it is static or JS-rendered. This is a one-time audit.
-- Add a "minimum rows expected" check per source: if a source previously returned 50 rows and now returns 0, flag it — don't write zero rows to the database.
-- For JS-rendered sites, use Playwright or Puppeteer in headless mode. Isolate these into a separate scraping queue (they are slower and more resource-intensive). GitHub Actions can run a headed Chromium.
-- Consider whether the underlying AJAX endpoint can be directly hit (inspect Network tab). Many "JS-rendered" pages actually call a JSON API; scraping the API is faster and more stable than rendering.
-
-**Detection:**
-- New scraper run for a university returns 0 rows when previous run returned N rows
-- Raw HTML response body is under 5 KB for a page expected to contain tabular data
-
-**Phase:** Phase 1 (scraping infrastructure). Must be identified in initial site audit before building per-university scrapers.
-
----
-
-### Pitfall 4: Ministry Portal Structure Changes Destroying the Primary Data Source
-
-**What goes wrong:** The Ministry portal (thisinh.thitotnghiepthpt.edu.vn) is the primary structured data source. If it changes its URL structure, moves data behind authentication, or adds CAPTCHA, the entire data pipeline fails. This happened to analogous national-exam portals in other countries after public attention.
-
-**Why it happens:** Government portals are redesigned on political/budget cycles with no regard for downstream scrapers. There is no API contract.
-
-**Consequences:**
-- Total data loss for the Ministry-sourced records, which may be the majority
-- Forces emergency re-scrape from 78 individual university sites under time pressure
-- If this happens in July (peak period), students see no data during the highest-traffic window
-
-**Prevention:**
-- Treat the Ministry portal as unreliable by design. Archive a full snapshot to object storage (Supabase Storage or GitHub LFS) after every successful scrape cycle.
-- Do not make the Ministry the sole source for any university. For each university, maintain a direct-scrape fallback URL even if the Ministry portal is currently working.
-- Monitor the portal's HTML structure hash weekly. Alert if it changes.
-- Maintain a manually-curated fallback dataset (CSV in the repository) for the previous year's scores. This is always better than showing nothing.
-
-**Detection:**
-- Ministry scraper returns 0 rows or HTTP errors for more than 3 consecutive runs
-- HTML structure hash changes on the portal's main data page
-
-**Phase:** Phase 1 (data pipeline design). The fallback strategy must be designed before the scraper is built, not retrofitted after the first outage.
-
----
-
-### Pitfall 5: Data Accuracy Failures Causing Student Harm
-
-**What goes wrong:** A student uses an incorrect cutoff score to decide their nguyện vọng ranking. They place a university too high (thinking they qualify) and get locked in, missing a better option. Or they place it too low unnecessarily. Given that the nguyện vọng submission is final and one incorrect ordering can determine a student's university path, this is the highest-severity failure mode.
+**What goes wrong:**
+A naive crawler starting from university homepages issues 10–50 sequential HTTP requests per university to follow links matching "tuyen sinh / diem chuan" keywords. Vietnamese university servers are often shared hosting or underpowered VMs. The server rate-limits or blocks the crawler's IP. Once banned, the entire scraping pipeline for that university fails silently — the adapter errors out with 403 or connection timeout, `scrape_run` records `status: 'error'`, and if this happens during July peak, there is no way to recover that university's data until the ban expires (24–72 hours).
 
 **Why it happens:**
-- Scraping error writes wrong data (see Pitfalls 1–4)
-- University publishes a revised score (supplementary round cutoffs differ from main round)
-- Tổ hợp codes scraped correctly but stored against the wrong major
-- Previous year's data displayed when current year data hasn't been collected yet
+Auto-discovery is inherently more aggressive than the current targeted scraping. Today's scraper makes exactly one HTTP request per university (to a known URL). A crawler that spiders homepage → link list → page classification makes 10–50 requests per university at maximum speed. At 78 universities × 4×/day during July, an unconstrained crawler looks like a DDoS attempt to any shared-hosting firewall.
 
-**Consequences:** Direct harm to real students. Reputational destruction for a charity tool.
+**How to avoid:**
+- Enforce a minimum inter-request delay of 2–3 seconds **per domain** (not global — parallel crawling of different universities is fine).
+- Respect `robots.txt` before crawling any path. Use `robots-parser` npm package.
+- Set crawl depth limit: homepage → 1 hop → 2 hops maximum. Score pages are never more than 2 links from the homepage.
+- Set a per-domain page cap (20 pages max) to bound worst-case request count.
+- Use a distinct `User-Agent` identifying the crawler: `UniSelectBot/1.0 (educational; non-commercial)`.
+- Test crawl aggressiveness against local fake university servers (with simulated 429 responses) before any live run.
 
-**Prevention:**
-- Every score displayed must carry a "source" label (Ministry portal / University website / Manual entry) and a "last verified" timestamp.
-- Display confidence tiers: "Verified from official source", "Scraped — verify directly", "Historical only — current year not yet published".
-- Never show a score without showing the year it corresponds to. Scores from 2022 displayed as "current" is a data integrity failure.
-- Multi-round cutoffs: explicitly capture round (đợt 1, đợt bổ sung). Only use the main round (đợt 1) score for ranking suggestions unless the user requests otherwise.
-- For the suggestion algorithm, add a safety margin: if a student's score is within 0.5 points of a cutoff, place the university in the tier below (practical → safe). Surface this as "borderline — treat as safe."
-- Add a clear disclaimer on every score: "Điểm chuẩn do cơ sở giáo dục công bố. UniSelect không chịu trách nhiệm về sai sót. Vui lòng xác minh trực tiếp với trường."
+**Warning signs:**
+- HTTP 429 or 403 responses in `scrape_run.error_log` for previously-working adapters.
+- `ECONNRESET` or `ETIMEDOUT` errors appearing only after a discovery run.
+- A university that was returning data suddenly returns 0 rows after a crawl run.
 
-**Detection:**
-- Score value outside 10.0–30.0 range (impossible for THPT)
-- Tổ hợp code for a major doesn't match any standard combination
-- Year field missing or older than 1 year before submission deadline
-
-**Phase:** Phase 1 (data validation) + Phase 2 (UI trust signals). Both must ship together — data validation without UI disclosure is insufficient.
+**Phase to address:**
+Auto-discovery crawler phase. Rate limiting must be designed from the first implementation — retrofitting politeness after IP bans is too late if July peak is approaching.
 
 ---
 
-## Moderate Pitfalls
+### Pitfall 2: Adapter Factory Refactoring Silently Breaks Working Adapters via 0-Row Success
+
+**What goes wrong:**
+The 70+ adapter files share the same cheerio table-parsing pattern but with per-university column index variations (e.g., BVH has the score in the "THPT (100)" column; other adapters use different header names). Extracting a generic factory that auto-detects column positions from header keywords is correct in theory, but if it fails to handle any edge case in the 6 verified adapters, those adapters start returning 0 raw rows.
+
+The critical danger: `runner.ts` line 63 sets `status = rowsRejected > 0 ? 'flagged' : 'ok'`. If an adapter returns `[]` (zero rows, no exception thrown), the scrape_run logs `status: 'ok', rows_written: 0`. This is a **silent failure** — the system reports success while writing nothing.
+
+**Why it happens:**
+Each existing adapter hard-codes knowledge about its university's table structure in comments. A generic factory replaces that specificity with pattern matching. Pattern matching is necessarily broader and can match the wrong column or fail to match at all. Without a zero-rows guard, the regression is invisible.
+
+**How to avoid:**
+- **First change before any factory work:** add a zero-rows guard to `runner.ts`. If `rawRows.length === 0`, either throw an error or record `status: 'zero_rows'` — never allow 0-row scrape to be logged as `'ok'`.
+- Before removing any adapter file, run it against a live URL and save the output as a golden fixture.
+- Run all 6 verified adapters through the factory and compare output against golden fixtures before deleting any original file.
+- Keep original adapter files in `_legacy/` until all 6 verified adapters are confirmed producing identical output.
+- Migrate one adapter at a time, not all 70 simultaneously.
+
+**Warning signs:**
+- `scrape_run` records showing `rows_written: 0` for adapters that previously wrote rows.
+- `status: 'ok'` with `rows_written: 0` — this is the exact silent failure signature.
+- Golden fixture comparison fails.
+
+**Phase to address:**
+Adapter factory phase. The zero-rows guard must be the very first commit — before factory development begins — so the safety net exists from the start.
 
 ---
 
-### Pitfall 6: Vietnamese String Normalization Failures in Search and Filter
+### Pitfall 3: GitHub Actions Free Tier Budget Exhausted Before July Peak Ends
 
-**What goes wrong:** Vietnamese uses precomposed (NFC) and decomposed (NFD) Unicode representations of diacritical characters. "Hà Nội" in NFD is stored as 8 code points; in NFC it is 6. A search for "Ha Noi" (no diacritics) returns nothing because the app does naïve string matching. A search for "Hà Nội" may miss records stored in a different normalization form.
+**What goes wrong:**
+Each scraping job (1 shard) takes ~30 minutes due to: `npm ci` (~3 min), Playwright browser install (~5 min), PaddleOCR model download (~10 min), actual scraping (~12 min). With `scrape-low.yml` running 1×/day × 6 shards = 6 jobs/day × 30 min = 180 min/day. For 31 non-peak days: 5,580 min. Peak: `scrape-peak.yml` runs 4×/day × 6 shards = 24 jobs/day × 30 min = 720 min/day × 31 days = 22,320 min. Total July: ~22,320 min — 11× over the 2,000 min/month free tier.
 
-**Why it happens:** Developers without Vietnamese language experience treat text as ASCII. The issue is invisible when testing with sample data created by the developer, because they consistently use one input method.
+This is already a known problem (PROJECT.md tech debt section). Adding an auto-discovery workflow that runs on its own schedule makes it worse.
 
-**Prevention:**
-- Normalize all stored strings to NFC at write time (one canonical form).
-- For search, implement a Vietnamese diacritic-folding function that maps accented characters to their base form (ă→a, ơ→o, ư→u, đ→d, and all tonal variants). Store a pre-computed search slug for each name.
-- Use Postgres `unaccent` extension or a custom trie-based implementation. Do not rely on collation alone — collation behavior varies by Postgres version and locale settings.
-- Test with real student input patterns: "dai hoc bach khoa", "DHBK", abbreviations.
+**Why it happens:**
+PaddleOCR model download (~400–600 MB for Vietnamese language) and Playwright browser installation happen on every run because GitHub Actions ephemeral runners have no persistent state. Models and browsers are re-downloaded on each of the 24 daily peak jobs.
 
-**Detection:**
-- Search for a known university returns zero results
-- Students reporting "can't find university" for clearly-listed schools
+**How to avoid:**
+- Cache Playwright browsers: `actions/cache` keyed on `${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}`.
+- Cache PaddleOCR models: `actions/cache` keyed on `${{ runner.os }}-paddleocr-${{ steps.paddleocr-version.outputs.version }}` targeting `~/.paddleocr/`.
+- Move `scrape-low.yml` to 3×/week (Monday/Wednesday/Friday) — data changes at most once per year per university, daily is wasteful.
+- Run auto-discovery as a separate weekly workflow (or manual `workflow_dispatch`), not inside the daily scrape cron.
+- Gate `scrape-peak.yml` to exactly the 2–3 weeks around the Ministry's official nguyện vọng submission period, not all of July.
+- Reduce from 6 shards to 3 shards when only 6 adapters are verified — 6 shards for 6 adapters means 5 shards run 1 adapter each and 1 shard runs 0.
 
-**Phase:** Phase 2 (search and filter UI). Build the normalization layer before the search feature, not as a patch after launch.
+**Warning signs:**
+- GitHub Actions billing page showing minutes approaching 1,500 before mid-July.
+- Workflow runs queuing or failing "No runners available."
+- Runs that previously completed in 25 min now taking 40+ min (cache miss — model re-download).
 
----
-
-### Pitfall 7: Supabase Free Tier Row-Level and Connection Limits During July Spike
-
-**What goes wrong:** Supabase free tier enforces: 500 MB database storage, 2 GB egress/month, 50,000 monthly active users (MAU) for Auth (not relevant here), and connection pooling at 60 simultaneous connections. In July, if thousands of students simultaneously query the app, connection pool exhaustion causes 500 errors. The 2 GB egress cap may be exceeded if the app fetches large payloads per request.
-
-**Why it happens:** Free-tier limits are not tested under load during development. July spike is 10–50x normal traffic.
-
-**Prevention:**
-- Use connection pooling (PgBouncer) in transaction mode — Supabase provides this at the pooler endpoint. Never connect directly from serverless functions to the Postgres port (each cold-start function creates a new connection).
-- Design queries to return minimal payloads: the initial list view should return only (university name, major, tổ hợp, score, year) — not full records with metadata.
-- Add HTTP-level caching (Vercel Edge Cache) for the most common queries: "all scores for year 2025" is effectively static during peak period. Cache with a 1-hour TTL. This eliminates the majority of database reads.
-- Monitor egress. If a single score lookup returns 50 KB of JSON when it should return 1 KB, that's a design flaw.
-- Keep the total database size well under 200 MB by only storing the latest 3 years of cutoffs. Older data can be archived to a static JSON file in GitHub.
-
-**Detection:**
-- Query latency spikes above 2 seconds during load testing
-- Supabase dashboard shows connection count approaching 60 during simulated concurrent load
-- Monthly egress approaching 1.5 GB before peak season
-
-**Phase:** Phase 3 (infrastructure hardening before July). Must be tested with load simulation before the July window.
+**Phase to address:**
+Infrastructure / CI optimization phase. Cache setup must be implemented before enabling peak schedule — otherwise the budget blows out in the first week of July.
 
 ---
 
-### Pitfall 8: Vercel Serverless Function Cold Start Latency Perceived as Broken App
+### Pitfall 4: Delta Sign Convention Fix Breaks Both Components If Fixed Atomically Is Missed
 
-**What goes wrong:** Vercel hobby plan serverless functions go cold after inactivity. A cold start for a Node.js function that initializes a Supabase client can take 800ms–2000ms. For a student using the app at 11pm before a deadline, a 2-second blank screen with no loading indicator feels like the app is broken, leading to distrust.
+**What goes wrong:**
+`ResultsList.tsx` line 46: `delta = cutoff - userScore` — positive value means the student is BELOW the cutoff (unfavorable). `NguyenVongList.tsx` line 52: `delta = userScore - cutoff` — positive value means the student is ABOVE the cutoff (favorable). These are inverted relative to each other.
 
-**Why it happens:** Cold starts are invisible in development (local server is always warm). The issue only surfaces in production with real usage patterns.
+The sign prefix logic is also wrong in `ResultsList.tsx` line 47: `sign = cutoff >= userScore ? '+' : ''` adds '+' when the cutoff exceeds the student's score — exactly when the student is below the bar. A student with score 24 against a cutoff of 25 sees "+1.0", suggesting they're ahead, when they are 1 point short.
 
-**Prevention:**
-- Add skeleton loading states and a loading spinner that appear within 100ms of navigation. The UX should signal "loading" immediately, not after the API responds.
-- Pre-warm the most common routes with a lightweight cron ping (GitHub Actions can hit the API endpoint every 10 minutes during July to keep it warm).
-- For the score lookup — which is the core query — consider serving it from a static JSON file (pre-generated at scrape time) via Vercel's CDN rather than a serverless function. CDN responses have no cold start.
-- Implement stale-while-revalidate: serve cached data instantly, refresh in background.
+Fixing only one component at a time creates a state where both show the same number with opposite signs and opposite prefix logic — temporarily worse than either broken state.
 
-**Detection:**
-- Vercel function logs show initialization time > 500ms on first request
-- User-reported "app feels slow on first load"
+**Why it happens:**
+The two components were built separately and both had the delta direction wrong, but in mirrored ways. It's natural to fix one and submit a PR — but the fix is only meaningful if applied simultaneously to both components.
 
-**Phase:** Phase 3 (performance). Address with static file strategy at data pipeline design time (Phase 1), implement loading states in Phase 2.
+**How to avoid:**
+- Define a single `computeDelta(userScore: number, cutoff: number): number` utility that returns `userScore - cutoff` (positive = student above cutoff = favorable). Import it in both components.
+- Fix both components in one PR. Do not split across two PRs.
+- Add a test that asserts: for `userScore=25, cutoff=24`, both components display `+1.0`; for `userScore=23, cutoff=24`, both display `-1.0`.
+- The sign prefix logic must be: add `'+'` when `userScore >= cutoff`, nothing otherwise. Validate this in the same test.
 
----
+**Warning signs:**
+- ResultsList showing "+1.0" for a university where the student's score is BELOW the cutoff.
+- NguyenVongList showing the same number as ResultsList but with opposite sign.
+- A PR that fixes delta in only one component.
 
-### Pitfall 9: Suggestion Algorithm Producing Legally or Ethically Problematic Output
-
-**What goes wrong:** The tiered suggestion algorithm places a university in "safe" tier. A student trusts this classification and deprioritizes their application. If the score data is stale by even 1–2 points (cutoffs shift year-to-year), a "safe" school becomes a miss. Unlike other domains, a wrong prediction here forecloses a university option permanently.
-
-**Why it happens:** Score-based classification is applied mechanically without accounting for year-over-year score volatility, which can be 2–5 points for competitive programs.
-
-**Prevention:**
-- The algorithm must use multi-year trend data, not just the most recent year. A school whose cutoff has risen 2 points per year for 3 years should be classified one tier higher than the raw score suggests.
-- Display the standard deviation or range of cutoffs across years alongside the tier label. "Safe" schools should have narrow, stable score bands.
-- Add explicit language in the UI: "Đây là gợi ý dựa trên dữ liệu lịch sử. UniSelect không đảm bảo kết quả trúng tuyển."
-- Never use the word "guaranteed" (đảm bảo trúng tuyển) in any UI copy or algorithm output.
-- The 2026 rule change (teacher training programs must be in top 5) must be enforced as a hard constraint, not a suggestion. If a student adds a teacher training program outside the top 5, surface a blocking warning.
-
-**Detection:**
-- Algorithm places a program with rising 3-year trend in "safe" when the trend delta exceeds the safety margin
-- User feedback indicating they missed an expected-safe school
-
-**Phase:** Phase 2 (algorithm design). Volatility modeling must be part of the core algorithm spec, not a v2 enhancement.
+**Phase to address:**
+Bug fixes phase. Atomic — fix both components in a single PR with a test.
 
 ---
 
-### Pitfall 10: GitHub Actions Rate Limits and Timeout Killing Scraping Jobs
+### Pitfall 5: Trend Color Fix Incomplete Without Semantic Copy Update
 
-**What goes wrong:** GitHub Actions free tier provides 2,000 minutes/month on public repos (unlimited for public). However, a single job has a 6-hour timeout. Scraping 78+ universities sequentially, with JS-rendered sites requiring Playwright (30–60s per site), can easily exceed 2–3 hours. If the job times out, partial results are written and there is no completion signal.
+**What goes wrong:**
+`ResultsList.tsx` maps `rising → text-green-600` and `falling → text-red-600`. For a Vietnamese student, a rising cutoff is BAD — the bar is going up, qualifying is harder. Fixing only the color (swapping to rising → red, falling → green) creates the second-order problem: a red ↑ arrow is visually alarming without context, and a green ↓ arrow is confusing without explanation. A student who sees a red arrow may think "I'm rejected" rather than "this university's cutoff went up."
 
-**Why it happens:** Developers design scraping as a single sequential job because it's simple. The job works fine in development with 5 test sites.
+**Why it happens:**
+Color was mapped from a generic "green = good, red = bad" pattern without domain-specific semantics. Financial chart conventions (rising = green) were applied to admissions data where rising cutoff = worse for the student.
 
-**Prevention:**
-- Shard the scraping job: split 78 universities into 5–10 parallel matrix jobs. Each shard finishes in under 30 minutes.
-- Use a write-at-end pattern: each shard writes results to a staging table. A final aggregation step promotes staging to production only if all shards complete successfully.
-- Store intermediate state: if a shard fails, re-run only the failed shard (by tracking completion per university in the database).
-- For the July high-frequency period, trigger scraping via a repository dispatch event from a lightweight cron ping, not a scheduled CRON string (cron schedule in GitHub Actions drifts and can be delayed up to 30 minutes during peak GitHub load).
+**How to avoid:**
+- Change colors to student-perspective semantics: falling cutoff → `text-green-600` (easier to get in), rising cutoff → `text-amber-500` (harder to get in — use amber/warning, not red, because red implies rejection). Stable → `text-gray-400`.
+- Add tooltip or inline label text alongside the trend icon: "↑ Harder this year" vs "↓ Easier this year." The icon + color alone is ambiguous without copy.
+- Update trend color and copy in the same PR as part of the bug fixes phase.
+- During the design token migration (P3), encode these as semantic tokens: `color.trend.favorable`, `color.trend.warning`, `color.trend.neutral`. This prevents recurrence.
 
-**Detection:**
-- GitHub Actions job logs show timeout at 6 hours
-- Some universities have fresh scrape timestamps while others have stale ones from the same "run"
+**Warning signs:**
+- Rising trend displayed as green in the UI while adjacent section says "this university is getting more competitive."
+- Any PR that changes color without updating tooltip/label copy.
 
-**Phase:** Phase 1 (scraping infrastructure). Sharding strategy must be designed before writing individual scrapers.
-
----
-
-## Minor Pitfalls
-
----
-
-### Pitfall 11: Major Code (Mã Ngành) Format Inconsistency Across Sources
-
-**What goes wrong:** The Ministry portal uses 7-digit mã ngành codes (e.g., 7480201). Some universities list the same program with a 6-digit legacy code or a descriptive string instead of a code. Joining records across sources fails, leading to duplicate rows for the same program or missing matches.
-
-**Prevention:**
-- Build a canonical mã ngành reference table at the start. Map all variant formats to the canonical 7-digit code. Store the raw code alongside the canonical code.
-- Flag any scraped record whose mã ngành doesn't match the canonical table as needing manual review.
-
-**Phase:** Phase 1 (data model design).
+**Phase to address:**
+Bug fixes phase (semantics + color + copy change together). Design token migration phase prevents recurrence.
 
 ---
 
-### Pitfall 12: Tổ Hợp Code Proliferation and Non-Standard Codes
+### Pitfall 6: Supabase Free Tier Auto-Pause Kills July Scraping Pipeline
 
-**What goes wrong:** Some universities define non-standard tổ hợp codes (e.g., D96 for Math/Literature/German) that are valid but rare. Scrapers that only recognize the common A00/B00/C00/D01 etc. codes silently drop these records.
+**What goes wrong:**
+Supabase free tier pauses the database after 7 consecutive days of inactivity. During normal development (off-season), scraping runs daily so the database stays active. But any deliberate pause — code freeze for testing, disabling cron to debug a workflow, a 2-week vacation — exposes the gap. The next cron run (possibly in July) hits a paused DB, all adapters throw connection errors, all `scrape_run` records log `status: 'error'`, and no new data is written. The static fallback serves stale data.
 
-**Prevention:**
-- Seed the tổ hợp lookup table from the Ministry's official published list, not from what the developer knows from memory.
-- Accept and store any 3-character alphanumeric code matching `[A-D]\d{2}` even if not in the seed list — flag unknowns for review rather than dropping them.
+The risk is highest during the v2.0 development period (March–June) when scraping infrastructure is being modified and runs may be temporarily disabled.
 
-**Phase:** Phase 1 (data model).
+**Why it happens:**
+The daily scraping cron acts as an implicit keep-alive, masking the risk. Any pause longer than 7 days triggers the auto-pause. This is not visible until the next run fails.
 
----
+**How to avoid:**
+- Add a lightweight GitHub Actions keep-alive workflow: runs a `SELECT 1` query every 5 days via the Supabase REST API or direct Postgres connection. Uses < 1 minute of Actions budget per week.
+- Document the auto-pause behavior in the project README so future maintainers don't accidentally pause scraping for more than a week.
+- Add `X-Served-By: static-fallback` header detection to the staleness alert script — if the API returns static fallback data, fire an alert immediately.
 
-### Pitfall 13: PWA Offline Behavior Confusing Users
+**Warning signs:**
+- Supabase dashboard shows "Paused" status.
+- All scrape runs in a batch return `status: 'error'` with connection refused / ECONNREFUSED messages.
+- `/api/universities` response includes `X-Served-By: static-fallback` header.
+- `check-staleness.ts` script fires for all universities simultaneously.
 
-**What goes wrong:** PWA service workers cache app shell and data. A student opens the app during the July peak while offline (e.g., in a rural area with poor signal). They see last-cached data, which may be from a previous year. No staleness indicator means they think the data is current.
-
-**Prevention:**
-- Display a clear "You are viewing offline/cached data from [date]" banner when the service worker is serving cached content.
-- The offline cache should only cache UI shell and the most recent full dataset download. Do not serve partial stale data without attribution.
-
-**Phase:** Phase 3 (PWA hardening).
-
----
-
-### Pitfall 14: Anti-Scraping Measures on University Sites
-
-**What goes wrong:** Some Vietnamese university sites (particularly private universities with competitive programs) use Cloudflare, rate-limiting, or IP blocks. A scraper hitting a site too frequently gets blocked with no warning — subsequent runs return Cloudflare challenge pages that are silently stored as "data."
-
-**Prevention:**
-- Implement exponential backoff with jitter: wait 2–10 seconds between requests to the same domain. Never scrape a single domain more than once per minute.
-- Detect Cloudflare/CAPTCHA challenge pages: look for the string "Just a moment..." or HTTP 403/429 status codes. Abort and alert rather than storing the challenge page as data.
-- For university sites requiring CAPTCHA bypass: escalate to manual data entry or contact the university's admissions office directly for a data export. Do not attempt automated CAPTCHA solving (legal and ToS risk).
-- Rotate User-Agent headers to identify the scraper honestly (e.g., "UniSelectBot/1.0 (educational; contact@uniselect.vn)").
-
-**Phase:** Phase 1 (scraper implementation). Politeness policies must be in the scraper base class, not added per site.
+**Phase to address:**
+Infrastructure hardening phase. The keep-alive workflow is a 10-line addition that prevents a catastrophic July scenario.
 
 ---
 
-### Pitfall 15: No Audit Trail for Manual Data Corrections
+### Pitfall 7: Batch Insert Partial Failures Leave University Data in Inconsistent State
 
-**What goes wrong:** A volunteer corrects a wrong score by directly updating the database. Six months later, the scraper overwrites the correction with the original wrong value. The correction is lost with no record it was ever made.
+**What goes wrong:**
+The current `runner.ts` does row-by-row inserts (N+1 pattern). Migrating to batch inserts is the right call, but if the batch for a university is NOT wrapped in a database transaction and the batch is chunked across multiple `db.insert()` calls, a network blip between chunks leaves partial data: some years/majors for that university are updated with fresh scores, others remain stale. The `scrape_run` record shows `rows_written: 30` of an expected 50, with no error — partial success is not flagged.
 
-**Prevention:**
-- All database writes must go through the data pipeline, never direct SQL updates to production.
-- Maintain a `data_overrides` table: manually-set values take precedence over scraped values and are never overwritten by the scraper. The scraper checks this table before writing.
-- Log all data writes with source, timestamp, and previous value.
+In Drizzle ORM, `db.insert().values([...array])` is a single SQL statement and safe, but if rows are chunked into multiple `.values()` calls (necessary to stay under Postgres's ~65,535 parameter limit), each chunk is an independent transaction by default.
 
-**Phase:** Phase 1 (data model) and Phase 2 (admin tooling).
+**Why it happens:**
+Batch insert feels like a simple "just pass an array" change. The transaction boundary between chunks is not obvious without reading Drizzle's internals.
 
----
+**How to avoid:**
+- Wrap each university's full batch insert in `db.transaction(async (tx) => { ... })`. All-or-nothing per university.
+- Keep chunks within a single transaction even if chunking is required for parameter limits.
+- Add assertion: after the transaction commits, verify `rows_written` matches `rawRows.filter(normalize !== null).length`.
+- Test partial failure with fake website fixtures: configure one fixture to return a row that causes a DB constraint violation mid-batch. Confirm full university batch rolls back.
 
-## Phase-Specific Warnings
+**Warning signs:**
+- `rows_written` count in `scrape_run` doesn't match the expected count from adapter output minus normalization rejections.
+- Some majors for a university have updated `scraped_at` while others have stale timestamps from the same scrape run.
+- Postgres `too many parameters` errors after switching to batch inserts.
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|----------------|------------|
-| Scraper implementation | CSS selector brittleness (P1) | Use semantic text anchors; add schema validation before DB write |
-| Scraper implementation | JS-rendered page silent failure (P3) | Static/dynamic audit before writing scraper; minimum-row assertion |
-| Scraper implementation | Encoding corruption (P2) | chardet on raw bytes; NFC normalization at write time |
-| Data pipeline design | Ministry portal changes (P4) | Snapshot archive + per-university direct-scrape fallback |
-| Data pipeline design | GitHub Actions timeout (P10) | Sharded parallel matrix jobs |
-| Data model design | Mã ngành join failures (P11) | Canonical code table before any scraping |
-| Algorithm design | Score volatility misclassification (P9) | Multi-year trend in tier calculation |
-| UI implementation | Vietnamese search failing (P6) | Diacritic-folding + NFC normalization before search |
-| Infrastructure | Supabase connection exhaustion (P7) | PgBouncer + edge caching for peak period |
-| Infrastructure | Cold start latency (P8) | Static JSON serving via CDN for core data |
-| Infrastructure hardening | Anti-scraping blocks (P14) | Politeness policies in base scraper class |
-| PWA features | Offline stale data confusion (P13) | Staleness banner + cache-date attribution |
-| Admin/ops | Manual correction overwritten by scraper (P15) | data_overrides table with precedence logic |
+**Phase to address:**
+Scraper expansion phase (batch DB inserts). Transaction wrapping must be part of the initial implementation, not a follow-on.
 
 ---
 
-## Legal and Terms of Service Considerations
+### Pitfall 8: Design Token Migration Misses Hard-Coded Tailwind Classes in Dynamic Objects
 
-**Confidence: MEDIUM** — Vietnamese law specifics require legal review; general principles are well-established.
+**What goes wrong:**
+Migrating to a design token system requires replacing all hard-coded Tailwind utility classes with semantic tokens. `ResultsList.tsx` already uses a pattern that is easy to miss during migration: the `TREND_DISPLAY` object maps trend values to Tailwind color strings at the object definition level:
 
-### Robots.txt Compliance
-All scrapers must read and respect `robots.txt` for each target domain. If a government site disallows scraping in `robots.txt`, the scraper must not target it. Document which sites have explicit policies.
+```typescript
+const TREND_DISPLAY = {
+  rising:  { icon: '↑', color: 'text-green-600' },
+  falling: { icon: '↓', color: 'text-red-600' },
+  ...
+};
+```
 
-### Vietnamese Data Privacy Law (Nghị định 13/2023/NĐ-CP)
-Vietnam's personal data protection decree (effective July 2023) governs collection and processing of personal data. Student score data is not personal data (it is aggregate/statistical), but if the app ever captures user-submitted scores for any reason, data handling policies must be implemented. For v1 (no user accounts, no score storage), this is low risk.
+Tailwind's JIT scanner includes these classes because they appear as string literals. If migration replaces them with CSS custom properties (`color: 'var(--color-trend-rising)'`) and removes the Tailwind class strings, the JIT scanner no longer generates the old classes — but the new CSS variables must be defined in a separate CSS file included by Tailwind's `@source` config. Missing either step produces invisible text (undefined CSS variable = no color applied).
 
-### Government Website Terms of Use
-Vietnamese government portals (Ministry of Education) typically publish terms of service prohibiting commercial scraping. This project is open source and non-commercial (charity), which is a strong mitigating factor. However, terms should be reviewed and documented in the repository. Where possible, prefer official data download links or published PDFs over scraping the interactive UI.
+Dark mode adds a second failure mode: if `dark:` variants are added to some components but not others in the same PR, some cards render correctly in dark mode while others become unreadable.
 
-### Copyright
-Published điểm chuẩn data (cutoff scores) is factual/statistical information. Factual data is generally not copyrightable in Vietnamese law or under international norms. However, the arrangement and presentation of that data on a government portal may have copyright protection. Storing raw HTML is riskier than storing only extracted factual data.
+**Why it happens:**
+Global find-and-replace across 8 components looks complete. Dynamic class patterns in objects are easy to miss because they don't look like inline JSX props. Dark mode requires touching every component — partial coverage is invisible until viewing the UI in dark mode.
 
-**Recommendation:** Store only the extracted data (scores, codes, names), not the raw HTML in any user-visible form. Cite the source URL with each data point. Add attribution in the app footer.
+**How to avoid:**
+- Create `tailwind.config.ts` semantic theme extensions FIRST, before touching any component.
+- Set up visual regression tests (Playwright screenshot comparison) for at least one representative component before migrating.
+- Migrate components one at a time; run visual tests after each.
+- Add dark mode as a separate sub-phase AFTER design tokens are stable — not simultaneously.
+- After migration, run: `grep -r 'text-green-600\|bg-gray-100\|text-red-600' components/` to find missed hard-coded classes.
+
+**Warning signs:**
+- Some components show Tailwind colors; others show CSS custom property colors (inconsistent appearance).
+- Dark mode works on some cards but not others.
+- Build size increases (Tailwind including both old and new class variants simultaneously).
+- Trend color arrows are invisible (undefined CSS variable fallback = no color).
+
+**Phase to address:**
+UI/UX redesign phase. Design tokens first, then dark mode as a separate sub-phase.
+
+---
+
+### Pitfall 9: PaddleOCR CI Test Fails From Model Download Size on Constrained Runners
+
+**What goes wrong:**
+PaddleOCR v3.x downloads model files (~400–600 MB for Vietnamese language) on first initialization. The existing `scrape-peak.yml` already downloads these on every run. Adding a dedicated PaddleOCR CI test workflow means a second workflow that also downloads models. If both workflows run concurrently (e.g., a PR triggers CI while a scheduled scrape is running), combined disk usage becomes:
+
+- OS baseline: ~4 GB
+- Node modules (`npm ci`): ~300 MB
+- Playwright Chromium: ~350 MB
+- PaddleOCR models: ~500 MB per workflow
+- Total on two concurrent runners sharing ephemeral storage: can reach 6–7 GB per runner, which is well within GitHub's 14 GB limit per runner, but model download time (~10 min per job) inflates total job time.
+
+The actual risk is not disk exhaustion but **build time**. If PaddleOCR models are not cached, a CI test that should take 3 minutes takes 15 minutes because of model download. This burns Actions budget and makes CI feel broken.
+
+**Why it happens:**
+OCR CI tests are added without configuring the same model cache that the scraping workflows use. The scraping workflow is set up first; the CI workflow is written separately and the cache step is forgotten.
+
+**How to avoid:**
+- Cache PaddleOCR models: `actions/cache` with key `${{ runner.os }}-paddleocr-${{ env.PADDLEOCR_VERSION }}` targeting `~/.paddleocr/`.
+- The PaddleOCR CI job should NOT install Playwright — they serve different purposes. Keep them in separate jobs.
+- Trigger the PaddleOCR CI test only on PRs that modify `ocr_table.py`, `scrape-peak.yml`, or `lib/scraper/` — not on every push.
+- After implementing the cache, verify it works by checking two consecutive runs: first run should show "Cache miss"; second run should show "Cache hit" and complete in < 5 minutes.
+
+**Warning signs:**
+- PaddleOCR CI job taking > 12 minutes (model download on every run — cache not working).
+- Actions budget consumed disproportionately by OCR-related jobs.
+- "Cache miss" on every run despite using `actions/cache` (wrong cache key or path).
+
+**Phase to address:**
+Scraper expansion / CI integration phase.
+
+---
+
+### Pitfall 10: Scraper Resilience Fixtures Drift From Real University Pages
+
+**What goes wrong:**
+Fake local HTTP servers serving static HTML fixtures are the test substrate for scraper resilience testing. If a university changes its page structure and the real adapter is updated to handle the new format, but the fixture is NOT updated to reflect the new format, the test still passes against the old fixture. The adapter is now tested only against a format that no longer exists in production. Tests give false confidence.
+
+**Why it happens:**
+Fixtures are written once during test setup and rarely revisited. The adapter and the fixture have no enforced linkage. A developer updating an adapter to handle a changed table structure tests locally against the live website, confirms it works, and submits the PR — but doesn't update the fixture because nothing in the workflow requires it.
+
+**How to avoid:**
+- Name fixture files with a version or date: `bvh-2025-table.html`. This makes it obvious when a fixture is stale.
+- Add a comment in each adapter file pointing to its corresponding fixture: `// fixture: tests/fixtures/bvh-2025-table.html`. Changing one implies changing the other.
+- Include a "fixture audit" step in `verify-adapters.ts`: compare the structure (column count, first-row header text) of the live page against the fixture. Flag structural differences.
+- In PR reviews: if an adapter file is modified but its corresponding fixture is not, require explanation.
+
+**Warning signs:**
+- All adapter tests pass but a verified adapter returns 0 rows in the next production scrape.
+- Fixture HTML contains table headers that no longer appear on the live university website.
+- The fixture audit comparison (if implemented) shows header drift.
+
+**Phase to address:**
+Scraper resilience testing phase. Fixture versioning and linkage conventions must be established before writing the first fixture — not retrofitted.
+
+---
+
+## Technical Debt Patterns
+
+Shortcuts that seem reasonable but create long-term problems.
+
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| `readFileSync` in API fallback paths (already in `route.ts`) | Simple synchronous read | Blocks Node.js event loop under high concurrency during July spike | Replace with async `readFile` in v2 — never acceptable in production serverless |
+| No transaction wrapping on batch inserts | Faster to implement | Partial batch failures leave inconsistent DB state per-university | Never — transactions are required for batch correctness |
+| Hard-coded year in adapter URL (`new Date().getFullYear() - 1` in `bvh.ts`) | Works for most of the year | Dec/Jan ambiguity; fails if universities publish early; breaks when factory extracts this logic | Replace with year parameter from `scrapers.json` during factory refactoring |
+| Copy-pasted adapter per university (70+ files) | Fast initial implementation | Bugs must be fixed in N files; factory refactoring is now mandatory v2 work | No longer acceptable — factory is the v2 fix |
+| 6 shards for 6 verified adapters (1 adapter/shard) | Mirrors future state when 78 are verified | 5 shards are no-ops today, burning Actions minutes on startup overhead | Reduce to 2–3 shards until verified adapter count grows |
+| `static_verified: false` adapters with homepage URLs in `scrapers.json` | Defers manual URL audit work | Auto-discovery builds from wrong base URLs; 72 adapters have homepage URLs, not score page URLs | Must audit before auto-discovery; auto-discovery needs a correct starting URL to crawl from |
+| Trend colors as hard-coded Tailwind strings in `TREND_DISPLAY` object | Simple to write inline | Cannot change semantic meaning without grepping all files; migrates awkwardly to design tokens | Replace during design token migration with `cva` or CSS variables |
+
+---
+
+## Integration Gotchas
+
+Common mistakes when connecting to external services.
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Supabase + Drizzle pooler (port 6543) | Setting `prepare: true` (Drizzle default) with PgBouncer in transaction mode | Must use `prepare: false` — already correct in v1; do not change this setting during refactoring |
+| GitHub Actions matrix sharding | Running 6 shards when only 6 adapters are active (1 adapter per shard = 5× startup overhead) | Match shard count to actual adapter count; consider dynamic shard count via strategy matrix |
+| PaddleOCR v3.x predict() API | Calling `ocr()` method (v2.x API) — PaddleOCR 3.x changed to `predict()` | Already fixed in `ocr_table.py` per git log; do not revert during any refactoring |
+| Playwright + GitHub Actions | Running `npx playwright install` (all browsers) when only Chromium is needed | Use `npx playwright install chromium --with-deps` — already correct; do not generalize during CI refactoring |
+| Vercel + Next.js build + Supabase | `generate-static` chained into `npm run build`; Vercel runs this during deploy | Requires `DATABASE_URL` set in Vercel environment variables; verify this is set before any deployment that changes static generation |
+| nuqs + React 19 | `useQueryState` and `useEffect` dependencies can cause infinite loops when effect deps include the setter | The `NguyenVongList.tsx` effect already suppresses the lint warning — verify the v2 editable list implementation doesn't reintroduce this issue |
+
+---
+
+## Performance Traps
+
+Patterns that work at small scale but fail as usage grows.
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Row-by-row DB inserts in runner.ts (current) | 78 adapters × ~30 rows each = ~2,340 sequential DB round-trips per shard | Batch inserts per university (v2 planned) | At 78 verified adapters, N+1 inserts take 10–20 min per shard instead of 1–2 min |
+| Auto-discovery crawling all 78 universities in parallel | Connection pool exhaustion; mass IP bans | Limit concurrent domains to 5–10 with a queue; per-domain delay | With 78 universities and 10–50 requests each, fully concurrent = 780–3,900 simultaneous connections |
+| `readFileSync` in `/api/universities` fallback (current) | Event loop blocks at high concurrency; Vercel function timeout | Replace with `fs.promises.readFile` or pre-load at module initialization | Under July traffic (hundreds concurrent), one block cascades into 502 errors |
+| 6 shards × 30 min each for 6 adapters | 3 hours of Actions budget per day for 6 adapters' worth of work | Reduce shard count; cache model downloads | Already over budget at peak schedule; getting worse as more adapters are verified |
+
+---
+
+## UX Pitfalls
+
+Common user experience mistakes specific to v2 feature additions.
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Delta sign inverted in ResultsList (current bug) | Student sees "+1.0" next to a university where they are 1 point SHORT of qualifying; assumes they're ahead | Fix: `userScore - cutoff`; positive = student above cutoff = favorable |
+| Rising trend shown as green (current bug) | Student interprets rising cutoff = good match; over-ranks competitive universities | Rising cutoff → amber/warning + "Harder this year" tooltip |
+| Editable nguyện vọng list with no persistence signal | Student reorders list, closes browser, changes lost | URL state (nuqs already in use) + visible notice "Your list is saved in this URL" |
+| Tier labels without concrete score context | "Dream" / "Safe" are opaque to students unfamiliar with the system | Show threshold: "Dream: your score is 3+ points above cutoff (25.0)" |
+| No error boundary on failed API calls (current: silent `.catch(() => {})`) | Students see empty results with no explanation | Replace with error state UI: "Could not load recommendations — retry" |
+
+---
+
+## "Looks Done But Isn't" Checklist
+
+Things that appear complete but are missing critical pieces specific to v2.
+
+- [ ] **Adapter factory migration:** "Done" only when all 6 verified adapters produce byte-identical output vs golden fixtures on live URLs. Verify with `verify-adapters.ts` against real websites — not just against fake fixtures.
+- [ ] **Zero-rows guard in runner.ts:** "Done" only when `status: 'ok'` with `rows_written: 0` is impossible. Test by running an adapter that returns `[]` and confirming `status: 'zero_rows'` or `status: 'error'` is logged.
+- [ ] **Auto-discovery crawler:** "Done" only when rate limiting and `robots.txt` compliance are tested against a live university homepage without triggering 429/403 over 3 consecutive test runs.
+- [ ] **Batch DB inserts:** "Done" only when wrapped in a transaction with a rollback test. Verify: intentionally fail one row mid-batch and confirm full university batch rolls back to pre-batch state.
+- [ ] **Delta sign fix:** "Done" only when both `ResultsList.tsx` and `NguyenVongList.tsx` are updated in the same PR, with a test asserting `+1.0` for student above cutoff and `-1.0` for student below cutoff in both components.
+- [ ] **Trend color fix:** "Done" only when tooltip/label copy is updated alongside color. Color alone without context is ambiguous.
+- [ ] **PaddleOCR CI test:** "Done" only when cache hit is confirmed on second run. Verify: trigger CI twice; second run should show "Cache hit" and complete in < 5 minutes.
+- [ ] **Design token migration:** "Done" only when `grep -r 'text-green-600\|text-red-600\|bg-gray-100' components/` returns zero results referencing deprecated semantic classes.
+- [ ] **GitHub Actions minute budget:** "Done" only when a full peak-schedule week uses < 450 min (2,000 / 4.4 weeks). Measure before/after caching implementation.
+- [ ] **Supabase keep-alive job:** "Done" only when manually triggered and confirmed to execute a successful DB query — and confirmed to keep the database active after a simulated 7-day pause.
+- [ ] **Font fix (Be Vietnam Pro):** "Done" only when DevTools computed styles show `font-family: 'Be Vietnam Pro'` on body text in Chrome. Not confirmed by code inspection alone.
+- [ ] **Fixture resilience tests:** "Done" only when a structural change to a fixture HTML file causes the corresponding adapter test to fail — confirming the fixture audit mechanism catches drift.
+
+---
+
+## Recovery Strategies
+
+When pitfalls occur despite prevention, how to recover.
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| IP ban from auto-discovery during peak | HIGH (24–72 hr wait; no data from that university during peak) | Fallback to manual URL for that university; reduce global crawl aggressiveness; add that domain to a known-slow list |
+| Adapter factory breaks verified adapters | MEDIUM (revert; restore `_legacy/` originals; re-verify before retry) | Git revert the factory PR; restore original adapter files from `_legacy/`; verify on live sites; re-attempt factory migration one adapter at a time |
+| Actions minutes exhausted mid-July | HIGH (cannot scrape until next billing cycle on the 1st) | Pre-generate static JSON manually using `generate-static-json.ts`; deploy to Vercel manually; write correct data to DB via `verify-db.ts` |
+| Supabase auto-pause during peak | MEDIUM (~30 sec to resume manually via dashboard) | Log in to Supabase dashboard; click "Restore"; wait for resume; re-run failed shard via `workflow_dispatch` |
+| Delta sign regression in one component only | LOW (one-line fix + redeploy in minutes) | Fix remaining component; add test; deploy |
+| Batch insert partial failure | MEDIUM (re-run scraper for affected university; transaction rollback means clean starting state) | Trigger `workflow_dispatch` for affected shard; batch insert with transaction overwrites partial data cleanly |
+| Design token migration misses hard-coded classes | LOW (grep; fix in follow-up PR) | `grep -r 'text-green-600\|text-red-600' components/`; fix misses in a follow-up PR |
+| Fixture drift causes false-positive test pass | MEDIUM (discover only when production scrape fails) | Update fixture from live page; add fixture audit step to `verify-adapters.ts` to detect future drift |
+
+---
+
+## Pitfall-to-Phase Mapping
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| IP ban from auto-discovery (P1) | Auto-discovery crawler phase | Test against fake local servers with simulated 429 responses; no 403/429 on 3 consecutive live homepage crawls |
+| Adapter factory silent 0-row failure (P2) | Adapter factory phase — zero-rows guard first | `status: 'ok'` with `rows_written: 0` is impossible; golden fixture comparison passes for all 6 verified adapters |
+| GitHub Actions budget overrun (P3) | Infrastructure / CI optimization phase | Peak schedule week uses < 450 min; cache hit confirmed on second run |
+| Delta sign fix regression (P4) | Bug fixes phase | Test asserts `+1.0` for above-cutoff in both ResultsList and NguyenVongList |
+| Trend color without copy (P5) | Bug fixes phase | Tooltip present; user can interpret without seeing arrow color |
+| Supabase auto-pause (P6) | Infrastructure hardening phase | Keep-alive workflow confirmed; DB stays active after 7-day silence |
+| Batch insert partial failure (P7) | Scraper expansion phase | Rollback test passes; `rows_written` matches expected count |
+| Design token regression (P8) | UI/UX redesign phase | No hard-coded semantic color classes remain; visual regression test passes |
+| PaddleOCR CI disk/time issue (P9) | Scraper expansion / CI phase | Cache hit on second run; OCR CI completes in < 5 min |
+| Fixture drift (P10) | Scraper resilience testing phase | Fixture audit detects structural header drift on a modified fixture |
 
 ---
 
 ## Sources
 
-- Training knowledge: web scraping engineering patterns (HIGH confidence for established patterns like selector brittleness, encoding handling)
-- Training knowledge: Vercel/Supabase free tier constraints as of mid-2025 (MEDIUM confidence — limits may have changed, verify current pricing pages)
-- Training knowledge: Vietnamese Unicode handling and NFC normalization (HIGH confidence — Unicode Standard is authoritative)
-- Training knowledge: GitHub Actions limits for public repositories (MEDIUM confidence — verify current docs)
-- Training knowledge: Vietnamese THPT admissions system structure and nguyện vọng rules (MEDIUM confidence — 2026 rule changes cited from PROJECT.md, verify with Ministry publications)
-- WebSearch unavailable during this session — all findings based on training knowledge and project context
-- **Flag:** Supabase connection limits, Vercel function execution limits, and Ministry portal structure should be verified against current official documentation before Phase 1 begins
+- Codebase direct inspection (2026-03-18):
+  - `lib/scraper/runner.ts` — silent 0-row success pattern (line 63 `status = rowsRejected > 0 ? 'flagged' : 'ok'`)
+  - `components/ResultsList.tsx` — inverted delta (line 46–47)
+  - `components/NguyenVongList.tsx` — inverted delta in opposite direction (line 52–53)
+  - `.github/workflows/scrape-peak.yml` — 4×/day × 6 shards; no model caching
+  - `.github/workflows/scrape-low.yml` — daily × 6 shards; no model caching
+  - `lib/scraper/adapters/bvh.ts` — hard-coded `getFullYear() - 1` year logic
+  - `app/api/universities/route.ts` — `readFileSync` in static fallback path
+  - `scrapers.json` — 72/78 entries with `static_verified: false` and homepage URLs
+- Project audit findings: `PROJECT.md` — Known Tech Debt section (7-agent audit, 2026-03-18)
+- Memory: `project_v2_auto_discovery.md` — rate limiting and robots.txt requirements
+- Memory: `project_v2_scraper_resilience.md` — fake website testing requirements
+- Memory: `project_scraper_limitations.md` — Vietnamese university scraping constraints
+- Supabase documentation: free tier auto-pauses after 7 days inactivity (HIGH confidence — official policy)
+- GitHub Actions documentation: 2,000 free minutes/month for private repos; public repos have more generous limits — verify current limits for this repo's visibility setting (MEDIUM confidence — confirm at github.com/features/actions)
+- PaddleOCR v3.x API change (`predict()` replaces `ocr()`) — confirmed from `ocr_table.py` git history in repo
+
+---
+*Pitfalls research for: UniSelect v2.0 — Vietnamese university admissions PWA (adding features to existing system)*
+*Researched: 2026-03-18*

@@ -1,459 +1,688 @@
-# Architecture Patterns
+# Architecture Research
 
-**Domain:** Vietnamese university admissions data aggregation PWA
-**Researched:** 2026-03-17
-**Confidence:** HIGH (based on well-established patterns for scraper pipelines, serverless APIs, and PWA frontends)
+**Domain:** Vietnamese university admissions data aggregation PWA — v2.0 integration
+**Researched:** 2026-03-18
+**Confidence:** HIGH (derived directly from reading the existing codebase, not from web search)
 
----
-
-## Recommended Architecture
-
-The system decomposes into four cleanly-bounded components:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  SCRAPER PIPELINE (GitHub Actions)                          │
-│                                                             │
-│  Scheduler → Scraper Workers → Normalizer → DB Writer       │
-│  (cron)      (per-university)   (canonical  (upsert to      │
-│                                  schema)     Supabase)       │
-└──────────────────────────────┬──────────────────────────────┘
-                               │ writes
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│  DATABASE (Supabase / PostgreSQL)                           │
-│                                                             │
-│  universities | majors | tohop | cutoff_scores             │
-│                       (central truth store)                 │
-└──────────────────────────────┬──────────────────────────────┘
-                               │ reads
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│  API LAYER (Vercel Serverless Functions)                     │
-│                                                             │
-│  /api/scores  /api/universities  /api/recommend            │
-│               (stateless, read-mostly)                      │
-└──────────────────────────────┬──────────────────────────────┘
-                               │ fetches
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│  FRONTEND PWA (Next.js on Vercel)                           │
-│                                                             │
-│  Score Input → Eligibility Filter → Ranked List →          │
-│  Nguyện Vọng Builder → PDF/Share                           │
-└─────────────────────────────────────────────────────────────┘
-```
+> This document supersedes the v1.0 architecture research (2026-03-17). It focuses exclusively on how the five new v2.0 feature areas integrate with the existing system. Unchanged parts of the architecture are not repeated here.
 
 ---
 
-## Component Boundaries
-
-### 1. Scraper Pipeline
-
-| Sub-component | Responsibility | Does NOT do |
-|---------------|---------------|-------------|
-| Scheduler | Triggers scraper runs via GitHub Actions cron | Data transformation |
-| Scraper Workers | Fetches raw HTML/JSON from one university URL; extracts raw rows | Normalization, DB writes |
-| Normalizer | Maps raw rows to canonical schema (score, year, major_code, tohop, method) | Fetching, storing |
-| DB Writer | Upserts normalized records into Supabase via REST or pg driver | Scraping logic |
-| Scrape Registry | Config file (`scrapers.json`) listing each university: URL, scraper adapter name, schedule tier | Runtime execution |
-
-The Scraper Pipeline runs entirely inside GitHub Actions. It does not talk to the Vercel API layer. It writes directly to Supabase.
-
-**Scraper adapter pattern:** Each university gets a named adapter module (`bka.ts`, `qht.ts`, etc.) that exports a single `scrape(url): RawRow[]` function. The runner iterates the registry, calls the adapter, passes output through the normalizer, then writes. Adapters that share the same HTML structure (e.g., all universities using the same CMS) can share a generic adapter.
-
-**Ministry portal adapter:** Treated as a special first-class adapter. It covers structured data for many universities at once. Run it first; university-level adapters only fill gaps.
-
----
-
-### 2. Database (Supabase / PostgreSQL)
-
-Single source of truth. Scraper writes; API reads; no direct DB access from the frontend.
-
-**Schema sketch:**
-
-```sql
--- Lookup tables (rarely change)
-CREATE TABLE universities (
-  id          TEXT PRIMARY KEY,          -- Ministry code e.g. "BKA"
-  name_vi     TEXT NOT NULL,             -- Full Vietnamese name
-  name_short  TEXT,                      -- Common abbreviation
-  website_url TEXT,
-  region      TEXT,                      -- HN / HCM / Other
-  created_at  TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE majors (
-  id           TEXT PRIMARY KEY,         -- Ministry major code e.g. "7480201"
-  name_vi      TEXT NOT NULL,
-  field_group  TEXT,                     -- Broad field e.g. "CNTT", "Y Duoc"
-  created_at   TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE tohop_codes (
-  code        TEXT PRIMARY KEY,          -- e.g. "A00", "D01"
-  subjects    TEXT[] NOT NULL,           -- e.g. ["Toan","LyHoa","HoaHoc"]
-  label_vi    TEXT
-);
-
--- Core fact table (append-mostly, upsert on conflict)
-CREATE TABLE cutoff_scores (
-  id                BIGSERIAL PRIMARY KEY,
-  university_id     TEXT NOT NULL REFERENCES universities(id),
-  major_id          TEXT NOT NULL REFERENCES majors(id),
-  tohop_code        TEXT NOT NULL REFERENCES tohop_codes(code),
-  year              SMALLINT NOT NULL,    -- e.g. 2023
-  score             NUMERIC(5,2),         -- e.g. 28.50; NULL if not published
-  admission_method  TEXT NOT NULL         -- "THPT" | "hoc_ba" | "aptitude" | "direct"
-                    DEFAULT 'THPT',
-  seats             SMALLINT,             -- quota for this combination; often unpublished
-  note              TEXT,                 -- e.g. "includes bonus points"
-  source_url        TEXT,                 -- URL scraped from
-  scraped_at        TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE (university_id, major_id, tohop_code, year, admission_method)
-);
-
--- Scrape audit log (debugging, freshness checks)
-CREATE TABLE scrape_runs (
-  id             BIGSERIAL PRIMARY KEY,
-  run_at         TIMESTAMPTZ DEFAULT NOW(),
-  university_id  TEXT REFERENCES universities(id),
-  status         TEXT,                   -- "ok" | "error" | "no_data"
-  rows_written   INT,
-  error_msg      TEXT,
-  github_run_id  TEXT                    -- traceability back to Actions run
-);
-```
-
-**Indexes needed from day one:**
-```sql
-CREATE INDEX ON cutoff_scores (university_id, year);
-CREATE INDEX ON cutoff_scores (tohop_code, year);
-CREATE INDEX ON cutoff_scores (score, year, tohop_code);  -- core query path
-```
-
-**Row-Level Security:** Enable RLS on all tables. API reads use anon key (SELECT only). Scraper uses service_role key (INSERT/UPDATE). No direct client → DB writes ever.
-
----
-
-### 3. API Layer (Vercel Serverless Functions)
-
-Thin, stateless, read-mostly. All business logic (scoring, filtering, ranking, nguyện vọng generation) lives here — NOT in the frontend.
-
-**Endpoints:**
-
-| Route | Method | Description |
-|-------|--------|-------------|
-| `/api/universities` | GET | List all universities with metadata |
-| `/api/universities/[id]` | GET | Single university with all majors and scores |
-| `/api/scores` | GET | Query cutoff scores: `?tohop=A00&year=2024&min=25&max=30` |
-| `/api/recommend` | POST | Core: takes `{ scores: {toan, ly, hoa}, tohop, year_range }` → returns ranked nguyện vọng candidates |
-| `/api/tohop` | GET | List all valid tổ hợp codes with subject definitions |
-| `/api/years` | GET | Available data years |
-
-**No mutation endpoints in v1.** The scraper writes to Supabase directly; the API is read-only from Supabase.
-
-**Caching strategy:**
-- University list and tổ hợp codes: cache at edge (Vercel CDN), `Cache-Control: s-maxage=86400`
-- Score queries: `s-maxage=3600` (1 hour) — data only changes when scraper runs
-- Recommend endpoint: no caching (user-specific inputs), but fast because it's pure DB read + in-memory sort
-
----
-
-### 4. Frontend PWA (Next.js)
-
-Stateless: no user accounts, no session state. All state lives in URL params or local component state.
-
-**Pages / Routes:**
-
-| Route | Purpose |
-|-------|---------|
-| `/` | Landing: score input, tổ hợp selector, quick recommendation |
-| `/universities` | Browse all universities |
-| `/universities/[id]` | University detail: all majors, historical cutoffs chart |
-| `/recommend` | Full recommendation flow: per-subject input → tiered nguyện vọng list |
-| `/compare` | Compare two university-major combinations side-by-side |
-
-**PWA requirements:**
-- Service worker via `next-pwa` (Workbox under the hood): cache static assets + API responses
-- `manifest.json`: Vietnamese app name, icon set
-- Offline: show cached recommendation results; show "data may be outdated" banner
-
-**i18n:** `next-i18next` with `vi` (default) and `en` locales. Translation keys in `public/locales/`.
-
-**No authentication.** No user data stored server-side. Score inputs are ephemeral (session only, never sent to analytics).
-
----
-
-## Data Flow
-
-### Scrape → Store path (async, scheduled)
+## Current System Overview (as-built v1.0)
 
 ```
-GitHub Actions cron (daily low / hourly July)
-  → checkout repo
-  → node scripts/scrape.ts [--university BKA | --all]
-      → for each university in scrapers.json:
-          → adapter.scrape(url) → RawRow[]
-          → normalizer.normalize(raw) → NormalizedRow[]
-          → db.upsert(cutoff_scores, normalized)
-          → db.insert(scrape_runs, audit)
-  → exit (Actions job completes)
-```
-
-### User request → Recommendation path (real-time)
-
-```
-User inputs: { toan: 9.0, ly: 8.5, hoa: 8.0 } + tohop: "A00"
-  → Frontend computes: total = toan + ly + hoa = 25.5
-  → POST /api/recommend { tohop: "A00", total_score: 25.5, year_range: [2022, 2024] }
-      → Query cutoff_scores WHERE tohop_code = 'A00' AND year IN (2022,2023,2024)
-      → For each (university, major): compute avg cutoff, delta from student score
-      → Classify: delta > +1.5 = "dream", -1.5..+1.5 = "practical", < -1.5 = "safe"
-      → Sort within each tier: by avg cutoff DESC (most selective first = highest prestige)
-      → Return top N per tier (configurable, default 5 per tier = 15 total)
-  → Frontend renders tiered list
-  → User can drag-reorder within tiers → generates final ranked nguyện vọng list
-```
-
-### Historical data display path
-
-```
-User visits /universities/BKA
-  → GET /api/universities/BKA
-      → Query: universities JOIN cutoff_scores WHERE university_id = 'BKA' AND year >= 2019
-      → Group by: major_id, tohop_code, year
-      → Return: { university, majors: [{ major, tohop_scores_by_year: [...] }] }
-  → Frontend renders trend chart per major (Recharts/Chart.js)
+┌─────────────────────────────────────────────────────────────────┐
+│  GITHUB ACTIONS (scraping pipeline)                             │
+│                                                                 │
+│  run.ts → loadRegistry() → runScraper() → DB upsert (N+1)      │
+│              scrapers.json    per-row insert loop               │
+│              skips !static_verified                             │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │ writes (service_role)
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  SUPABASE POSTGRESQL                                            │
+│  universities | majors | tohop_codes | cutoff_scores            │
+│  scrape_runs (audit log)                                        │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │ reads (pooler port 6543)
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  VERCEL SERVERLESS API                                          │
+│  /api/universities  /api/universities/[id]                      │
+│  /api/recommend  /api/tohop                                     │
+│  + static JSON fallback (generated at build time)              │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │ fetches
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  NEXT.JS 16 FRONTEND PWA                                        │
+│  components/ (flat), Tailwind v4, no design tokens             │
+│  next-intl (vi/en cookie), nuqs (URL state)                    │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Scraper Scheduling: GitHub Actions vs Alternatives
+## Integration Point 1: Auto-Discovery Crawler
 
-**Decision: GitHub Actions. No alternatives needed for v1.**
+### Where It Lives
 
-Rationale:
+The crawler is a new **pre-scrape discovery phase** that runs inside the same GitHub Actions job, before `run.ts` executes the adapter pipeline. It does NOT live in the Vercel API layer.
 
-| Concern | GitHub Actions Answer |
-|---------|----------------------|
-| Free tier limits | 2,000 min/month free for public repos; scraping 78 sites ≈ 10-20 min/run → 600+ runs/month free |
-| High-frequency July period | Multiple workflow files with different schedules: `low-freq.yml` (daily) and `peak-freq.yml` (hourly, manually enabled July 1-20) |
-| Failure visibility | Actions UI shows per-run logs; scrape_runs audit table captures errors |
-| No always-on server needed | Actions is ephemeral — exactly right for scheduled batch jobs |
-| Secret management | GitHub Secrets for SUPABASE_SERVICE_ROLE_KEY |
-
-**Two-schedule pattern:**
-
-```yaml
-# .github/workflows/scrape-low.yml
-on:
-  schedule:
-    - cron: '0 2 * * *'   # 2 AM UTC daily (outside July)
-  workflow_dispatch:       # manual trigger always available
-
-# .github/workflows/scrape-peak.yml
-on:
-  schedule:
-    - cron: '0 * * * *'   # Every hour (enable manually in July)
-  workflow_dispatch:
+```
+GitHub Actions job (modified)
+  ├── [NEW] crawler/discover.ts
+  │     ↓ reads scrapers.json (homepage URLs)
+  │     ↓ spiders to find cutoff score pages
+  │     ↓ writes discovered URLs back to scrapers.json or a separate discovered-urls.json
+  │
+  └── run.ts (existing — unchanged interface)
+        ↓ loadRegistry() reads URLs (now potentially discovered URLs)
+        ↓ runScraper() calls adapters as before
 ```
 
-The peak workflow is kept in the repo year-round but only enabled (via `if: github.event_name == 'workflow_dispatch'` or branch protection) during July. This avoids paying for hourly runs 11 months of the year.
+### What Changes vs. What Stays the Same
 
-**Scraper is NOT a Vercel serverless function** — Vercel functions have a 10-second execution limit (Hobby plan); scraping 78 sites in one run will exceed this. GitHub Actions has no such limit.
+**Unchanged:**
+- `ScraperAdapter` interface (`scrape(url): Promise<RawRow[]>`)
+- `runScraper()` in runner.ts
+- `loadRegistry()` in registry.ts
+- `scrapers.json` entry format
+
+**New:**
+- `lib/scraper/crawler/discover.ts` — the discovery engine
+- `lib/scraper/crawler/classifier.ts` — page classification (HTML table / JS-rendered / image / PDF)
+- `lib/scraper/crawler/types.ts` — `DiscoveredPage` interface
+
+### Data Flow
+
+```
+scrapers.json (homepage URL per university)
+    ↓
+discover.ts
+    ├── fetchHTML(homepage)
+    ├── extract all <a href> links
+    ├── filter: href text or URL contains tuyen-sinh / diem-chuan / diem-trung-tuyen / year
+    ├── for each candidate link:
+    │     ├── fetchHTML(link)
+    │     └── classify page:
+    │           ├── has <table> with score headers → "html_table"
+    │           ├── has <img> matching score image patterns → "image"
+    │           ├── has <script> tags → "js_rendered"
+    │           └── has .pdf link → "pdf"
+    └── emit DiscoveredPage[] with confidence score
+          ↓
+run.ts reads discovered URLs and picks the adapter strategy based on page type
+```
+
+### `DiscoveredPage` Interface (new type)
+
+```typescript
+// lib/scraper/crawler/types.ts
+export interface DiscoveredPage {
+  university_id: string;
+  url: string;
+  page_type: 'html_table' | 'js_rendered' | 'image' | 'pdf' | 'unknown';
+  confidence: number;      // 0.0–1.0 — how likely this is a cutoff score page
+  discovered_at: Date;
+  link_text: string;       // the anchor text that led here (for debugging)
+}
+```
+
+### Registry Integration
+
+Two options. **Use Option A.**
+
+**Option A — scrapers.json stays the source of truth, discovered URLs injected at runtime:**
+- `scrapers.json` keeps `"url": "https://homepage.edu.vn/"` (the homepage)
+- `discover.ts` runs first and writes `public/discovered-urls.json` (or similar temp file)
+- `loadRegistry()` is modified: if `discovered_urls.json` has a fresher URL for this university_id, use it instead of scrapers.json URL
+- This means zero changes to scrapers.json format and the registry signature stays identical
+
+**Option B — scrapers.json updated in-place:**
+- Discovery run writes the found cutoff URL directly back into scrapers.json
+- Triggers a git commit from Actions
+- Messier (requires git push from Actions), but makes the discovered URL permanent
+
+Option A is preferred: it decouples discovery from the registry file, avoids Actions needing write permissions to the repo, and keeps scrapers.json as human-edited truth.
+
+### New scrapers.json field (optional enrichment)
+
+```json
+{
+  "id": "BKA",
+  "adapter": "bka",
+  "url": "https://hust.edu.vn/",
+  "homepage_url": "https://hust.edu.vn/",
+  "static_verified": false,
+  "discovery": {
+    "enabled": true,
+    "keywords": ["diem-chuan", "tuyen-sinh", "trung-tuyen"],
+    "max_depth": 2
+  }
+}
+```
+
+The `discovery` block is opt-in per university (default enabled). Universities where auto-discovery is known to fail (PDF-only, Google Drive links) can set `"enabled": false`.
 
 ---
 
-## Suggested Build Order
+## Integration Point 2: Fake Test Websites
 
-Dependencies dictate this order. Each layer must exist before the one above it can be tested end-to-end.
+### Where They Live
+
+Fake websites are **test fixtures served by a local HTTP server** during `vitest` integration tests. They do NOT affect the production pipeline.
 
 ```
-Phase 1: Database foundation
-  → Define schema, run migrations on Supabase
-  → Seed reference data: universities, majors, tohop_codes tables
-  Dependency: nothing upstream; everything else depends on this
-
-Phase 2: Scraper pipeline (core)
-  → Build scraper runner + normalizer
-  → Write 3-5 university adapters (BKA, KHA, NTH — high-value, well-structured)
-  → Write Ministry portal adapter (covers many universities at once)
-  → Set up GitHub Actions low-freq workflow
-  Dependency: Phase 1 (DB schema must be stable)
-
-Phase 3: API layer
-  → /api/universities, /api/scores, /api/tohop, /api/years
-  → /api/recommend (core algorithm)
-  Dependency: Phase 1 (DB), some Phase 2 data to test against
-
-Phase 4: Frontend PWA
-  → Score input + recommend flow (highest value)
-  → University browse + detail pages
-  → Historical chart components
-  → PWA manifest + service worker
-  Dependency: Phase 3 (API endpoints must exist)
-
-Phase 5: Scraper expansion + hardening
-  → Add remaining 70+ university adapters
-  → Error recovery, retry logic
-  → Peak-frequency workflow for July
-  Dependency: Phase 2 architecture must be proven
-
-Phase 6: Polish + launch
-  → i18n completion (vi/en)
-  → SEO (Next.js metadata, sitemap)
-  → Performance audit (Core Web Vitals)
-  → Ad placement (non-intrusive)
+tests/
+├── fixtures/
+│   ├── fake-sites/
+│   │   ├── generic-html-table/       # Standard cheerio adapter case
+│   │   │   └── index.html
+│   │   ├── no-thead-headers/         # HTC-style: headers in first <tr>
+│   │   │   └── index.html
+│   │   ├── js-rendered-stub/         # Static HTML simulating post-JS content
+│   │   │   └── index.html
+│   │   ├── score-image/              # Page with <img> pointing to test JPEG
+│   │   │   ├── index.html
+│   │   │   └── sample_scores.jpg
+│   │   ├── encoding-windows1252/     # Windows-1252 encoded page
+│   │   │   └── index.html
+│   │   ├── broken-table/             # Missing score column header
+│   │   │   └── index.html
+│   │   └── renamed-headers/          # "điểm trúng tuyển" renamed to "Cutoff"
+│   │       └── index.html
+│   └── server.ts                     # Starts http-server on a random port
+│
+└── scraper/
+    └── adapters/
+        ├── generic-factory.integration.test.ts
+        └── crawler.integration.test.ts
 ```
+
+### Server Setup Pattern
+
+```typescript
+// tests/fixtures/server.ts
+import { createServer } from 'http';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+
+export function startFixtureServer(port = 0): Promise<{ url: string; close: () => void }> {
+  return new Promise((resolve_) => {
+    const server = createServer((req, res) => {
+      const filePath = resolve(__dirname, 'fake-sites', req.url!.slice(1), 'index.html');
+      // serve file or 404
+    });
+    server.listen(port, () => {
+      const addr = server.address() as { port: number };
+      resolve_({ url: `http://localhost:${addr.port}`, close: () => server.close() });
+    });
+  });
+}
+```
+
+### What This Enables
+
+- Generic adapter factory tests can run against `http://localhost:PORT/generic-html-table` without mocking `fetchHTML`
+- Crawler tests can discover links within fake-site HTML without hitting real university websites
+- PaddleOCR integration test uses `tests/fixtures/fake-sites/score-image/sample_scores.jpg`
+
+### Relationship to Existing Adapter Tests
+
+Existing tests (`bvh.test.ts`, `dcn.test.ts`) mock `fetchHTML` at the module level — they stay unchanged. The new fixture-server tests are **additional** integration tests that complement the existing unit tests by testing the full HTTP fetch → parse path. No migration of existing tests needed.
+
+---
+
+## Integration Point 3: Generic Adapter Factory
+
+### The Copy-Paste Problem (confirmed from code)
+
+Comparing `htc.ts`, `bvh.ts`, and `sph.ts`: they share 85%+ identical code. The variation is:
+1. The `university_id` string literal (`'HTC'`, `'BVH'`, `'SPH'`)
+2. The score column keyword match (e.g., BVH matches `'thpt'` first; HTC matches `'điểm trúng tuyển'` first)
+3. Whether to use a `defaultTohop` when no tohop column exists (HTC defaults to `'A00'`)
+
+### Factory Approach: Config-Driven, Not Inheritance
+
+Do not use class inheritance. Use a factory function that takes a config object and returns a `ScraperAdapter`.
+
+```typescript
+// lib/scraper/adapters/generic-cheerio-factory.ts
+
+export interface GenericCheerioConfig {
+  universityId: string;
+  // Column detection: keywords to match in header text
+  scoreKeywords: string[];          // e.g. ['điểm trúng tuyển', 'điểm chuẩn', 'thpt']
+  majorCodeKeywords: string[];      // e.g. ['mã ngành', 'ma nganh']
+  tohopKeywords?: string[];         // e.g. ['tổ hợp', 'khối'] — optional
+  defaultTohop?: string;            // e.g. 'A00' if no tohop column
+  // Row filtering
+  requireNumericMajorCode?: boolean; // default true — skip rows where major code !~ /^\d/
+  minCellCount?: number;            // default 3
+}
+
+export function createCheerioAdapter(config: GenericCheerioConfig): ScraperAdapter {
+  return {
+    id: config.universityId,
+    async scrape(url: string): Promise<RawRow[]> {
+      // ... shared cheerio logic using config ...
+    },
+  };
+}
+```
+
+### Where Adapters Move
+
+The 70+ copy-pasted adapters are refactored in two passes:
+
+**Pass 1 — New adapters use the factory.** Any new adapter created for the 72 dormant universities uses `createCheerioAdapter(config)` instead of copy-pasting. These are trivial one-liners:
+
+```typescript
+// lib/scraper/adapters/fbu.ts (after refactor)
+import { createCheerioAdapter } from './generic-cheerio-factory';
+export const fbuAdapter = createCheerioAdapter({
+  universityId: 'FBU',
+  scoreKeywords: ['điểm chuẩn', 'điểm trúng tuyển'],
+  majorCodeKeywords: ['mã ngành'],
+  tohopKeywords: ['tổ hợp'],
+});
+```
+
+**Pass 2 — Existing verified adapters migrated.** `htc.ts`, `bvh.ts`, `sph.ts`, `tla.ts` are migrated to factory configs. The adapter module still exports `htcAdapter` by name (so the registry import `mod[entry.adapter + 'Adapter']` continues to work unchanged). The complex cases (`dcn.ts` with Playwright, `gha.ts` with PaddleOCR) are NOT migrated — they remain custom adapters.
+
+### Registry Compatibility: Zero Breaking Changes
+
+The registry uses:
+```typescript
+const mod = await import(`./adapters/${entry.adapter}`);
+const adapter = mod.default ?? mod[`${entry.adapter}Adapter`];
+```
+
+This continues to work after refactoring because each adapter file still exports `${id}Adapter`. The factory is an internal implementation detail — invisible to `loadRegistry()`.
+
+**No changes needed in:**
+- `scrapers.json`
+- `registry.ts`
+- `runner.ts`
+- Any existing test
+
+### Playwright and PaddleOCR Equivalents
+
+For JS-rendered pages, a `createPlaywrightAdapter(config)` factory follows the same pattern but launches a Playwright browser instead of calling `fetchHTML`. For OCR pages, the custom adapter pattern stays (image extraction is too variable to generalize well in v2).
+
+---
+
+## Integration Point 4: Design Token Layer (Tailwind v4)
+
+### Current State
+
+`app/globals.css` contains only:
+```css
+@import "tailwindcss";
+```
+
+There are no design tokens. Components use hardcoded Tailwind class strings like `text-gray-900`, `bg-white`, `border-gray-200`.
+
+### Tailwind v4 CSS-First Token Layer
+
+Tailwind v4 uses CSS variables defined in the `@theme` block instead of `tailwind.config.js`. This is the correct integration point.
+
+```css
+/* app/globals.css — after v2 changes */
+@import "tailwindcss";
+
+@theme {
+  /* Brand colors */
+  --color-brand-50:  #eff6ff;
+  --color-brand-500: #3b82f6;
+  --color-brand-700: #1d4ed8;
+
+  /* Semantic color aliases */
+  --color-surface:        var(--color-white);
+  --color-surface-muted:  var(--color-gray-50);
+  --color-border:         var(--color-gray-200);
+  --color-text-primary:   var(--color-gray-900);
+  --color-text-secondary: var(--color-gray-600);
+  --color-text-muted:     var(--color-gray-400);
+
+  /* Tier colors (semantic) */
+  --color-tier-dream:     var(--color-purple-600);
+  --color-tier-practical: var(--color-brand-500);
+  --color-tier-safe:      var(--color-green-600);
+
+  /* Typography */
+  --font-sans: 'Be Vietnam Pro', ui-sans-serif, system-ui;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+
+  /* Spacing scale supplement */
+  --spacing-card: 1rem;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-surface:        var(--color-gray-900);
+    --color-surface-muted:  var(--color-gray-800);
+    --color-border:         var(--color-gray-700);
+    --color-text-primary:   var(--color-gray-100);
+    --color-text-secondary: var(--color-gray-400);
+    --color-text-muted:     var(--color-gray-500);
+  }
+}
+```
+
+With this in place, `--color-text-primary` becomes `text-text-primary` as a Tailwind utility class. Components then use `text-text-primary` instead of `text-gray-900`.
+
+### Migration Strategy for Existing Components
+
+Do NOT rename all classes in one pass — that is a large risky diff. The approach:
+
+1. Add the `@theme` block to `globals.css` (adds tokens without breaking anything)
+2. Fix the font bug first (`--font-sans` in `@theme` activates Be Vietnam Pro via `font-sans` class)
+3. Migrate `TierBadge.tsx` first — it already uses tier colors in one place, making it a clean reference component
+4. When touching a component for a feature change, migrate its raw color classes to semantic tokens at the same time
+5. New components in v2 (drag-reorder list, onboarding) write semantic token classes from the start
+
+### What Does NOT Change
+
+- No `tailwind.config.js` needed — Tailwind v4 is purely CSS-first
+- `@tailwindcss/postcss` in `devDependencies` stays (already present)
+- Existing classes like `border`, `rounded-lg`, `shadow-sm`, `space-y-3` are layout/structural — they do not need tokens and stay as-is
+
+---
+
+## Integration Point 5: Batch DB Insertion in runner.ts
+
+### Current Problem (confirmed from code)
+
+`runner.ts` does two awaited inserts per scraped row:
+1. `db.insert(majors).values(...).onConflictDoNothing()` — ensures major FK exists
+2. `db.insert(cutoffScores).values(...).onConflictDoUpdate(...)` — writes the score
+
+For a university with 50 majors × 3 tổ hợp = 150 rows, this is 300 sequential round-trips to Supabase over the Supavisor connection pooler. This is the N+1 write problem.
+
+### Batch Insertion Pattern
+
+Drizzle ORM supports passing an array to `.values()`. The fix involves collecting all rows for a university, then inserting in one statement per table.
+
+**Key constraint:** Supabase Supavisor (transaction pool mode, `prepare: false`) does not support true multi-statement transactions across pool checkouts. However, a single `INSERT ... VALUES (row1), (row2), ...` is a single statement and works fine.
+
+```typescript
+// lib/scraper/runner.ts — modified inner loop
+
+// Collect phase
+const normalizedBatch: NormalizedRow[] = [];
+for (const raw of rawRows) {
+  const normalized = normalize(raw);
+  if (!normalized) {
+    rowsRejected++;
+    rejectionLog.push(JSON.stringify(raw));
+  } else {
+    normalizedBatch.push(normalized);
+  }
+}
+
+// Batch upsert phase — two round-trips total (down from 2N)
+
+// 1. Ensure all majors exist
+const uniqueMajorIds = [...new Set(normalizedBatch.map(r => r.major_id))];
+if (uniqueMajorIds.length > 0) {
+  await db.insert(majors)
+    .values(uniqueMajorIds.map(id => ({ id, name_vi: id })))
+    .onConflictDoNothing();
+}
+
+// 2. Batch upsert all cutoff scores
+if (normalizedBatch.length > 0) {
+  await db.insert(cutoffScores)
+    .values(normalizedBatch.map(n => ({
+      university_id: n.university_id,
+      major_id: n.major_id,
+      tohop_code: n.tohop_code,
+      year: n.year,
+      score: String(n.score),
+      admission_method: n.admission_method,
+      source_url: n.source_url,
+      scraped_at: n.scraped_at,
+    })))
+    .onConflictDoUpdate({
+      target: [
+        cutoffScores.university_id,
+        cutoffScores.major_id,
+        cutoffScores.tohop_code,
+        cutoffScores.year,
+        cutoffScores.admission_method,
+      ],
+      set: {
+        score: sql`excluded.score`,
+        source_url: sql`excluded.source_url`,
+        scraped_at: sql`excluded.scraped_at`,
+      },
+    });
+}
+rowsWritten = normalizedBatch.length;
+```
+
+### Impact on Tests
+
+`tests/scraper/runner.test.ts` mocks `db.insert` at the module level. The mock returns a chainable object with `values()`, `onConflictDoUpdate()`, `onConflictDoNothing()`. The existing mock handles both the single-insert and batch-insert call patterns because it captures `.values()` arguments regardless of whether an array or single object is passed. The test's `getScrapeRunInserts()` helper looks for objects with a `status` field — that part is unchanged.
+
+The `rows_written` count changes slightly: currently it increments per successful individual insert. After batching, it is set to `normalizedBatch.length` after the batch insert. The test assertion `expect(scrapeRuns[0].rows_written).toBe(3)` continues to pass.
+
+### Chunk Size for Large Universities
+
+A single INSERT with 500+ value tuples can approach Postgres parameter limits (65535 parameters). For safety, chunk at 200 rows:
+
+```typescript
+// lib/scraper/runner.ts — chunked batch insert
+const BATCH_SIZE = 200;
+for (let i = 0; i < normalizedBatch.length; i += BATCH_SIZE) {
+  const chunk = normalizedBatch.slice(i, i + BATCH_SIZE);
+  await db.insert(cutoffScores).values(chunk.map(...)).onConflictDoUpdate(...);
+}
+```
+
+---
+
+## Revised System Overview (v2.0)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  GITHUB ACTIONS (scraping pipeline — modified)                  │
+│                                                                 │
+│  [NEW] crawler/discover.ts                                      │
+│    scrapers.json (homepage URLs)                                │
+│    → spider → classify → write discovered-urls.json            │
+│         ↓                                                       │
+│  run.ts (modified: reads discovered URLs if available)         │
+│    → loadRegistry() → merge discovered URLs                    │
+│    → runScraper() → [batch upsert — modified]                  │
+│         ↓                                                       │
+│  [NEW] PaddleOCR CI integration test (separate job)            │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │ writes (batch, 2 round-trips/uni)
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  SUPABASE POSTGRESQL (unchanged)                                │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  VERCEL SERVERLESS API (unchanged)                              │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  NEXT.JS 16 FRONTEND PWA (modified)                             │
+│                                                                 │
+│  globals.css: @theme block (design tokens, dark mode)           │
+│  [NEW] Drag-reorder NguyenVongList (dnd-kit or native)         │
+│  [NEW] Onboarding overlay                                       │
+│  components/ → semantic token classes                           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## New File Locations
+
+| New File | Purpose | Touches Existing? |
+|----------|---------|-------------------|
+| `lib/scraper/crawler/discover.ts` | Homepage spider, link extraction | Reads `scrapers.json` |
+| `lib/scraper/crawler/classifier.ts` | Page type detection (html/JS/image/pdf) | No |
+| `lib/scraper/crawler/types.ts` | `DiscoveredPage` interface | No |
+| `lib/scraper/adapters/generic-cheerio-factory.ts` | Factory for static HTML adapters | No |
+| `lib/scraper/adapters/generic-playwright-factory.ts` | Factory for JS-rendered adapters | No |
+| `tests/fixtures/fake-sites/*/index.html` | HTML fixtures for integration tests | No |
+| `tests/fixtures/server.ts` | Local HTTP server for integration tests | No |
+| `tests/scraper/crawler/discover.integration.test.ts` | Crawler tests against fake sites | No |
+| `tests/scraper/adapters/generic-factory.integration.test.ts` | Factory tests against fake sites | No |
+
+## Modified Files
+
+| Modified File | What Changes | Risk |
+|--------------|-------------|------|
+| `lib/scraper/runner.ts` | Collect-then-batch upsert instead of per-row insert | LOW — existing tests pass with batch |
+| `lib/scraper/run.ts` | Optional pre-pass: run discovery, merge URLs | LOW — runs before existing logic |
+| `lib/scraper/registry.ts` | Merge discovered-urls.json if present | LOW — additive |
+| `app/globals.css` | Add `@theme` token block | LOW — additive only |
+| `lib/scraper/adapters/htc.ts` | Replace implementation with `createCheerioAdapter(...)` | LOW — same export name |
+| `lib/scraper/adapters/bvh.ts` | Replace implementation with `createCheerioAdapter(...)` | LOW — same export name |
+| `lib/scraper/adapters/sph.ts` | Replace implementation with `createCheerioAdapter(...)` | LOW — same export name |
+| `lib/scraper/adapters/tla.ts` | Replace implementation with `createCheerioAdapter(...)` | LOW — same export name |
+| `components/NguyenVongList.tsx` | Add drag-reorder, manual add/remove | MEDIUM — behavior change |
+
+---
+
+## Build Order for v2.0
+
+Dependencies flow left to right. Build in this order within each phase.
+
+**Phase 1 — Scraper Foundation (unblocks everything)**
+1. `generic-cheerio-factory.ts` + unit tests (no external deps)
+2. Migrate verified adapters (htc, bvh, sph, tla) to factory — proves factory works on known-good cases
+3. Batch insert in `runner.ts` — isolated change, existing tests cover it
+4. `generic-playwright-factory.ts` — follows same pattern as cheerio factory
+
+*Why first:* Factory and batch insert are purely internal refactors with no UI or DB dependency. They reduce surface area before adding new complexity.
+
+**Phase 2 — Resilience Testing Infrastructure**
+1. `tests/fixtures/server.ts` — the test server
+2. HTML fixture files (one per edge case)
+3. Integration tests for generic factory against fake sites
+4. PaddleOCR CI job (separate GitHub Actions workflow step)
+
+*Why second:* Fake site infrastructure gives a safety net before writing the crawler. Crawler tests need the fake sites to run against.
+
+**Phase 3 — Auto-Discovery Crawler**
+1. `crawler/types.ts` (DiscoveredPage interface)
+2. `crawler/classifier.ts` (page type detection — pure function, unit testable)
+3. `crawler/discover.ts` (spider + link extraction)
+4. Integration tests against fake sites (built in Phase 2)
+5. Modify `run.ts` and `registry.ts` to merge discovered URLs
+
+*Why third:* Depends on fake sites for testing. Must come after factory work because discovered pages feed into adapters.
+
+**Phase 4 — Bug Fixes**
+1. Fix delta sign convention (ResultsList vs NguyenVongList)
+2. Fix trend color semantics
+3. Fix null score → NaN in engine
+4. Fix withTimeout timer leak
+5. Static fallback for /api/recommend
+6. Error handling UI
+
+*Why fourth:* These are isolated bug fixes. Doing them after scraper work avoids merge conflicts on files being changed for other reasons.
+
+**Phase 5 — UI/UX Redesign**
+1. Design token `@theme` block in `globals.css` + fix font
+2. Migrate `TierBadge.tsx` (reference component)
+3. Error boundaries (`error.tsx`, `not-found.tsx`)
+4. Drag-reorder NguyenVongList
+5. Onboarding overlay
+6. Dark mode (activated via `@media prefers-color-scheme: dark` block in tokens)
+7. Remaining component migrations to semantic tokens
+
+*Why last:* No other phase depends on UI. UI changes are high-effort, low-breakage-risk for non-UI code. Doing tokens first (step 1) gives subsequent UI work a clean foundation.
 
 ---
 
 ## Patterns to Follow
 
-### Pattern 1: Adapter Registry (Scraper)
+### Pattern 1: Factory Adapter (new in v2)
 
-Register adapters in a static config file, not in code. The runner is generic; only adapters are university-specific.
+**What:** A `createCheerioAdapter(config)` function returns a `ScraperAdapter`. Config object specifies column-matching keywords and defaults. No class inheritance.
 
-```typescript
-// scrapers.json (excerpt)
-[
-  { "id": "BKA", "adapter": "generic-table", "url": "https://hust.edu.vn/diem-chuan" },
-  { "id": "QHT", "adapter": "qht-custom",   "url": "https://hus.edu.vn/tuyen-sinh" },
-  { "id": "PORTAL", "adapter": "ministry",  "url": "https://thisinh.thitotnghiepthpt.edu.vn/..." }
-]
+**When to use:** Any new static HTML adapter where the page has a standard table structure. Use a custom adapter only when the page requires non-table parsing (PaddleOCR, special DOM structure).
 
-// Adapter interface
-interface ScraperAdapter {
-  scrape(url: string): Promise<RawRow[]>;
-}
+**Trade-offs:** Pros — eliminates copy-paste, fixes in factory propagate to all universities. Cons — debugging requires understanding the shared code path; very unusual layouts may need escape hatches via `config.customParser`.
 
-// RawRow — before normalization
-interface RawRow {
-  university_id: string;
-  major_raw: string;        // raw text, may need lookup
-  tohop_raw: string;        // raw text, may be "A00" or "Toán - Lý - Hóa"
-  year: number;
-  score_raw: string;        // raw text, may need parsing ("28.50" or "28,50")
-  admission_method_raw: string;
-}
-```
+### Pattern 2: Discovery as Pre-Pass (new in v2)
 
-### Pattern 2: Upsert, Never Replace (Database)
+**What:** `discover.ts` runs before `run.ts`, writes `discovered-urls.json` as ephemeral output. `loadRegistry()` merges this into adapter configs. Discovery failures are non-fatal — fall back to the URL in `scrapers.json`.
 
-Scraper always uses `INSERT ... ON CONFLICT DO UPDATE` — never DELETE + re-insert. This preserves historical records and audit timestamps.
+**When to use:** Always in production scrape runs. Skip with `SKIP_DISCOVERY=1` env var for fast local testing.
 
-```typescript
-await supabase
-  .from('cutoff_scores')
-  .upsert(normalizedRows, {
-    onConflict: 'university_id,major_id,tohop_code,year,admission_method'
-  });
-```
+**Trade-offs:** Pros — eliminates manual URL maintenance. Cons — adds 1-3 minutes of HTTP crawl time per run; discovery may occasionally pick up wrong pages (mitigated by confidence score threshold).
 
-### Pattern 3: Delta Classification (Recommendation)
+### Pattern 3: Collect-then-Batch Write (modifying v1 pattern)
 
-The tiering logic must be tunable without redeployment. Store thresholds in a config table or environment variable, not hardcoded.
+**What:** Normalize all rows for a university into an array first, then perform one batch `INSERT ... VALUES (...)` per table instead of one INSERT per row.
 
-```typescript
-const DELTA_THRESHOLDS = {
-  dream:     { min: 1.5  },   // score needed > student's score + 1.5
-  practical: { min: -1.5, max: 1.5 },
-  safe:      { max: -1.5 }    // student's score > score needed + 1.5
-};
-```
+**When to use:** Always. The N+1 write is never preferable for batch jobs.
 
-### Pattern 4: Fail-Open Scraping
-
-A scraper failure for one university must never block the run for other universities. Each adapter is wrapped in try/catch; failures are logged to `scrape_runs` and the run continues.
-
-```typescript
-for (const config of scraperRegistry) {
-  try {
-    const raw = await adapter.scrape(config.url);
-    const normalized = normalizer.normalize(raw, config.id);
-    await db.upsert(normalized);
-    await db.logRun(config.id, 'ok', normalized.length);
-  } catch (err) {
-    await db.logRun(config.id, 'error', 0, err.message);
-    // continue to next university
-  }
-}
-```
+**Trade-offs:** Pros — reduces DB round-trips from 2N to 2 (or 2 * ceil(N/200) with chunking). Cons — if the batch INSERT fails, all rows for that university fail together (vs. partial success). This is acceptable — the scrape_runs log marks the university as errored, and the next run retries all rows.
 
 ---
 
-## Anti-Patterns to Avoid
+## Anti-Patterns to Avoid (v2-specific)
 
-### Anti-Pattern 1: Scraper Inside Vercel Functions
+### Anti-Pattern 1: Crawler Inside Vercel API
 
-**What:** Triggering scraper via a Vercel API route (e.g., `/api/scrape/run`) with a cron trigger.
+**What:** Triggering the homepage crawler from an API route (e.g., `/api/discover`) to avoid modifying GitHub Actions.
 
-**Why bad:** Vercel Hobby plan has 10-second function timeout. Scraping 78 sites takes minutes. This will time out on any non-trivial run. Vercel Pro has 60s limit — still not enough.
+**Why bad:** Vercel functions have a maximum execution duration of 60 seconds (Pro) or 10 seconds (Hobby). Crawling a single university homepage (follow homepage → find cutoff page → classify) takes 3-10 seconds per university. 78 universities = way over limit.
 
-**Instead:** GitHub Actions for all scraping. Vercel functions are read-only API handlers only.
+**Instead:** Crawler runs in GitHub Actions only, same as the scraper.
 
-### Anti-Pattern 2: Storing Per-Student Data
+### Anti-Pattern 2: Storing Discovered URLs in the Database
 
-**What:** Saving a user's score input or nguyện vọng list to the database for "persistence."
+**What:** Saving `DiscoveredPage` records to Supabase so the frontend can show "last scraped from URL X."
 
-**Why bad:** Requires auth, GDPR/privacy concerns, increases infrastructure cost, violates the no-login design. Offers no meaningful value since the nguyện vọng deadline is a one-time annual event.
+**Why bad:** Turns a batch pipeline artifact into a long-lived DB concern. Discovered URLs change every July; stale DB entries would confuse rather than inform. The `source_url` column in `cutoff_scores` already captures the URL that was actually used.
 
-**Instead:** All student inputs stay in browser state (URL params, sessionStorage). The share feature generates a URL with encoded inputs. No server-side user data ever.
+**Instead:** `discovered-urls.json` is ephemeral. Only the scraped data (with `source_url`) persists to the DB.
 
-### Anti-Pattern 3: Normalizing in the Scraper Adapter
+### Anti-Pattern 3: Factory with Class Inheritance
 
-**What:** Each adapter does its own normalization to canonical schema.
+**What:** A base class `BaseCheerioAdapter` with subclasses per university that override methods.
 
-**Why bad:** When schema evolves (e.g., adding `seats` column), all 78 adapters need updating. Normalization bugs are inconsistent across adapters.
+**Why bad:** TypeScript class inheritance for data-driven variation is awkward. Subclasses must be imported explicitly (defeats the dynamic registry import pattern). The factory function approach is simpler, testable, and works within the existing `mod[entry.adapter + 'Adapter']` registry lookup.
 
-**Instead:** Adapters return dumb `RawRow` objects with raw text. One central normalizer owns canonical mapping. Schema changes touch one file.
+**Instead:** `createCheerioAdapter(config)` returns a plain object conforming to `ScraperAdapter`. No classes.
 
-### Anti-Pattern 4: Direct Frontend → Supabase Queries
+### Anti-Pattern 4: Tailwind v4 Config File for Tokens
 
-**What:** Using the Supabase JS client directly in the Next.js frontend to query the database.
+**What:** Creating `tailwind.config.ts` with a `theme.extend.colors` block to add design tokens.
 
-**Why bad:** Exposes the anon key in client bundle (acceptable for SELECT-only, but tight RLS required). More critically: bypasses the API layer where business logic lives. Recommendation algorithm cannot be tested in isolation. Future migrations become coupled to frontend code.
+**Why bad:** Tailwind v4 is CSS-first. Using `tailwind.config.ts` for theme customization is the v3 pattern. In v4, the `@theme` block in CSS is the canonical approach; mixing both causes undefined behavior.
 
-**Instead:** All DB access goes through `/api/*` routes. The Supabase client lives only in the API layer (server-side) and the scraper. Frontend only calls internal Next.js API routes.
-
----
-
-## Scalability Considerations
-
-| Concern | At 100 users/day | At 10K users/day (July peak) | At 100K+ users/day |
-|---------|-----------------|------------------------------|---------------------|
-| API latency | Supabase free tier adequate | Add Vercel Edge caching; score queries served from CDN | Upgrade Supabase plan; consider Redis cache layer |
-| DB connections | Free tier (direct conn) fine | Use Supabase connection pooling (pgBouncer) | Pooler + read replica |
-| Scraper load on universities | Low; daily runs, polite delays | Same; scraping doesn't scale with user traffic | Same; scraper is decoupled |
-| Frontend | Vercel CDN; no scaling concern | Same | Same |
-| Recommend endpoint | Fast (pure SQL read + in-memory sort) | Cache common tohop+year combinations at edge | Pre-compute recommendations nightly |
-
-The architecture is intentionally serverless/stateless. There is no component that needs to "scale up" — Vercel auto-scales functions, Supabase connection pooler handles bursts. The July spike is a frontend/API concern, not a scraper concern (scraper rate stays the same).
+**Instead:** All tokens in `@theme` inside `app/globals.css`. No `tailwind.config.ts` for tokens.
 
 ---
 
-## Extension Points for v2
+## Integration Points Summary
 
-The schema and component design must not close off these future pathways:
+| External Service | Integration Pattern | v2 Changes? |
+|-----------------|---------------------|-------------|
+| Supabase (read) | Drizzle ORM via pooler (port 6543) | None |
+| Supabase (write) | Service role key, batch upsert | Batch size increases, still same Drizzle API |
+| GitHub Actions | Cron + matrix shards | New discovery pre-step; new OCR CI job |
+| Vercel | Next.js build + serverless functions | None (scraper stays out of Vercel) |
 
-| v2 Feature | What v1 Must Not Break |
-|------------|------------------------|
-| Học bạ pathway | `admission_method` column already in schema as free text; add `'hoc_ba'` rows when ready |
-| Aptitude test pathway | Same: `admission_method = 'aptitude'`; adapter for VNU/HUST test result pages |
-| User accounts / saved lists | API is already stateless; add auth layer in front of new `/api/user/*` routes without touching existing routes |
-| Mobile app | API is plain HTTP JSON; React Native client can consume same endpoints |
-| More universities / colleges | Scraper registry is additive; add new adapter, add registry entry |
+| Internal Boundary | Communication | v2 Notes |
+|------------------|---------------|----------|
+| Crawler → Runner | `discovered-urls.json` flat file | New in v2 |
+| Factory → Registry | Named export `${id}Adapter` | Unchanged contract |
+| Runner → DB | Drizzle ORM batch insert | Changed from per-row |
+| Tokens → Components | Tailwind CSS variable utilities | New in v2; components migrate gradually |
+| Fake sites → Tests | Local HTTP server (random port) | Test-only; no prod impact |
 
 ---
 
 ## Sources
 
-- Project requirements: `/Users/thangduong/Desktop/UniSelect/.planning/PROJECT.md`
-- Vietnamese university list and URLs: `/Users/thangduong/Desktop/UniSelect/uni_list_examples.md`
-- Vietnam nguyện vọng system mechanics: `/Users/thangduong/Desktop/UniSelect/highschool.md`
-- Vercel serverless function limits: Vercel documentation (10s Hobby, 60s Pro execution timeout) — HIGH confidence (well-known constraint)
-- GitHub Actions free tier: 2,000 minutes/month for public repositories — HIGH confidence (documented by GitHub)
-- Supabase RLS and anon key model: standard Supabase security pattern — HIGH confidence
-- Scraper adapter pattern: standard ETL pipeline pattern — HIGH confidence
-- Next.js PWA with next-pwa (Workbox): established pattern — HIGH confidence
+- Existing codebase read directly: `lib/scraper/runner.ts`, `registry.ts`, `types.ts`, `normalizer.ts`, `run.ts`, `fetch.ts`, all adapters in `lib/scraper/adapters/`, `lib/db/schema.ts`, `lib/db/index.ts`, `app/globals.css`, `components/NguyenVongList.tsx`, `components/ResultsList.tsx`, `lib/recommend/engine.ts`, `tests/scraper/runner.test.ts`, `tests/scraper/adapters/bvh.test.ts`, `tests/scraper/adapters/adapter-contract.test.ts`, `.github/workflows/scrape-low.yml`, `scrapers.json`, `package.json`
+- Memory files: `project_v2_auto_discovery.md`, `project_v2_scraper_resilience.md`, `project_scraper_limitations.md`
+- Project context: `.planning/PROJECT.md`
+- Tailwind v4 CSS-first configuration: `@theme` block is the documented v4 approach (HIGH confidence — confirmed by existing `@import "tailwindcss"` in globals.css indicating v4 is already in use)
+- Drizzle ORM batch insert: `.values(array)` API is documented and supported in drizzle-orm 0.45.x (HIGH confidence)
+- Supabase Supavisor parameter limits: single INSERT statement with array values works in transaction pool mode (HIGH confidence — `prepare: false` is already set correctly in `lib/db/index.ts`)
+
+---
+
+*Architecture research for: UniSelect v2.0 — auto-discovery, resilience testing, adapter factory, design tokens, batch writes*
+*Researched: 2026-03-18*

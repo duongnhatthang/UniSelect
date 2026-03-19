@@ -1,236 +1,251 @@
 # Project Research Summary
 
-**Project:** UniSelect — Vietnamese University Admissions PWA
-**Domain:** Education data aggregation / nguyện vọng strategy tool
-**Researched:** 2026-03-17
-**Confidence:** MEDIUM-HIGH
+**Project:** UniSelect v2.0 — Vietnamese University Admissions PWA
+**Domain:** Vietnamese university admissions data aggregation, scraping pipeline, PWA
+**Researched:** 2026-03-18
+**Confidence:** HIGH
 
 ## Executive Summary
 
-UniSelect is a mobile-first Progressive Web App that helps Vietnamese students build strategic nguyện vọng (university choice) lists based on scraped cutoff score (điểm chuẩn) data. The product sits in a clear gap: existing tools (diemchuan.com-class sites) display raw data, but none translate that data into a submission-ready 15-choice ranked list with safety tiering. Research confirms that the core technical challenge is not the frontend — it is building and maintaining a reliable, self-healing data pipeline that scrapes 78+ university websites plus the Ministry of Education portal on a scheduled basis and normalizes the data into a queryable, trustworthy database.
+UniSelect v2.0 builds incrementally on a shipped v1.0 system. The existing stack (Next.js 16, Supabase, Drizzle ORM, Playwright, PaddleOCR, Cheerio, Tailwind v4, vitest, nuqs, Serwist) remains unchanged. v2.0 adds five capability areas: auto-discovery of cutoff score URLs without manual maintenance, scraper resilience testing via fake local HTTP servers, recommendation engine edge-case tests with synthetic data, an editable nguyện vọng list, and a design token system with dark mode. Each new area requires only minimal library additions — crawlee (auto-discovery), sirv (test server), motion (drag-reorder), next-themes (dark mode toggle), and @faker-js/faker (test data) — none of which conflict with the existing stack. The biggest architectural wins are the generic adapter factory (reducing 70+ copy-pasted files to config-driven one-liners) and batch DB inserts (reducing N+1 writes to 2 round-trips per university).
 
-The recommended approach is Next.js 15 (App Router) on Vercel Hobby, Supabase Postgres as the database, GitHub Actions as the scraper scheduler (Vercel Hobby cron is capped at once/day — insufficient for the July admissions peak), and Cheerio for HTML parsing with a Playwright fallback for the small subset of JS-rendered university pages. The frontend is intentionally thin: stateless, no user accounts, URL-encoded session state via `nuqs`, and Tailwind + shadcn/ui for a dense, data-focused UI optimized for mid-range Android phones on 4G. The scraper pipeline is the long-tail complexity — not the UI.
+The recommended build order is: adapter factory first (internal refactor, no UI or DB risk), then resilience test infrastructure, then auto-discovery crawler, then bug fixes, then recommendation engine tests and CI, then infrastructure hardening, then UI/UX. This ordering is driven by hard dependencies — the fake site infrastructure must exist before the crawler can be tested, and the adapter factory reduces surface area before the crawler adds new complexity. Bug fixes must precede engine tests because tests written against broken behavior document wrong outcomes. UI work has no upstream dependencies and goes last.
 
-The primary risks are data integrity failures that could cause students to make wrong nguyện vọng decisions, and scraper brittleness as 78+ university websites update their structure each year. Both risks are mitigatable with a strict validation layer (schema assertions before any DB write), semantic HTML parsing (targeting Vietnamese text anchors rather than CSS positions), multi-source fallbacks, and clear UI trust signals (source attribution, staleness timestamps, and explicit disclaimers). The July peak period — when tens of thousands of students use the tool simultaneously — is a secondary infrastructure risk requiring edge caching and Supabase connection pooling to avoid overwhelming the free tier.
-
----
+The primary risks are three GitHub Actions infrastructure concerns — IP banning from aggressive auto-discovery crawling, free-tier minute budget exhaustion during July peak, and Supabase auto-pause during development quiet periods. All three are preventable with rate limiting, caching, and a lightweight keep-alive workflow. A fourth critical risk is the silent 0-row success pattern in runner.ts: if the adapter factory regresses a working adapter to return zero rows, the scrape_run record shows `status: 'ok', rows_written: 0` — an invisible failure. A zero-rows guard must be the first commit before any factory work begins.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The stack prioritizes zero-cost infrastructure, serverless operation, and a mobile-first experience. Next.js 15 is the clear framework choice: its App Router Server Components reduce JavaScript payload on slow devices, native `app/manifest.ts` handles PWA installability without libraries, and Serwist (the officially recommended Workbox successor to the abandoned `next-pwa`) handles offline service worker caching. Vercel Hobby deployment is free and native for Next.js with no configuration overhead.
+The existing stack is stable and does not change. v2.0 adds five packages. For auto-discovery, `crawlee` (@crawlee/cheerio ^3.13.7) is the correct choice because it wraps Cheerio with a built-in BFS request queue, retry logic, politeness delays, and `enqueueLinks` URL glob filtering — avoiding 2-3x custom implementation time. For test fixtures, `sirv` (^3.0.2) provides a lightweight Node.js static file server suitable for vitest `globalSetup`, giving Playwright adapters a real HTTP endpoint to navigate (MSW cannot do this — it intercepts at the module level, not the network level). For drag-to-reorder, `motion` (^12.37.0, formerly framer-motion) is the only major library with confirmed React 19 support as of December 2025; every other library (@hello-pangea/dnd, @atlaskit/pragmatic-drag-and-drop, @dnd-kit/react) either hard-caps React peerDeps at v18 or has open critical bugs. For dark mode, `next-themes` (^0.4.6) adds the blocking inline script that prevents the white flash on reload; the design token system itself is pure Tailwind v4 `@theme` CSS with no library required. For synthetic test data, `@faker-js/faker` (^10.3.0) with seeded factories eliminates hand-written fixtures across 20+ edge-case tests.
 
-The scraping pipeline runs entirely outside Vercel (in GitHub Actions) because Vercel Hobby serverless functions time out at 10 seconds — far too short for scraping 78 sites. GitHub Actions is free for public repos with no meaningful minute limits, supports arbitrary cron schedules, and can run Playwright for JS-rendered pages without bundle size constraints. The scraper writes directly to Supabase Postgres via the service-role key stored as a GitHub Actions secret.
+**Core new technologies:**
+- `crawlee` ^3.13.7: BFS homepage crawler — wraps Cheerio with queue, retry, politeness; TypeScript-native unlike Python-first alternatives
+- `sirv` ^3.0.2 (dev): static fixture server — needed for Playwright adapter tests where MSW cannot intercept headless browser navigation
+- `motion` ^12.37.0: drag-to-reorder nguyện vọng list — only React 19-compatible drag library; `Reorder.Group` + `Reorder.Item` matches the use case exactly
+- `next-themes` ^0.4.6: flash-free dark mode toggle — injects blocking script before React hydration; `attribute="data-theme"` aligns with Tailwind v4 `@custom-variant`
+- `@faker-js/faker` ^10.3.0 (dev): synthetic test data factory — seeded for deterministic CI; requires Node.js 20+ on GitHub Actions runner (verify before enabling)
 
-**Core technologies:**
-- **Next.js 15 + React 19:** Full-stack framework — Server Components reduce mobile JS payload; App Router native for PWA manifest and i18n
-- **TypeScript 5:** Type safety across complex domain objects (tổ hợp codes, cutoff records, nguyện vọng slots)
-- **Supabase (Postgres):** Primary data store — free tier, full relational queries for multi-axis filtering, RLS for security
-- **Drizzle ORM:** Type-safe query builder — lightweight (~50KB), no cold-start issues unlike Prisma
-- **Cheerio:** HTML scraping — pure Node.js, no binary dependencies, works in GitHub Actions and Vercel functions
-- **Serwist (`@serwist/next`):** PWA service worker — officially recommended by Next.js docs; replaces abandoned `next-pwa`
-- **GitHub Actions:** Scraper scheduler — daily off-season, multiple runs/day in July; free for public repos
-- **next-intl:** i18n — purpose-built for App Router Server Components; `vi` default, `en` secondary
-- **Tailwind CSS 4 + shadcn/ui:** Styling — minimal bundle, dense data layout, no upstream dependency lock-in
-- **nuqs:** URL state — encodes nguyện vọng list in URL for Zalo-shareable links with no backend
-- **Vitest + Playwright:** Testing — unit tests for pure matching logic; E2E for critical score-entry flow
-
-**Critical infrastructure constraint (verified):** Vercel Hobby cron runs at most once per day. GitHub Actions is mandatory for the July peak scraping schedule.
+**Critical version constraints:**
+- `motion` Reorder is incompatible with Next.js page-level scrolling/routing — only safe within a single-page section (acceptable for nguyện vọng list)
+- `@faker-js/faker` v10 requires Node.js 20+ — confirm GitHub Actions runner version before Phase 5
+- `@dnd-kit/react` 0.3.2 has an open critical bug where `onDragEnd` source/target are always identical (issue #1664) — do not use
 
 ### Expected Features
 
-**Must have (table stakes):**
-- Cutoff score lookup by university + major + tổ hợp, with 2–3 years of historical data — core data product
-- Filter by tổ hợp, major field, and region — without these, results are noise for any given student
-- Per-subject score entry (Math, Physics, etc.) with tổ hợp auto-detection and total calculation
-- Result list sorted by probability tier (safe / match / reach) with color-coded safety indicators
-- Mobile-optimized Vietnamese-language UI — 70%+ of target users are on Android phones on 4G
-- University information card — name, location, type, link to official site
+**Must have (P1 — scraper pipeline):**
+- Generic adapter factory — reduces 70+ copy-pasted files to config-driven one-liners; prerequisite before expanding beyond 6 verified adapters
+- Auto-discovery crawler — keyword-heuristic link scoring from university homepages; outputs ranked candidates to review file (human gate before scrapers.json update); prevents silent URL rot
+- Fake server fixtures — required specifically for Playwright adapter tests; additive alongside existing vi.mock pattern for Cheerio adapters
 
-**Should have (differentiators):**
-- 15-choice nguyện vọng list builder with 5/5/5 dream/practical/safe tiering — the core differentiator; no existing free tool does this well
-- Strategic ordering logic within tiers — the order within tiers matters; most students get this wrong
-- Drag-and-drop list reordering with strategic ordering warnings
-- Teacher training (sư phạm) top-5 rule guardrail — hard 2026 MOET regulation; students frequently unaware
-- Score range simulation (slider across ±3 points) — highest-value feature during pre-exam prep season
-- Year-over-year cutoff trend sparkline — differentiates from static data dumps
-- Export/share list via URL encoding — Zalo-shareable, zero backend cost
-- Offline access to last-fetched data via PWA service worker
+**Must have (P2 — quality and correctness):**
+- Fix NaN propagation, delta sign inversion, and trend color bugs — prerequisites for trustworthy test assertions; delta fix must touch both ResultsList.tsx and NguyenVongList.tsx atomically
+- Recommendation engine edge-case tests — 8 identified missing scenarios: NaN input, null score, comma-decimal scores, all 5 tier boundary values, 0-practical pool, exactly-15-entry pool
+- CI workflow on pull_request — depends on tests passing cleanly first
+- Static fallback for /api/recommend — already missing per PROJECT.md; same pattern as existing universities fallback
 
-**Defer (v2+):**
-- University side-by-side comparison table — needs validated demand first
-- Học bạ (GPA) and aptitude test pathways — per PROJECT.md explicit deferral; schema supports it
-- Score benchmark / national distribution context — data only available post-July exam
-- Push notifications for cutoff updates — requires opt-in infra beyond the scraping pipeline
-- User accounts — no core value; session URL encoding solves sharing
+**Should have (P3 — UX):**
+- Design token system (`@theme` in globals.css, three-layer architecture) — required before dark mode; also fixes the broken Be Vietnam Pro font application
+- Editable nguyện vọng list — fix useEffect auto-overwrite first; up/down buttons as mobile-first primary; optional drag-to-reorder via motion as progressive enhancement
+- Dark mode — low effort once tokens exist; `@custom-variant dark` + next-themes
+- Onboarding copy and tier label explanations — low-code, high student value
+- Error boundaries (error.tsx, not-found.tsx)
+
+**Defer to v3+:**
+- Score scenario comparison mode ("what if I scored X vs Y")
+- Share card generation (Zalo/Facebook)
+- Client-side offline recommendation engine
+- Học bạ and aptitude test pathways
 
 ### Architecture Approach
 
-The system has four cleanly-bounded layers that must be built in strict dependency order. The Scraper Pipeline (GitHub Actions) writes to the Database (Supabase Postgres), which is read by the API Layer (Vercel serverless functions), which feeds the Frontend PWA (Next.js on Vercel). The scraper never touches the API layer; the frontend never touches the database directly. All business logic — scoring, filtering, ranking, tier classification — lives in the API layer, not the frontend. All student inputs stay in the browser (URL params, session state) and never touch the server.
+The v2.0 architecture adds a pre-scrape discovery phase and a test infrastructure layer without restructuring the existing three-tier system (GitHub Actions scraper pipeline → Supabase → Vercel API → Next.js PWA). The auto-discovery crawler runs as a GitHub Actions pre-step before `run.ts`, writes `discovered-urls.json` as ephemeral output, and `loadRegistry()` merges it at runtime — keeping `scrapers.json` as the human-edited source of truth with no write permissions required from Actions. The adapter factory is purely internal: each adapter file still exports `${id}Adapter` by name, so `registry.ts`'s dynamic import pattern requires zero changes. Batch DB inserts wrap each university's full row set in a database transaction, chunked at 200 rows to stay under Postgres's parameter limit, reducing from 2N sequential round-trips to 2 (or 2 × ceil(N/200)) per university. The design token layer is additive to `globals.css` — no component breaks on day one.
 
 **Major components:**
-1. **Scraper Pipeline (GitHub Actions):** Adapter-per-university pattern with a central normalizer; fail-open design so one broken scraper doesn't block others; writes via Supabase service-role key
-2. **Database (Supabase Postgres):** Five tables — `universities`, `majors`, `tohop_codes`, `cutoff_scores` (fact table, upsert-only), `scrape_runs` (audit log); RLS enforced; indexes on core query paths from day one
-3. **API Layer (Vercel serverless):** Read-only, stateless, thin — six endpoints; edge caching for static lookups (universities, tổ hợp codes); `/api/recommend` is the core algorithm endpoint
-4. **Frontend PWA (Next.js):** Stateless; URL state via `nuqs`; no user data stored server-side; score inputs ephemeral; PWA manifest + Serwist service worker for offline
+1. `lib/scraper/crawler/` (new) — discover.ts (spider), classifier.ts (page type detection), types.ts (DiscoveredPage interface); runs as GitHub Actions pre-step only, never in Vercel API
+2. `lib/scraper/adapters/generic-cheerio-factory.ts` (new) — config-driven factory returning ScraperAdapter; dcn (Playwright) and gha (PaddleOCR) stay as custom adapters
+3. `tests/fixtures/` (new) — fake-sites HTML per university format + server.ts (sirv globalSetup); test-only, no production impact
+4. `app/globals.css` `@theme` block (new) — three-layer token architecture: base palette → semantic aliases → dark mode overrides; Tailwind v4 CSS-first, no tailwind.config.ts
+5. `components/NguyenVongList.tsx` (modified) — fix useEffect auto-overwrite, add up/down reorder buttons, optional motion Reorder component
+
+**Key patterns to follow:**
+- Discovery as pre-pass: discovery failures are non-fatal; fall back to scrapers.json URL; skip with `SKIP_DISCOVERY=1` for fast local runs
+- Factory over inheritance: config-driven function returning plain object conforming to ScraperAdapter; no base class; works with existing dynamic registry import
+- Collect-then-batch write: normalize all rows first, then single transaction with chunked INSERT; all-or-nothing per university
 
 ### Critical Pitfalls
 
-1. **Scraper CSS selector brittleness** — University sites redesign annually; selectors that target DOM positions silently return garbage. Prevent by targeting Vietnamese semantic text anchors ("Điểm chuẩn", "Tổ hợp"), adding schema-level score validation (must be float 10.0–30.0), and tracking staleness per university. This must be built into Phase 1 infrastructure, not patched later.
+1. **Silent 0-row success in runner.ts** — Adapter factory regression returns `[]`; runner.ts logs `status: 'ok', rows_written: 0` — an invisible failure. Prevention: add zero-rows guard (`status: 'zero_rows'`) as the very first commit before factory work begins. Never allow `rows_written: 0` to be logged as `'ok'`.
 
-2. **Data accuracy failures causing student harm** — A wrong cutoff score can cause a student to miss their only acceptable university. Prevent by: attaching source URL and scraped timestamp to every displayed score; showing confidence tiers (Verified / Scraped / Historical); never showing a score without its year; using multi-year trend data (not just the latest year) in tier classification; and displaying an explicit disclaimer on every score.
+2. **GitHub Actions minute budget exhaustion before July peak** — Peak schedule (4×/day × 6 shards × 30 min) = 720 min/day vs. 2,000 min/month free tier. Prevention: cache Playwright browsers and PaddleOCR models via `actions/cache`, reduce scrape-low.yml to 3×/week, gate scrape-peak.yml to the specific 2-3 weeks of Ministry submission period, reduce shards from 6 to 3 until verified adapter count grows.
 
-3. **Ministry portal single point of failure** — The MOET portal covers many universities at once. If it changes structure, adds CAPTCHA, or goes down in July, the entire pipeline fails. Prevent by maintaining per-university direct-scrape fallback URLs for every university covered by the portal, archiving snapshots to object storage after each run, and keeping a manually-curated prior-year CSV as emergency fallback.
+3. **Auto-discovery crawler triggering IP bans during July peak** — Vietnamese university servers are often shared hosting; 10-50 requests per university at full speed looks like a DDoS. Prevention: 2-3 second inter-request delay per domain, respect robots.txt (robots-parser npm), cap depth at 2 hops, cap at 20 pages per domain, set `User-Agent: UniSelectBot/1.0 (educational; non-commercial)`.
 
-4. **Vercel Hobby cron being insufficient for July peak** — Verified: once-per-day maximum on Hobby plan. This is not a risk to mitigate — it is a design constraint that makes GitHub Actions mandatory as the scheduler. Trying to work around it with Vercel cron will fail.
+4. **Delta sign convention fix applied to only one component** — ResultsList.tsx and NguyenVongList.tsx have mirrored delta inversions. Fixing one without the other creates a worse state than either broken state alone. Prevention: define a shared `computeDelta()` utility, fix both components in a single PR with a test asserting correct sign in both.
 
-5. **Vietnamese string normalization failures** — Vietnamese diacritics in NFC vs NFD normalization cause search mismatches and broken joins. Prevent by normalizing all stored strings to NFC at write time and implementing a diacritic-folding search slug for each name. The Postgres `unaccent` extension alone is insufficient.
+5. **Supabase free tier auto-pause killing July scraping pipeline** — Database pauses after 7 consecutive days of inactivity. v2.0 development (March-June) involves deliberate scraping pauses that expose this gap. Prevention: GitHub Actions keep-alive workflow running `SELECT 1` every 5 days — less than 1 minute of Actions budget per week.
 
----
+6. **Batch insert partial failure leaving inconsistent university data** — Multiple INSERT chunks without a wrapping transaction means a mid-batch network blip leaves some years/majors updated and others stale. Prevention: wrap all chunks for a university in a single `db.transaction()` call; test rollback with an intentionally failing mid-batch row.
 
 ## Implications for Roadmap
 
-Based on the research, the dependency graph is clear: data pipeline before API before frontend. The scraper architecture decisions (adapter pattern, sharding, validation layer) must be made before writing any individual adapter, because retrofitting them across 78+ adapters is extremely expensive.
+The architecture's hard dependency chain dictates phase ordering: factory before crawler (crawler tests need fake sites; factory reduces surface area before crawler adds complexity), resilience infrastructure before crawler tests, bug fixes before engine tests, UI last (no upstream dependencies).
 
-### Phase 1: Data Foundation and Scraper Infrastructure
+### Phase 1: Scraper Foundation
 
-**Rationale:** Everything depends on this. The database schema, scraper adapter pattern, validation layer, and encoding handling must all be correct before any data is written to production. Schema changes after 78 adapters are built are catastrophic.
+**Rationale:** The generic adapter factory and batch DB inserts are purely internal refactors with no UI or DB schema dependency. They reduce code surface area and establish the zero-rows guard safety net before any new complexity is added. All downstream phases depend on a working factory.
 
-**Delivers:** Stable Supabase schema with indexes; scraper runner with the adapter-registry pattern; central normalizer; schema validation layer (score range, tổ hợp format, encoding sanity checks); 3–5 high-value university adapters plus the Ministry portal adapter; GitHub Actions low-frequency (daily) workflow; `scrape_runs` audit table; canonical `universities`, `majors`, and `tohop_codes` seed data.
+**Delivers:** Generic cheerio adapter factory, migration of 4 verified adapters (htc, bvh, sph, tla) to factory configs, zero-rows guard in runner.ts, batch upsert in runner.ts with transaction wrapping, static fallback for /api/recommend.
 
-**Addresses:** Cutoff score data (table stakes foundation); historical data storage (3+ years)
+**Addresses features from FEATURES.md:** Generic adapter factory (P1), static fallback for /api/recommend (P2).
 
-**Avoids:** CSS selector brittleness (P1), encoding mismatch (P2), JS-rendered page silent failure (P3), Ministry portal single point of failure (P4), mã ngành join failures (P11), tổ hợp code proliferation (P12), GitHub Actions sharding timeout (P10), anti-scraping blocks (P14)
+**Avoids pitfalls:** Silent 0-row success (zero-rows guard is the first commit), batch insert partial failure (transaction wrapping from day one), adapter factory silent regressions (golden fixture comparison before deleting originals, one adapter at a time, originals kept in _legacy/).
 
-**Research flag:** NEEDS research-phase — scraper adapter patterns for specific Vietnamese university HTML structures, Ministry portal endpoint behavior, and Playwright GitHub Actions setup for JS-rendered sites are niche enough to warrant deeper investigation before building.
+**Research flag:** Standard patterns — factory function returning typed object is well-established; Drizzle batch insert and transaction wrapping are documented. No phase research needed.
 
----
+### Phase 2: Resilience Test Infrastructure
 
-### Phase 2: Core API and Recommendation Algorithm
+**Rationale:** Fake site infrastructure must exist before the crawler can be tested against controlled HTML. Establishing the fixture server and HTML fixtures gives a safety net for both the existing adapters and the upcoming crawler work.
 
-**Rationale:** Once test data exists in the database (from Phase 1 adapters), the API layer and recommendation algorithm can be built and verified against real data. The algorithm design — especially multi-year trend weighting and tier threshold tuning — must be done here, not as a v2 afterthought.
+**Delivers:** `tests/fixtures/fake-sites/` HTML library covering 7+ edge case formats (generic table, no-thead headers, JS-stub, score image, Windows-1252 encoding, broken table, renamed headers, comma-decimal scores), vitest globalSetup fixture server (sirv), integration test suite for generic adapter factory against fake sites, PaddleOCR CI job with model caching.
 
-**Delivers:** All six API endpoints (`/api/universities`, `/api/universities/[id]`, `/api/scores`, `/api/recommend`, `/api/tohop`, `/api/years`); the core recommendation algorithm with multi-year trend weighting and configurable delta thresholds; teacher training top-5 rule enforcement as a hard constraint; edge caching configuration (s-maxage=86400 for static lookups, s-maxage=3600 for score queries); Supabase connection pooling (PgBouncer endpoint) configured from day one.
+**Addresses features from FEATURES.md:** Fake server fixtures (P1), per-format HTML fixture library (differentiator).
 
-**Addresses:** Score-based matching, probability tiering, strategic ordering logic
+**Avoids pitfalls:** Fixture drift from real university pages (versioned filenames + adapter-to-fixture link comment + fixture audit step in verify-adapters.ts), PaddleOCR CI disk/time issue (cache models, separate job from Playwright, trigger only on relevant file changes).
 
-**Avoids:** Score volatility misclassification (P9) — multi-year trend must be in the algorithm spec from the start, not v2
+**Research flag:** Standard patterns — sirv globalSetup is documented; Node.js HTTP server pattern is established. No phase research needed.
 
-**Uses:** Drizzle ORM, Supabase Postgres, Vercel serverless functions, Next.js API routes
+### Phase 3: Auto-Discovery Crawler
 
-**Research flag:** Standard patterns — REST API design and Next.js Route Handlers are well-documented; skip research-phase for this phase.
+**Rationale:** Depends on fake sites (Phase 2) for testing crawler behavior against controlled HTML without hitting live university servers. Must come after factory work (Phase 1) because discovered pages feed into adapters.
 
----
+**Delivers:** `lib/scraper/crawler/discover.ts` (spider + link extraction with politeness), `lib/scraper/crawler/classifier.ts` (page type detection), `lib/scraper/crawler/types.ts` (DiscoveredPage interface), modifications to `run.ts` and `registry.ts` to merge discovered-urls.json, integration tests against fake sites, discovery-candidates.json output format for human review.
 
-### Phase 3: Frontend PWA (Core User Flows)
+**Addresses features from FEATURES.md:** Auto-discovery crawler (P1), candidate scoring without auto-commit (differentiator — human gate prevents wrong-year URL commits).
 
-**Rationale:** With API endpoints live and returning real data, the highest-value frontend flows can be built: score entry, recommendation display, and the nguyện vọng list builder. The mobile-first constraint and dense Vietnamese data layout requirements make this non-trivial UX work.
+**Avoids pitfalls:** IP banning (rate limiting + robots.txt + depth cap + page cap + User-Agent from first implementation, not retrofitted), storing discovered URLs in DB (ephemeral discovered-urls.json only; source_url in cutoff_scores is the permanent record), crawler inside Vercel API (never — GitHub Actions only).
 
-**Delivers:** Landing page with score input and quick recommendation; per-subject score entry with tổ hợp auto-detection; tiered result list (safe/match/reach) with color-coded indicators; 15-choice nguyện vọng list builder with drag-to-reorder; teacher training guardrail warning; score range simulation slider; export/share via URL encoding; university browse and detail pages; historical cutoff trend sparklines; Vietnamese-language UI (vi default, en toggle); PWA manifest + Serwist service worker for offline.
+**Research flag:** Needs phase research — crawlee `enqueueLinks` glob pattern configuration for Vietnamese URL paths, robots-parser integration with CheerioCrawler lifecycle hooks, per-domain delay configuration within crawlee's RequestQueue API. Vietnamese keyword list should be validated against all 78 scrapers.json entries before implementation.
 
-**Addresses:** All table stakes features + all differentiators from FEATURES.md
+### Phase 4: Bug Fixes
 
-**Avoids:** PWA offline stale data confusion (P13) — staleness banner required; Vietnamese search normalization (P6) — diacritic-folding must be built before search launches
+**Rationale:** Isolated code-level patches with no architectural dependency. Doing them after scraper work avoids merge conflicts on files being simultaneously modified. Bug fixes must precede engine tests (Phase 5) because tests written against broken behavior document wrong outcomes.
 
-**Uses:** Next.js 15 App Router, nuqs, Tailwind CSS 4, shadcn/ui, next-intl, Serwist
+**Delivers:** Fixed delta sign convention in both ResultsList.tsx and NguyenVongList.tsx (single PR with shared `computeDelta()` utility), fixed trend color semantics with copy update (amber + "Harder this year" tooltip), fixed NaN/null propagation in recommendation engine, fixed withTimeout timer leak, error boundaries (error.tsx, not-found.tsx), readFileSync → async in API fallback paths.
 
-**Research flag:** Partially needs research-phase — the nguyện vọng list drag-and-drop UX and Serwist offline caching configuration for Next.js App Router are worth a focused research pass before implementation.
+**Addresses features from FEATURES.md:** Fix NaN/delta/trend bugs (P2), error boundaries (P3).
 
----
+**Avoids pitfalls:** Delta sign regression in one component only (both components in one PR, single shared utility, test asserting correct sign in both), trend color without copy (color and tooltip updated in same PR — color alone is ambiguous without domain context).
 
-### Phase 4: Scraper Expansion and Hardening
+**Research flag:** Standard patterns — all fixes are targeted patches to known files with identified line numbers. No phase research needed.
 
-**Rationale:** With the adapter pattern validated on 3–5 universities in Phase 1, scaling to 78+ universities is mostly mechanical but requires reliability engineering: parallel sharding, retry logic, and the July peak-frequency workflow.
+### Phase 5: Recommendation Engine Tests and CI
 
-**Delivers:** Scrapers for all remaining 70+ universities; sharded GitHub Actions matrix jobs (5–10 parallel shards, each completing in under 30 minutes); exponential backoff and politeness delays in the base scraper class; peak-frequency workflow (`scrape-peak.yml`, hourly, enabled for July); Playwright-based adapter for any JS-rendered university sites; `data_overrides` table for manual corrections that survive scraper runs; snapshot archiving to Supabase Storage.
+**Rationale:** After bug fixes (Phase 4), the recommendation engine's behavior is correct. Write tests that assert the corrected behavior. CI workflow depends on tests passing cleanly.
 
-**Addresses:** Data freshness during July peak; coverage of all 78+ universities
+**Delivers:** 8 new engine test scenarios (NaN input, null score, comma-decimal scores, all 5 tier boundary values, 0-practical pool, exactly-15-entry pool) using `@faker-js/faker` factory with `faker.seed(42)`, GitHub Actions CI workflow on `pull_request` running `npm test` and `npm run build`.
 
-**Avoids:** GitHub Actions timeout from sequential scraping (P10), anti-scraping blocks (P14), manual correction overwritten by scraper (P15)
+**Addresses features from FEATURES.md:** Recommendation engine edge-case tests (P2), CI workflow (P2), synthetic test data factory (differentiator).
 
-**Research flag:** Standard patterns for the sharding strategy — skip research-phase. Playwright GitHub Actions setup is already addressed in Phase 1 research.
+**Avoids pitfalls:** No new pitfalls specific to this phase. Verify @faker-js/faker v10 Node.js 20+ requirement against GitHub Actions runner before this phase begins — if runner is Node 18, pin faker at v9 or upgrade runner.
 
----
+**Research flag:** Standard patterns — vitest factory pattern and GitHub Actions pull_request trigger are well-established. No phase research needed.
 
-### Phase 5: Infrastructure Hardening and Launch Readiness
+### Phase 6: Infrastructure Hardening
 
-**Rationale:** Before the July peak, the system must be load-tested and the remaining production concerns addressed. This phase converts an MVP into a trustworthy public tool.
+**Rationale:** Actions caching and Supabase keep-alive are CI-level concerns that don't affect feature code. Group them into a dedicated hardening phase after all feature development is stable, timed before the July peak window.
 
-**Delivers:** Load testing against Supabase connection limits (target: handle July spike with PgBouncer); static JSON pre-generation for core score data served via Vercel CDN (eliminates cold-start latency for the most common queries); skeleton loading states for all API-backed pages; pre-warming cron for API routes during July; SEO (Next.js metadata API, sitemap); Core Web Vitals audit (target <3s TTI on 4G); Vietnamese score source attribution and disclaimer copy finalized; Supabase pause-prevention configured; monitoring for scrape failures and staleness alerts.
+**Delivers:** PaddleOCR model caching in GitHub Actions (`actions/cache` keyed on paddleocr version), Playwright browser caching, scrape-low.yml reduced to 3×/week, shard count reduced from 6 to 3 (matching current verified adapter count), scrape-peak.yml gated to Ministry submission window only, Supabase keep-alive workflow (SELECT 1 every 5 days), GitHub Actions minute budget verified at less than 450 min/week during peak simulation.
 
-**Addresses:** Infrastructure reliability, trust signals, SEO discoverability
+**Addresses features from FEATURES.md:** Infrastructure hygiene items from PROJECT.md tech debt.
 
-**Avoids:** Cold start latency (P8), Supabase connection exhaustion (P7), data accuracy harm to students (P5)
+**Avoids pitfalls:** GitHub Actions budget exhaustion (caching + schedule reduction), Supabase auto-pause (keep-alive workflow), N+1 adapter sharding waste (reduce shards to match actual verified adapter count).
 
-**Research flag:** Standard patterns — CDN static file strategy and Core Web Vitals optimization are well-documented; skip research-phase.
+**Research flag:** Standard patterns — `actions/cache` for Playwright and Python pip/model caches is documented. Verify GitHub Actions free tier minute limit for this repo's visibility (public vs private — limits differ). No phase research needed.
 
----
+### Phase 7: UI/UX Redesign
+
+**Rationale:** No other phase depends on UI changes. UI work is high-effort with low breakage risk for non-UI code. Design tokens must come before dark mode within this phase — implementing dark mode with scattered `dark:text-gray-100` classes across 8 components creates a maintenance trap.
+
+**Delivers:** `@theme` design token block in globals.css (three-layer: brand palette → semantic aliases → tier/trend semantic tokens), Be Vietnam Pro font correctly applied via `--font-sans`, TierBadge.tsx migrated as reference component, editable NguyenVongList with useEffect fix + up/down reorder buttons + optional motion Reorder, onboarding overlay and tier label explanations, dark mode via `@custom-variant dark` + next-themes, remaining component token migration, grep verification (`grep -r 'text-green-600\|text-red-600\|bg-gray-100' components/` returns zero deprecated semantic classes).
+
+**Addresses features from FEATURES.md:** Design token system (P3), editable nguyện vọng list (P3), dark mode (P3), onboarding + tier explanations (P3).
+
+**Avoids pitfalls:** Design token migration missing hard-coded classes in dynamic objects (TREND_DISPLAY object must be migrated; grep verification at end of phase), dark mode partial coverage (sub-phase: tokens first, dark mode after tokens are stable — not simultaneous), motion Reorder cross-route incompatibility (list is single-page-section only — acceptable scope but must be tested explicitly on Android touch before committing).
+
+**Research flag:** Needs phase research — (1) motion Reorder component touch behavior on Android (project's primary platform — primary validation before committing to the library); (2) dark mode selector: FEATURES.md uses `.dark` class-based selector, STACK.md uses `[data-theme=dark]` data-attribute — these must align with the `next-themes` `attribute` prop; resolve before writing any CSS.
 
 ### Phase Ordering Rationale
 
-- **Database schema must be stable before adapters are written** — retroactively changing the schema invalidates all existing scrapers
-- **Validation layer must ship before any data reaches production** — wrong data written once is hard to identify and remove
-- **API must exist before frontend** — building UI against mocked data creates integration risk; real data reveals edge cases (null scores, missing tổ hợp codes, special characters) that mocks miss
-- **Core UI flows before scraper expansion** — validate the end-to-end product with 5 universities before scaling the pipeline; avoids building 78 adapters for a product whose UX is still being validated
-- **Hardening before July** — the July admissions peak is the make-or-break traffic event; the system must be proven before it arrives, not during it
+- Phase 1 before Phase 3: factory reduces adapter surface area before crawler adds new complexity; discovered pages feed into adapter pattern
+- Phase 2 before Phase 3: fake sites are the test substrate for crawler integration tests
+- Phase 4 before Phase 5: engine tests must assert correct (post-fix) behavior; tests written before fixes document wrong outcomes
+- Phase 6 before July: caching and schedule changes must be in place before peak traffic; adding them during peak is too risky
+- Phase 7 last: no feature phase depends on UI; design tokens are additive-only on day one; UI work is tolerant of being the last thing completed
 
 ### Research Flags
 
 Phases needing deeper research during planning:
-- **Phase 1:** Ministry portal endpoint structure, per-university HTML patterns, Playwright GitHub Actions setup for JS-rendered pages — niche Vietnamese web ecosystem details
-- **Phase 3:** Serwist offline caching with Next.js App Router (App Router-specific service worker patterns differ from Pages Router); drag-and-drop nguyện vọng builder UX library choice
+- **Phase 3 (Auto-Discovery Crawler):** crawlee `enqueueLinks` glob patterns for Vietnamese URL paths, robots-parser integration within CheerioCrawler lifecycle, per-domain rate limiting configuration, Vietnamese keyword list validation against full scrapers.json (78 entries including 72 unverified)
+- **Phase 7 (UI/UX Redesign):** motion Reorder Android touch behavior + nuqs interaction (test first before committing); `@custom-variant dark` with `data-theme` attribute vs `.dark` class — inconsistency between FEATURES.md and STACK.md must be resolved before writing CSS
 
-Phases with standard patterns (skip research-phase):
-- **Phase 2:** REST API design with Next.js Route Handlers and Drizzle — well-documented
-- **Phase 4:** GitHub Actions matrix sharding — established pattern with clear documentation
-- **Phase 5:** Core Web Vitals optimization, CDN static file strategy — standard Next.js performance patterns
-
----
+Phases with standard patterns (no phase research needed):
+- **Phase 1 (Scraper Foundation):** Factory function pattern and Drizzle batch insert are documented and in current use
+- **Phase 2 (Resilience Testing):** sirv + vitest globalSetup is a standard Node.js integration test pattern
+- **Phase 4 (Bug Fixes):** Targeted patches to known files at identified line numbers
+- **Phase 5 (Engine Tests and CI):** vitest factory pattern and GitHub Actions pull_request trigger are well-established
+- **Phase 6 (Infrastructure Hardening):** actions/cache documentation is comprehensive for both Playwright and Python/pip caches
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | MEDIUM-HIGH | Core choices (Next.js 15, Serwist, GitHub Actions cron constraint) verified via official docs March 2026. Library versions (Drizzle, next-intl, nuqs, Serwist) from training knowledge — verify at npmjs.com before pinning. |
-| Features | MEDIUM | Grounded in PROJECT.md requirements and domain knowledge; competitor feature audit not performed (web search unavailable during research). Table stakes are well-reasoned; validate differentiators with real student feedback post-launch. |
-| Architecture | HIGH | Four-layer architecture (scraper → DB → API → frontend) is a well-established ETL + serverless pattern. Component boundaries, adapter pattern, upsert strategy, and RLS model are all standard engineering patterns applied correctly to this domain. |
-| Pitfalls | MEDIUM-HIGH | Scraping brittleness, encoding issues, and data accuracy concerns are HIGH confidence (established engineering patterns). Supabase connection limits and Vercel function constraints are MEDIUM (training knowledge — verify current limits). |
+| Stack | MEDIUM-HIGH | Versions verified via npm registry web search (March 2026); React 19 compatibility issues confirmed via GitHub issues; motion Reorder Android touch behavior not independently confirmed — must validate in Phase 7 |
+| Features | HIGH | Derived from direct codebase inspection + PROJECT.md requirements; test gaps identified by reading existing test file line-by-line against known bug list in PROJECT.md |
+| Architecture | HIGH | Derived directly from reading the existing codebase (line numbers cited for integration points) — not from web search; all proposed changes are additive with identified zero-breakage integration contracts |
+| Pitfalls | HIGH | Grounded in direct code inspection (line numbers cited: runner.ts line 63, ResultsList.tsx lines 46-47, NguyenVongList.tsx lines 52-53), confirmed by 7-agent v1.0 audit findings in PROJECT.md |
 
-**Overall confidence:** MEDIUM-HIGH
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Verify current library versions before pinning:** Run `npm info drizzle-orm version`, `npm info @serwist/next version`, `npm info next-intl version`, `npm info nuqs version` before starting. Research used training knowledge (August 2025 cutoff) for these.
-- **Verify Supabase free tier current limits:** Confirm 500MB storage, 2GB egress, 60 connection pool, and pause-after-7-days-inactivity are still accurate at supabase.com/pricing.
-- **Audit Vietnamese university target pages before writing scrapers:** For each of the ~20 highest-priority universities, manually check whether the cutoff score table is static HTML (Cheerio) or JS-rendered (Playwright needed). This determines Tier 1 vs Tier 2 scraper allocation and must be done before Phase 1 adapter work begins.
-- **Confirm Ministry portal URL and structure:** The MOET admissions portal URL and data structure must be verified manually before the Ministry adapter is built. Portal URLs change between cycles.
-- **Confirm Supabase "pause prevention" toggle availability:** Verify the dashboard toggle to prevent free-tier project pausing exists in the current Supabase UI.
-- **Competitor feature audit gap:** No live audit of diemchuan.com or similar tools was performed. Before finalizing the differentiator features, manually review the top 2–3 existing tools to confirm the nguyện vọng list builder is truly absent from the market.
+- **motion Reorder Android touch behavior:** Not independently confirmed. Must be the first validation step in Phase 7 before committing to the library. If Android touch fails, up/down buttons remain the only interaction — which is the mobile-first recommendation anyway, so this is a safe fallback.
 
----
+- **Dark mode selector inconsistency:** FEATURES.md describes `.dark` class-based toggle; STACK.md describes `[data-theme=dark]` data-attribute. Both are functionally equivalent but must match the `next-themes` `attribute` prop. Resolve during Phase 7 planning before writing any CSS — do not let both approaches coexist.
+
+- **@faker-js/faker v10 Node.js 20 requirement:** Verify GitHub Actions runner Node.js version before Phase 5. If on Node 18, pin faker at v9 or upgrade the runner. Check with `node --version` in a workflow step.
+
+- **Auto-discovery keyword list completeness:** The Vietnamese URL keyword list is derived from verified adapter URLs already in scrapers.json. It has not been validated against the 72 unverified adapters' homepage URLs. Run a manual scan of all 78 scrapers.json homepage URLs during Phase 3 planning to identify any keyword gaps.
+
+- **GitHub Actions free vs. public repo minute limits:** PITFALLS.md cites 2,000 minutes/month. If the repository is public, limits are more generous. Verify repo visibility setting before designing caching strategy in Phase 6 — this determines how aggressively caching needs to be applied.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Next.js 15 release blog and official docs (nextjs.org) — verified March 2026; framework choice, PWA manifest approach, Serwist recommendation
-- Vercel cron usage and pricing (vercel.com/docs/cron-jobs/usage-and-pricing) — verified March 2026; once-per-day Hobby cron limit
-- Vercel function duration limits (vercel.com/docs/functions/configuring-functions/duration) — verified March 2026; 300s max with Fluid Compute
-- Vercel limits overview (vercel.com/docs/limits/overview) — verified March 2026
-- `/Users/thangduong/Desktop/UniSelect/.planning/PROJECT.md` — primary requirements source
-- `/Users/thangduong/Desktop/UniSelect/highschool.md` — Vietnamese nguyện vọng system mechanics
-- `/Users/thangduong/Desktop/UniSelect/uni_list_examples.md` — Vietnamese university list and URLs
+- Existing codebase (direct inspection, 2026-03-18): runner.ts, registry.ts, types.ts, all adapters, NguyenVongList.tsx, ResultsList.tsx, recommend/engine.ts, globals.css, package.json, .github/workflows/, scrapers.json, tests/
+- `.planning/PROJECT.md` — v2.0 requirements, known bugs (7-agent audit), tech debt constraints
+- Tailwind CSS v4 docs — `@theme`, `@custom-variant dark`, CSS-first configuration
+- motion (framer-motion) docs — Reorder component API; React 19 support confirmed since v12.27.5 (Dec 2025)
+- crawlee docs — enqueueLinks, CheerioCrawler, request queue configuration
+- Drizzle ORM docs — batch `.values()` insert, transaction wrapping, `prepare: false` requirement
+- Supabase docs — free tier auto-pause policy (7 days inactivity), Supavisor transaction pool mode
+- @hello-pangea/dnd GitHub — peerDeps explicitly cap at React 18 (discussion #810)
+- @atlaskit/pragmatic-drag-and-drop GitHub — React 19 issue #181 (open, no ETA)
+- @dnd-kit/react GitHub — onDragEnd source/target bug issue #1664 (open)
 
 ### Secondary (MEDIUM confidence)
-- Training knowledge (August 2025 cutoff): Supabase free tier limits (500MB DB, 60 connections, 7-day pause), library versions (Drizzle ~0.30, next-intl ~3.x, Serwist ~9.x, nuqs ~1.x, Cheerio ~1.0, Tailwind 4.x)
-- Training knowledge: Vietnamese mobile usage patterns, Zalo as primary sharing channel, Vietnamese Unicode (NFC/NFD) handling
-- Training knowledge: GitHub Actions public repo free tier (2,000 min/month), 6-hour job timeout
-- Training knowledge: Vietnamese THPT score structure, tổ hợp code system, MOET nguyện vọng rules including 2026 teacher training top-5 rule
+- npm registry web search (March 2026) — version confirmations for crawlee 3.13.7, sirv 3.0.2, motion 12.37.0, next-themes 0.4.6, @faker-js/faker 10.3.0
+- sirv + vitest globalSetup — eshlox.net implementation guide
+- Dark mode + Tailwind v4 — thingsaboutweb.dev guide, iifx.dev next-themes + Tailwind v4 guide
+- Design tokens + Tailwind v4 — maviklabs.com 2026 three-layer token pattern article
+- ScrapeOps Playwright testing guide — fake HTTP server pattern for scraper tests
+- Memory files: project_v2_auto_discovery.md, project_v2_scraper_resilience.md, project_scraper_limitations.md
 
-### Tertiary (LOW confidence — needs validation)
-- Competitor tool feature analysis (diemchuan.com-class products) — inferred from domain knowledge, not live audit
-- Vietnamese government website scraping legal context — general legal principles applied; Vietnamese-specific law requires review
+### Tertiary (LOW confidence — needs validation during implementation)
+- @dnd-kit/react onDragEnd bug (issue #1664) — check whether resolved before Phase 7; cited as reason to prefer motion
+- GitHub Actions free tier minute limit — depends on repo visibility (public vs private); verify at github.com/features/actions
+- motion Reorder Android touch behavior — not independently tested; must be verified before Phase 7 commitment
 
 ---
-*Research completed: 2026-03-17*
+*Research completed: 2026-03-18*
 *Ready for roadmap: yes*
