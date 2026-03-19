@@ -90,7 +90,7 @@ Plans:
 **Goal**: All known data correctness bugs are fixed atomically — delta signs, trend colors, NaN scores, type mismatches, timer leak, async I/O, and error UI are all corrected in a single phase
 **Depends on**: Phase 8
 **Requirements**: FIX-01, FIX-02, FIX-03, FIX-04, FIX-05, FIX-07, FIX-08
-**Plans:** 3 plans
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] 11-01-PLAN.md — Delta sign fix (computeDelta utility) and trend color correction
@@ -155,7 +155,7 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 8. Scraper Foundation | 3/3 | Complete   | 2026-03-19 | - |
 | 9. Scraper Resilience Testing | 1/2 | In Progress|  | - |
 | 10. Auto-Discovery Crawler | 2/2 | Complete    | 2026-03-19 | - |
-| 11. Bug Fixes & Data Correctness | v2.0 | 0/3 | Not started | - |
+| 11. Bug Fixes & Data Correctness | 2/3 | In Progress|  | - |
 | 12. Testing & CI | v2.0 | 0/? | Not started | - |
 | 13. Infrastructure Hardening | v2.0 | 0/? | Not started | - |
 | 14. UI/UX Redesign | v2.0 | 0/? | Not started | - |

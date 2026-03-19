@@ -13,21 +13,21 @@ Requirements for v2.0 release. Each maps to roadmap phases. Priority: Scraper Ex
 - [x] **SCRP-02**: Scraper runner uses batched DB inserts (one INSERT per table per adapter) instead of row-by-row upserts
 - [x] **SCRP-03**: Zero-rows guard in runner rejects adapters returning empty results with explicit error logging
 - [x] **SCRP-04**: Auto-discovery crawler scans university homepages and outputs ranked cutoff-page URL candidates to a review file
-- [ ] **SCRP-05**: Auto-discovery enforces per-domain rate limiting and robots.txt compliance
+- [x] **SCRP-05**: Auto-discovery enforces per-domain rate limiting and robots.txt compliance
 - [x] **SCRP-06**: Fake HTTP server serves HTML fixtures for scraper integration tests (cheerio + Playwright adapters)
 - [x] **SCRP-07**: HTML fixture library covers verified adapter formats plus irregular edge cases (comma-decimal, missing table, multi-method)
 - [x] **SCRP-08**: PaddleOCR pipeline runs in GitHub Actions CI with cached model downloads
 
 ### Bug Fixes & Data Correctness
 
-- [ ] **FIX-01**: Delta sign convention is consistent across ResultsList and NguyenVongList (userScore - cutoff everywhere; positive = above cutoff)
-- [ ] **FIX-02**: Trend colors reflect student perspective (rising cutoff = amber/warning, falling cutoff = green/favorable)
+- [x] **FIX-01**: Delta sign convention is consistent across ResultsList and NguyenVongList (userScore - cutoff everywhere; positive = above cutoff)
+- [x] **FIX-02**: Trend colors reflect student perspective (rising cutoff = amber/warning, falling cutoff = green/favorable)
 - [ ] **FIX-03**: Recommendation engine filters out null/unparseable scores before computing weighted averages (no NaN propagation)
 - [ ] **FIX-04**: CutoffDataRow type matches Drizzle return types (scraped_at: Date | null, not string | null)
 - [ ] **FIX-05**: withTimeout clears the setTimeout on promise resolution (no timer leak)
 - [x] **FIX-06**: /api/recommend falls back to static JSON (scores-by-tohop.json) when Supabase is unreachable
-- [ ] **FIX-07**: Failed API calls show visible error banners with retry capability (replace silent .catch(() => {}))
-- [ ] **FIX-08**: readFileSync in API fallback paths replaced with async readFile
+- [x] **FIX-07**: Failed API calls show visible error banners with retry capability (replace silent .catch(() => {}))
+- [x] **FIX-08**: readFileSync in API fallback paths replaced with async readFile
 
 ### Testing & CI
 
@@ -86,18 +86,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCRP-02 | Phase 8 | Complete |
 | SCRP-03 | Phase 8 | Complete |
 | SCRP-04 | Phase 10 | Complete |
-| SCRP-05 | Phase 10 | Pending |
+| SCRP-05 | Phase 10 | Complete |
 | SCRP-06 | Phase 9 | Complete |
 | SCRP-07 | Phase 9 | Complete |
 | SCRP-08 | Phase 9 | Complete |
-| FIX-01 | Phase 11 | Pending |
-| FIX-02 | Phase 11 | Pending |
+| FIX-01 | Phase 11 | Complete |
+| FIX-02 | Phase 11 | Complete |
 | FIX-03 | Phase 11 | Pending |
 | FIX-04 | Phase 11 | Pending |
 | FIX-05 | Phase 11 | Pending |
 | FIX-06 | Phase 8 | Complete |
-| FIX-07 | Phase 11 | Pending |
-| FIX-08 | Phase 11 | Pending |
+| FIX-07 | Phase 11 | Complete |
+| FIX-08 | Phase 11 | Complete |
 | TEST-01 | Phase 12 | Pending |
 | TEST-02 | Phase 12 | Pending |
 | TEST-03 | Phase 12 | Pending |

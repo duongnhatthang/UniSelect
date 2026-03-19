@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
 status: planning
-stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-03-19T06:42:54.392Z"
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-03-19T06:57:21.220Z"
 last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 10
+  completed_plans: 9
   percent: 0
 ---
 
@@ -57,6 +57,8 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 09-scraper-resilience-testing P01 | 2 | 2 tasks | 10 files |
 | Phase 10-auto-discovery-crawler P01 | 4 | 2 tasks | 7 files |
 | Phase 10-auto-discovery-crawler P02 | 355 | 2 tasks | 2 files |
+| Phase 11-bug-fixes-data-correctness P01 | 132 | 2 tasks | 4 files |
+| Phase 11-bug-fixes-data-correctness P03 | 8 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -85,6 +87,10 @@ Recent decisions affecting current work:
 - [Phase 10-auto-discovery-crawler]: TABLE_HEADER_KEYWORDS reuses HEADING_KEYWORDS — same Vietnamese terms appear in both headings and table columns across all 78 scrapers.json entries
 - [Phase 10-02]: FetchHttpClient wraps native fetch instead of got-scraping so MSW can intercept all crawlee requests in tests (robots.txt + page fetches)
 - [Phase 10-02]: httpClient option passed to CheerioCrawler constructor when useMemoryStorage:true — production runs still use default got-scraping for stealth headers
+- [Phase 11]: Delta sign fix touches both ResultsList.tsx and NguyenVongList.tsx via shared computeDelta() utility (userScore - cutoff = positive means above = favorable)
+- [Phase 11]: TREND_DISPLAY.rising uses text-amber-600 (warning) and falling uses text-green-600 (favorable) from student perspective
+- [Phase 11-bug-fixes-data-correctness]: fetchRecommendations named function extracts shared fetch logic so both submit handler and auto-submit useEffect call the same code path
+- [Phase 11-bug-fixes-data-correctness]: Async readFile from fs/promises used in API route fallback paths — never readFileSync — to avoid blocking the Node.js event loop
 
 ### Pending Todos
 
@@ -99,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T06:40:01.935Z
-Stopped at: Completed 10-02-PLAN.md
+Last session: 2026-03-19T06:57:21.218Z
+Stopped at: Completed 11-01-PLAN.md
 Resume file: None
