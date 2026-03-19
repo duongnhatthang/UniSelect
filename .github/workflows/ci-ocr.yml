@@ -9,6 +9,7 @@ on:
 
 env:
   PADDLE_PDX_MODEL_SOURCE: BOS
+  PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK: 'True'
 
 jobs:
   ocr-smoke:
@@ -33,7 +34,7 @@ jobs:
         run: pip install paddleocr Pillow
 
       - name: Warm up / download PaddleOCR models
-        run: python3 -c "from paddleocr import PaddleOCR; PaddleOCR(lang='vi', use_gpu=False, show_log=False)"
+        run: python3 -c "from paddleocr import PaddleOCR; PaddleOCR(lang='vi', use_gpu=False)"
 
       - name: Generate synthetic test image
         run: python3 tests/fixtures/ocr-smoke-generator.py /tmp/ocr-smoke.jpg
