@@ -10,6 +10,11 @@ const { mockDb, mockRecommend } = vi.hoisted(() => {
 
 vi.mock('../../lib/db', () => ({ db: mockDb }));
 
+// Mock fs/promises so fallback path doesn't read real files
+vi.mock('fs/promises', () => ({
+  readFile: vi.fn().mockResolvedValue(JSON.stringify({ A00: [], D01: [] })),
+}));
+
 vi.mock('../../lib/db/schema', () => ({
   cutoffScores: {
     _tag: 'cutoffScores',
@@ -155,7 +160,7 @@ describe('GET /api/recommend', () => {
     expect(body.meta.years_available).toEqual([2024]);
   });
 
-  it('returns 503 with Retry-After: 30 when DB throws DB_TIMEOUT', async () => {
+  it('returns 200 with fallback: true when DB throws DB_TIMEOUT', async () => {
     const chain: Record<string, ReturnType<typeof vi.fn>> = {};
     chain.from = vi.fn().mockReturnValue(chain);
     chain.where = vi.fn().mockRejectedValue(new Error('DB_TIMEOUT'));
@@ -164,10 +169,10 @@ describe('GET /api/recommend', () => {
     const req = new NextRequest('http://localhost/api/recommend?tohop=A00&score=25.0');
     const res = await GET(req);
 
-    expect(res.status).toBe(503);
+    // Route now falls back to static JSON instead of returning 503
+    expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.error.code).toBe('DB_UNAVAILABLE');
-    expect(res.headers.get('Retry-After')).toBe('30');
+    expect(body.meta.fallback).toBe(true);
   });
 
   it('response includes scraped_at and source_url per result', async () => {

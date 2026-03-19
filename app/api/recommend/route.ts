@@ -1,4 +1,6 @@
 import type { NextRequest } from 'next/server';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 import { db } from '../../../lib/db';
 import { cutoffScores, universities, majors } from '../../../lib/db/schema';
 import { eq, and, gte, desc, sql } from 'drizzle-orm';
@@ -78,8 +80,18 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     if (err instanceof Error && err.message === 'DB_TIMEOUT') {
-      return errorResponse('DB_UNAVAILABLE', 'Service temporarily unavailable', 503, {
-        'Retry-After': '30',
+      const filePath = join(process.cwd(), 'public/data/scores-by-tohop.json');
+      const raw = await readFile(filePath, 'utf-8');
+      const allData: Record<string, CutoffDataRow[]> = JSON.parse(raw);
+      const fallbackRows = allData[tohop] ?? [];
+      const results = recommend(
+        { tohop_code: tohop, total_score: totalScore },
+        fallbackRows
+      );
+      const distinctYears = [...new Set(fallbackRows.map(r => r.year))].sort((a, b) => b - a);
+      return Response.json({
+        data: results,
+        meta: { count: results.length, years_available: distinctYears, fallback: true },
       });
     }
     throw err;
