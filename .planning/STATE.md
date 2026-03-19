@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
 status: planning
-stopped_at: Completed 11-01-PLAN.md
-last_updated: "2026-03-19T06:57:21.220Z"
+stopped_at: Completed 11-02-PLAN.md
+last_updated: "2026-03-19T06:58:12.882Z"
 last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
   percent: 0
 ---
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 10-auto-discovery-crawler P02 | 355 | 2 tasks | 2 files |
 | Phase 11-bug-fixes-data-correctness P01 | 132 | 2 tasks | 4 files |
 | Phase 11-bug-fixes-data-correctness P03 | 8 | 2 tasks | 5 files |
+| Phase 11-bug-fixes-data-correctness P02 | 2 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,9 @@ Recent decisions affecting current work:
 - [Phase 11]: TREND_DISPLAY.rising uses text-amber-600 (warning) and falling uses text-green-600 (favorable) from student perspective
 - [Phase 11-bug-fixes-data-correctness]: fetchRecommendations named function extracts shared fetch logic so both submit handler and auto-submit useEffect call the same code path
 - [Phase 11-bug-fixes-data-correctness]: Async readFile from fs/promises used in API route fallback paths — never readFileSync — to avoid blocking the Node.js event loop
+- [Phase 11-02]: validRows filter before weighted average — filter null/unparseable scores before any arithmetic; skip group with continue if no valid rows remain
+- [Phase 11-02]: scraped_at: Date | null throughout chain — Drizzle timestamp returns Date; CutoffDataRow, RecommendResult, StalenessIndicator props, and staleness utils all updated consistently
+- [Phase 11-02]: clearTimeout via .finally() — .finally() fires on both resolution and rejection paths, ensuring no timer handle is ever left dangling
 
 ### Pending Todos
 
@@ -105,6 +109,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T06:57:21.218Z
-Stopped at: Completed 11-01-PLAN.md
+Last session: 2026-03-19T06:58:12.880Z
+Stopped at: Completed 11-02-PLAN.md
 Resume file: None

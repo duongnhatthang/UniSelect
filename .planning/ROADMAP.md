@@ -31,7 +31,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [x] **Phase 8: Scraper Foundation** — Generic adapter factory, batch inserts, zero-rows guard, static /api/recommend fallback (completed 2026-03-19)
 - [x] **Phase 9: Scraper Resilience Testing** — Fake HTTP server, HTML fixture library, PaddleOCR CI job (completed 2026-03-19)
 - [x] **Phase 10: Auto-Discovery Crawler** — Crawlee-based spider, keyword scoring, rate limiting, human-review output (completed 2026-03-19)
-- [ ] **Phase 11: Bug Fixes & Data Correctness** — Delta signs, trend colors, NaN propagation, type safety, timer leak, async I/O, error UI
+- [x] **Phase 11: Bug Fixes & Data Correctness** — Delta signs, trend colors, NaN propagation, type safety, timer leak, async I/O, error UI (completed 2026-03-19)
 - [ ] **Phase 12: Testing & CI** — Engine edge-case tests, CI workflow on PRs, dead src/ removal, sw.js gitignore
 - [ ] **Phase 13: Infrastructure Hardening** — Actions cache, shard optimization, Supabase keep-alive
 - [ ] **Phase 14: UI/UX Redesign** — Design tokens, font fix, error boundaries, editable list, onboarding, dark mode, empty states
@@ -90,7 +90,7 @@ Plans:
 **Goal**: All known data correctness bugs are fixed atomically — delta signs, trend colors, NaN scores, type mismatches, timer leak, async I/O, and error UI are all corrected in a single phase
 **Depends on**: Phase 8
 **Requirements**: FIX-01, FIX-02, FIX-03, FIX-04, FIX-05, FIX-07, FIX-08
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 11-01-PLAN.md — Delta sign fix (computeDelta utility) and trend color correction
@@ -155,7 +155,7 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 8. Scraper Foundation | 3/3 | Complete   | 2026-03-19 | - |
 | 9. Scraper Resilience Testing | 1/2 | In Progress|  | - |
 | 10. Auto-Discovery Crawler | 2/2 | Complete    | 2026-03-19 | - |
-| 11. Bug Fixes & Data Correctness | 2/3 | In Progress|  | - |
+| 11. Bug Fixes & Data Correctness | 3/3 | Complete   | 2026-03-19 | - |
 | 12. Testing & CI | v2.0 | 0/? | Not started | - |
 | 13. Infrastructure Hardening | v2.0 | 0/? | Not started | - |
 | 14. UI/UX Redesign | v2.0 | 0/? | Not started | - |

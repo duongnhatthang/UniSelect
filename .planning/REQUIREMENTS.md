@@ -22,9 +22,9 @@ Requirements for v2.0 release. Each maps to roadmap phases. Priority: Scraper Ex
 
 - [x] **FIX-01**: Delta sign convention is consistent across ResultsList and NguyenVongList (userScore - cutoff everywhere; positive = above cutoff)
 - [x] **FIX-02**: Trend colors reflect student perspective (rising cutoff = amber/warning, falling cutoff = green/favorable)
-- [ ] **FIX-03**: Recommendation engine filters out null/unparseable scores before computing weighted averages (no NaN propagation)
-- [ ] **FIX-04**: CutoffDataRow type matches Drizzle return types (scraped_at: Date | null, not string | null)
-- [ ] **FIX-05**: withTimeout clears the setTimeout on promise resolution (no timer leak)
+- [x] **FIX-03**: Recommendation engine filters out null/unparseable scores before computing weighted averages (no NaN propagation)
+- [x] **FIX-04**: CutoffDataRow type matches Drizzle return types (scraped_at: Date | null, not string | null)
+- [x] **FIX-05**: withTimeout clears the setTimeout on promise resolution (no timer leak)
 - [x] **FIX-06**: /api/recommend falls back to static JSON (scores-by-tohop.json) when Supabase is unreachable
 - [x] **FIX-07**: Failed API calls show visible error banners with retry capability (replace silent .catch(() => {}))
 - [x] **FIX-08**: readFileSync in API fallback paths replaced with async readFile
@@ -92,9 +92,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCRP-08 | Phase 9 | Complete |
 | FIX-01 | Phase 11 | Complete |
 | FIX-02 | Phase 11 | Complete |
-| FIX-03 | Phase 11 | Pending |
-| FIX-04 | Phase 11 | Pending |
-| FIX-05 | Phase 11 | Pending |
+| FIX-03 | Phase 11 | Complete |
+| FIX-04 | Phase 11 | Complete |
+| FIX-05 | Phase 11 | Complete |
 | FIX-06 | Phase 8 | Complete |
 | FIX-07 | Phase 11 | Complete |
 | FIX-08 | Phase 11 | Complete |
