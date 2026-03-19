@@ -7,6 +7,7 @@
     "build": "npm run generate-static && next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
     "generate-static": "tsx scripts/generate-static-json.ts",
     "load-test": "tsx scripts/load-test.ts",
     "check-staleness": "tsx scripts/check-staleness.ts"
