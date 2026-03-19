@@ -321,6 +321,47 @@ describe('recommend - trend', () => {
   });
 });
 
+// ─── Test NaN filtering (FIX-03) ─────────────────────────────────────────────
+describe('recommend - NaN filtering (FIX-03)', () => {
+  it('excludes rows with null score from weighted average', () => {
+    const rows: CutoffDataRow[] = [
+      makeRow({ year: 2024, score: '24.00' }),
+      makeRow({ year: 2025, score: null as unknown as string }),
+    ];
+    const input: RecommendInput = { tohop_code: 'A00', total_score: 28.0 };
+    const results = recommend(input, rows);
+    // Should use only 2024 data (weight [1]), cutoff = 24.0
+    expect(results).toHaveLength(1);
+    expect(results[0].weighted_cutoff).toBe(24.0);
+    expect(isNaN(results[0].weighted_cutoff)).toBe(false);
+  });
+
+  it('skips group entirely when all scores are null', () => {
+    const rows: CutoffDataRow[] = [
+      makeRow({ year: 2024, score: null as unknown as string }),
+      makeRow({ year: 2025, score: null as unknown as string }),
+    ];
+    const input: RecommendInput = { tohop_code: 'A00', total_score: 25.0 };
+    const results = recommend(input, rows);
+    expect(results).toHaveLength(0);
+  });
+
+  it('handles mix of valid and null scores correctly', () => {
+    const rows: CutoffDataRow[] = [
+      makeRow({ year: 2023, score: '24.00' }),
+      makeRow({ year: 2024, score: null as unknown as string }),
+      makeRow({ year: 2025, score: '26.00' }),
+    ];
+    const input: RecommendInput = { tohop_code: 'A00', total_score: 29.0 };
+    const results = recommend(input, rows);
+    expect(results).toHaveLength(1);
+    // 2 valid rows: weights [1, 2], cutoff = (24*1 + 26*2) / 3 = 76/3 ≈ 25.333
+    expect(results[0].weighted_cutoff).toBeCloseTo(25.333, 2);
+    expect(results[0].years_available).toBe(2);
+    expect(results[0].data_years_limited).toBe(true);
+  });
+});
+
 // ─── Test 11: Empty rows input ────────────────────────────────────────────────
 describe('recommend - empty input', () => {
   it('returns empty array when no rows provided', () => {

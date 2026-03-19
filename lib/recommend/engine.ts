@@ -71,11 +71,19 @@ export function recommend(input: RecommendInput, rows: CutoffDataRow[]): Recomme
 
     // Take last 3 years only
     const lastRows = groupRows.slice(-3);
-    const yearsCount = lastRows.length;
+
+    // Filter out null/unparseable scores before arithmetic (FIX-03)
+    const validRows = lastRows.filter(r => {
+      const parsed = parseFloat(r.score ?? '');
+      return !isNaN(parsed);
+    });
+    if (validRows.length === 0) continue;
+
+    const yearsCount = validRows.length;
     const weights = WEIGHTS[yearsCount] ?? [1];
 
     // Compute weighted average — IMPORTANT: parseFloat on score string
-    const scores = lastRows.map(r => parseFloat(r.score));
+    const scores = validRows.map(r => parseFloat(r.score!));
     const weightSum = weights.reduce((a, b) => a + b, 0);
     const weightedCutoff = scores.reduce((acc, s, i) => acc + s * weights[i], 0) / weightSum;
 
@@ -86,7 +94,7 @@ export function recommend(input: RecommendInput, rows: CutoffDataRow[]): Recomme
     // Compute trend from last 2 years
     const trend = computeTrend(scores);
 
-    const representative = lastRows[lastRows.length - 1];
+    const representative = validRows[validRows.length - 1];
 
     results.push({
       university_id: representative.university_id,

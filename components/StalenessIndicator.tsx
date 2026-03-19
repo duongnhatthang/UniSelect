@@ -3,7 +3,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { formatStaleness, isStale } from '../lib/utils/staleness';
 
 interface Props {
-  scrapedAt: string | null;
+  scrapedAt: Date | null;
   sourceUrl: string | null;
 }
 
@@ -18,7 +18,7 @@ export function StalenessIndicator({ scrapedAt, sourceUrl }: Props) {
 
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-gray-500">
-      <time dateTime={scrapedAt}>{age}</time>
+      <time dateTime={scrapedAt.toISOString()}>{age}</time>
       {sourceUrl && (
         <a
           href={sourceUrl}

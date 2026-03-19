@@ -22,16 +22,16 @@ describe('StalenessIndicator', () => {
   });
 
   it('renders relative time for a valid scrapedAt', () => {
-    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
     render(<StalenessIndicator scrapedAt={twoDaysAgo} sourceUrl={null} />);
     const timeEl = document.querySelector('time');
     expect(timeEl).not.toBeNull();
-    expect(timeEl?.getAttribute('dateTime')).toBe(twoDaysAgo);
+    expect(timeEl?.getAttribute('dateTime')).toBe(twoDaysAgo.toISOString());
     expect(timeEl?.textContent?.length).toBeGreaterThan(0);
   });
 
   it('renders source link when sourceUrl is provided', () => {
-    const recent = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString();
+    const recent = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
     render(
       <StalenessIndicator scrapedAt={recent} sourceUrl="https://example.com/score" />
     );
@@ -42,7 +42,7 @@ describe('StalenessIndicator', () => {
   });
 
   it('shows amber stale badge when scrapedAt is older than 90 days', () => {
-    const ninetyOneDaysAgo = new Date(Date.now() - 91 * 24 * 60 * 60 * 1000).toISOString();
+    const ninetyOneDaysAgo = new Date(Date.now() - 91 * 24 * 60 * 60 * 1000);
     render(
       <StalenessIndicator scrapedAt={ninetyOneDaysAgo} sourceUrl={null} />
     );
@@ -51,7 +51,7 @@ describe('StalenessIndicator', () => {
   });
 
   it('does not show amber badge when scrapedAt is within 90 days', () => {
-    const recentDate = new Date(Date.now() - 89 * 24 * 60 * 60 * 1000).toISOString();
+    const recentDate = new Date(Date.now() - 89 * 24 * 60 * 60 * 1000);
     render(
       <StalenessIndicator scrapedAt={recentDate} sourceUrl={null} />
     );

@@ -1,5 +1,5 @@
-export function formatStaleness(scrapedAt: string, locale: string): string {
-  const ageMs = Date.now() - new Date(scrapedAt).getTime();
+export function formatStaleness(scrapedAt: Date, locale: string): string {
+  const ageMs = Date.now() - scrapedAt.getTime();
   const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24));
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
   if (ageDays < 1) return rtf.format(0, 'day');
@@ -8,6 +8,6 @@ export function formatStaleness(scrapedAt: string, locale: string): string {
   return rtf.format(-Math.floor(ageDays / 365), 'year');
 }
 
-export function isStale(scrapedAt: string): boolean {
-  return Date.now() - new Date(scrapedAt).getTime() > 90 * 24 * 60 * 60 * 1000;
+export function isStale(scrapedAt: Date): boolean {
+  return Date.now() - scrapedAt.getTime() > 90 * 24 * 60 * 60 * 1000;
 }
