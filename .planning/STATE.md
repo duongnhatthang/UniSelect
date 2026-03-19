@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
 status: planning
-stopped_at: Completed 14-02-PLAN.md
-last_updated: "2026-03-19T13:36:13.783Z"
+stopped_at: Completed 14-03-PLAN.md
+last_updated: "2026-03-19T13:38:59.187Z"
 last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 18
-  completed_plans: 16
+  completed_plans: 17
   percent: 0
 ---
 
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 13-infrastructure-hardening P01 | 2 | 2 tasks | 2 files |
 | Phase 14-ui-ux-redesign P01 | 5 | 2 tasks | 7 files |
 | Phase 14-ui-ux-redesign P02 | 4 | 2 tasks | 7 files |
+| Phase 14-ui-ux-redesign P03 | 396 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,9 @@ Recent decisions affecting current work:
 - [Phase 14-ui-ux-redesign]: scripts/discover.ts cheerio type conflict is pre-existing build failure — deferred, not auto-fixed in this plan
 - [Phase 14-ui-ux-redesign]: OnboardingBanner uses useEffect + mounted flag pattern for localStorage — safer against SSR hydration mismatch
 - [Phase 14-ui-ux-redesign]: hasSubmitted state set in fetchRecommendations before fetch call — covers both quick mode submit and detailed mode auto-submit paths
+- [Phase 14-ui-ux-redesign]: NguyenVongList state lifted to ScoreForm — NguyenVongList becomes pure presentational; ScoreForm owns nuqs nv state and coordinates both ResultsList and NguyenVongList
+- [Phase 14-ui-ux-redesign]: TierBadge uses React useState for tap-toggle — CSS-only hover has no mobile touch equivalent; tap support required for score margin tooltip on mobile
+- [Phase 14-ui-ux-redesign]: Tier grouping headers use position index (not result.tier) — 5+5+5 strategy is about slot positions, not matching schools to their computed tier
 
 ### Pending Todos
 
@@ -129,6 +133,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T13:36:08.635Z
-Stopped at: Completed 14-02-PLAN.md
+Last session: 2026-03-19T13:38:59.184Z
+Stopped at: Completed 14-03-PLAN.md
 Resume file: None
