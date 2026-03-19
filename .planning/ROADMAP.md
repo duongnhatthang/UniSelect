@@ -59,11 +59,16 @@ Plans:
 **Goal**: Every adapter format has an HTML fixture and can be integration-tested against a local fake HTTP server without hitting live university servers
 **Depends on**: Phase 8
 **Requirements**: SCRP-06, SCRP-07, SCRP-08
+**Plans:** 2 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — HTML fixture library (7 formats) + MSW fake server + cheerio integration tests
+- [ ] 09-02-PLAN.md — PaddleOCR CI workflow with cached model downloads
+
 **Success Criteria** (what must be TRUE):
   1. `npm test` runs the full adapter integration suite against the fake server — no live network requests required
   2. The fixture library contains HTML covering at least 7 edge-case formats (generic table, no-thead headers, comma-decimal scores, Windows-1252 encoding, broken table, renamed headers, JS-stub page)
   3. The GitHub Actions PaddleOCR CI job runs the OCR pipeline end-to-end with cached model downloads and passes
-**Plans**: TBD
 
 ### Phase 10: Auto-Discovery Crawler
 **Goal**: Running the discovery crawler against university homepages produces a ranked list of candidate cutoff-page URLs in a review file — without touching scrapers.json or the production database
@@ -137,7 +142,7 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 6. Tech Debt Cleanup | v1.0 | 1/1 | Complete | 2026-03-18 |
 | 7. Adapter Verification | v1.0 | 3/3 | Complete | 2026-03-18 |
 | 8. Scraper Foundation | 3/3 | Complete   | 2026-03-19 | - |
-| 9. Scraper Resilience Testing | v2.0 | 0/? | Not started | - |
+| 9. Scraper Resilience Testing | v2.0 | 0/2 | Planning complete | - |
 | 10. Auto-Discovery Crawler | v2.0 | 0/? | Not started | - |
 | 11. Bug Fixes & Data Correctness | v2.0 | 0/? | Not started | - |
 | 12. Testing & CI | v2.0 | 0/? | Not started | - |
@@ -145,4 +150,4 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 14. UI/UX Redesign | v2.0 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-03-18 — Phase 8 planning complete (3 plans)*
+*Last updated: 2026-03-19 — Phase 9 planning complete (2 plans)*
