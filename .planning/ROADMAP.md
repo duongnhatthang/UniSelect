@@ -30,7 +30,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 
 - [x] **Phase 8: Scraper Foundation** — Generic adapter factory, batch inserts, zero-rows guard, static /api/recommend fallback (completed 2026-03-19)
 - [x] **Phase 9: Scraper Resilience Testing** — Fake HTTP server, HTML fixture library, PaddleOCR CI job (completed 2026-03-19)
-- [ ] **Phase 10: Auto-Discovery Crawler** — Crawlee-based spider, keyword scoring, rate limiting, human-review output
+- [x] **Phase 10: Auto-Discovery Crawler** — Crawlee-based spider, keyword scoring, rate limiting, human-review output (completed 2026-03-19)
 - [ ] **Phase 11: Bug Fixes & Data Correctness** — Delta signs, trend colors, NaN propagation, type safety, timer leak, async I/O, error UI
 - [ ] **Phase 12: Testing & CI** — Engine edge-case tests, CI workflow on PRs, dead src/ removal, sw.js gitignore
 - [ ] **Phase 13: Infrastructure Hardening** — Actions cache, shard optimization, Supabase keep-alive
@@ -74,7 +74,7 @@ Plans:
 **Goal**: Running the discovery crawler against university homepages produces a ranked list of candidate cutoff-page URLs in a review file — without touching scrapers.json or the production database
 **Depends on**: Phase 9
 **Requirements**: SCRP-04, SCRP-05
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 10-01-PLAN.md — Keyword scorer, types, constants, and Crawlee dependency install
@@ -148,7 +148,7 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 7. Adapter Verification | v1.0 | 3/3 | Complete | 2026-03-18 |
 | 8. Scraper Foundation | 3/3 | Complete   | 2026-03-19 | - |
 | 9. Scraper Resilience Testing | 1/2 | In Progress|  | - |
-| 10. Auto-Discovery Crawler | 1/2 | In Progress|  | - |
+| 10. Auto-Discovery Crawler | 2/2 | Complete   | 2026-03-19 | - |
 | 11. Bug Fixes & Data Correctness | v2.0 | 0/? | Not started | - |
 | 12. Testing & CI | v2.0 | 0/? | Not started | - |
 | 13. Infrastructure Hardening | v2.0 | 0/? | Not started | - |

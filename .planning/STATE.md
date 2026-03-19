@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
 status: planning
-stopped_at: Completed 10-01-PLAN.md
-last_updated: "2026-03-19T06:31:44.286Z"
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-03-19T06:40:01.937Z"
 last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
   percent: 0
 ---
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 09-scraper-resilience-testing P02 | 1 | 1 tasks | 2 files |
 | Phase 09-scraper-resilience-testing P01 | 2 | 2 tasks | 10 files |
 | Phase 10-auto-discovery-crawler P01 | 4 | 2 tasks | 7 files |
+| Phase 10-auto-discovery-crawler P02 | 355 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,8 @@ Recent decisions affecting current work:
 - [Phase 10-auto-discovery-crawler]: scorePageForCutoffs accepts CheerioAPI instance (not HTML string) — caller controls parsing, scorer stays pure
 - [Phase 10-auto-discovery-crawler]: Body text excluded from scoring — only URL slugs, page titles, h1/h2/h3, and table headers checked to avoid news article false positives
 - [Phase 10-auto-discovery-crawler]: TABLE_HEADER_KEYWORDS reuses HEADING_KEYWORDS — same Vietnamese terms appear in both headings and table columns across all 78 scrapers.json entries
+- [Phase 10-02]: FetchHttpClient wraps native fetch instead of got-scraping so MSW can intercept all crawlee requests in tests (robots.txt + page fetches)
+- [Phase 10-02]: httpClient option passed to CheerioCrawler constructor when useMemoryStorage:true — production runs still use default got-scraping for stealth headers
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T06:31:44.283Z
-Stopped at: Completed 10-01-PLAN.md
+Last session: 2026-03-19T06:40:01.935Z
+Stopped at: Completed 10-02-PLAN.md
 Resume file: None
