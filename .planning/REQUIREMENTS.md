@@ -16,7 +16,7 @@ Requirements for v2.0 release. Each maps to roadmap phases. Priority: Scraper Ex
 - [ ] **SCRP-05**: Auto-discovery enforces per-domain rate limiting and robots.txt compliance
 - [ ] **SCRP-06**: Fake HTTP server serves HTML fixtures for scraper integration tests (cheerio + Playwright adapters)
 - [ ] **SCRP-07**: HTML fixture library covers verified adapter formats plus irregular edge cases (comma-decimal, missing table, multi-method)
-- [ ] **SCRP-08**: PaddleOCR pipeline runs in GitHub Actions CI with cached model downloads
+- [x] **SCRP-08**: PaddleOCR pipeline runs in GitHub Actions CI with cached model downloads
 
 ### Bug Fixes & Data Correctness
 
@@ -89,7 +89,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCRP-05 | Phase 10 | Pending |
 | SCRP-06 | Phase 9 | Pending |
 | SCRP-07 | Phase 9 | Pending |
-| SCRP-08 | Phase 9 | Pending |
+| SCRP-08 | Phase 9 | Complete |
 | FIX-01 | Phase 11 | Pending |
 | FIX-02 | Phase 11 | Pending |
 | FIX-03 | Phase 11 | Pending |

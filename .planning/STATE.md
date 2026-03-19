@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
 status: planning
-stopped_at: Completed 08-03-PLAN.md
-last_updated: "2026-03-19T04:37:08.143Z"
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-03-19T04:53:37.443Z"
 last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 5
+  completed_plans: 4
   percent: 0
 ---
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 08-scraper-foundation P01 | 2 | 2 tasks | 2 files |
 | Phase 08 P02 | 8 | 2 tasks | 3 files |
 | Phase 08-scraper-foundation P03 | 297 | 2 tasks | 4 files |
+| Phase 09-scraper-resilience-testing P02 | 1 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,8 @@ Recent decisions affecting current work:
 - [Phase 08]: meta.fallback: true in response body surfaces static-data state to frontend without breaking API contract
 - [Phase 08-scraper-foundation]: Factory uses Array.some() over config keyword arrays for flexible config-driven column detection
 - [Phase 08-scraper-foundation]: scrapers.json factory_config added to all cheerio adapters including static_verified:false — registry skips them but configs are ready for when URLs are verified
+- [Phase 09-scraper-resilience-testing]: PaddleOCR 3.x models cached at ~/.paddlex (not ~/.paddleocr) with hashFiles key; PADDLE_PDX_MODEL_SOURCE=BOS at job level prevents remote re-check after cache restore
+- [Phase 09]: Synthetic CI test images generated via Pillow script at runtime — no binary fixtures committed to git
 
 ### Pending Todos
 
@@ -86,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T04:34:01.820Z
-Stopped at: Completed 08-03-PLAN.md
+Last session: 2026-03-19T04:53:37.441Z
+Stopped at: Completed 09-02-PLAN.md
 Resume file: None
