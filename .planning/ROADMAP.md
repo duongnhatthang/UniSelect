@@ -107,7 +107,7 @@ Plans:
 **Goal**: The recommendation engine has tests covering all known edge cases, every pull request runs the full test suite automatically, and the repository is free of build artifacts and dead code
 **Depends on**: Phase 11
 **Requirements**: TEST-01, TEST-02, TEST-03, TEST-04
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 12-01-PLAN.md — Engine edge-case tests and npm test script
@@ -161,7 +161,7 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 9. Scraper Resilience Testing | 1/2 | In Progress|  | - |
 | 10. Auto-Discovery Crawler | 2/2 | Complete    | 2026-03-19 | - |
 | 11. Bug Fixes & Data Correctness | 3/3 | Complete    | 2026-03-19 | - |
-| 12. Testing & CI | v2.0 | 0/2 | Not started | - |
+| 12. Testing & CI | 1/2 | In Progress|  | - |
 | 13. Infrastructure Hardening | v2.0 | 0/? | Not started | - |
 | 14. UI/UX Redesign | v2.0 | 0/? | Not started | - |
 

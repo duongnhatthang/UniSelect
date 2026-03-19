@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
 status: planning
-stopped_at: Completed 11-02-PLAN.md
-last_updated: "2026-03-19T07:01:14.398Z"
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-03-19T07:13:46.145Z"
 last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 11
   percent: 0
 ---
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 11-bug-fixes-data-correctness P01 | 132 | 2 tasks | 4 files |
 | Phase 11-bug-fixes-data-correctness P03 | 8 | 2 tasks | 5 files |
 | Phase 11-bug-fixes-data-correctness P02 | 2 | 2 tasks | 9 files |
+| Phase 12-testing-ci P01 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,8 @@ Recent decisions affecting current work:
 - [Phase 11-02]: validRows filter before weighted average — filter null/unparseable scores before any arithmetic; skip group with continue if no valid rows remain
 - [Phase 11-02]: scraped_at: Date | null throughout chain — Drizzle timestamp returns Date; CutoffDataRow, RecommendResult, StalenessIndicator props, and staleness utils all updated consistently
 - [Phase 11-02]: clearTimeout via .finally() — .finally() fires on both resolution and rejection paths, ensuring no timer handle is ever left dangling
+- [Phase 12-testing-ci]: vitest run added to package.json test script after lint entry — no new dependencies required (vitest already installed)
+- [Phase 12-testing-ci]: engine.test.ts uses literal values not faker for boundary tests — avoids non-determinism at tier classification edges
 
 ### Pending Todos
 
@@ -109,6 +112,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T06:58:12.880Z
-Stopped at: Completed 11-02-PLAN.md
+Last session: 2026-03-19T07:13:46.142Z
+Stopped at: Completed 12-01-PLAN.md
 Resume file: None
