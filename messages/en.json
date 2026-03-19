@@ -32,6 +32,8 @@
     "filterByTohop": "Filter by subject combination",
     "allTohop": "All combinations",
     "shareLink": "Share link",
+    "apiError": "Something went wrong. Please try again.",
+    "retry": "Retry",
     "trend": {
       "rising": "Rising",
       "falling": "Falling",

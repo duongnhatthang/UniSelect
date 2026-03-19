@@ -24,15 +24,17 @@ export function ScoreForm() {
   const [results, setResults] = useState<RecommendResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [scoreError, setScoreError] = useState('');
+  const [apiError, setApiError] = useState<string | null>(null);
 
   // Fetch tohop codes on mount
   useEffect(() => {
     fetch('/api/tohop')
       .then(res => res.json())
       .then((data: { data: TohopCode[] }) => {
+        setApiError(null);
         setTohopCodes(data.data || []);
       })
-      .catch(() => {});
+      .catch(() => setApiError(t('apiError')));
   }, []);
 
   const selectedTohop = tohopCodes.find(t => t.code === params.tohop);
@@ -58,35 +60,34 @@ export function ScoreForm() {
     }
   }
 
+  async function fetchRecommendations(tohop: string, score: number) {
+    setApiError(null);
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/recommend?tohop=${tohop}&score=${score}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: { data: RecommendResult[] } = await res.json();
+      setResults(data.data || []);
+    } catch {
+      setApiError(t('apiError'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const totalScore = params.mode === 'quick' ? params.score : detailedTotal;
     if (!params.tohop || totalScore === null || totalScore === undefined) return;
     if (!validateScore(totalScore)) return;
 
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/recommend?tohop=${params.tohop}&score=${totalScore}`);
-      const data: { data: RecommendResult[] } = await res.json();
-      setResults(data.data || []);
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false);
-    }
+    await fetchRecommendations(params.tohop, totalScore);
   }
 
   // Auto-submit detailed mode when all subjects filled and total >= 10
   useEffect(() => {
     if (params.mode === 'detailed' && params.tohop && detailedTotal !== null && detailedTotal >= 10) {
-      setLoading(true);
-      fetch(`/api/recommend?tohop=${params.tohop}&score=${detailedTotal}`)
-        .then(res => res.json())
-        .then((data: { data: RecommendResult[] }) => {
-          setResults(data.data || []);
-        })
-        .catch(() => {})
-        .finally(() => setLoading(false));
+      fetchRecommendations(params.tohop, detailedTotal);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detailedTotal, params.tohop, params.mode]);
@@ -212,6 +213,24 @@ export function ScoreForm() {
           </button>
         )}
       </form>
+
+      {apiError && (
+        <div role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 flex items-center justify-between">
+          <p className="text-sm text-red-700">{apiError}</p>
+          <button
+            type="button"
+            onClick={() => {
+              const totalScore = params.mode === 'quick' ? params.score : detailedTotal;
+              if (params.tohop && totalScore !== null && totalScore !== undefined) {
+                fetchRecommendations(params.tohop, totalScore);
+              }
+            }}
+            className="text-sm font-medium text-red-700 underline ml-3 whitespace-nowrap"
+          >
+            {t('retry')}
+          </button>
+        </div>
+      )}
 
       <div className="mt-6">
         <ResultsList results={results} loading={loading} userScore={activeScore ?? 0} />

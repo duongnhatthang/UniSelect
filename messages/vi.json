@@ -32,6 +32,8 @@
     "filterByTohop": "Lọc theo tổ hợp",
     "allTohop": "Tất cả tổ hợp",
     "shareLink": "Chia sẻ liên kết",
+    "apiError": "Có lỗi xảy ra. Vui lòng thử lại.",
+    "retry": "Thử lại",
     "trend": {
       "rising": "Tăng",
       "falling": "Giảm",
