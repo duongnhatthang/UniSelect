@@ -192,7 +192,8 @@ export async function runDiscover(
       ...(httpClient ? { httpClient } : {}),
 
       async requestHandler({ $, request, enqueueLinks }) {
-        const { score, reasons } = scorePageForCutoffs(request.url, $);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { score, reasons } = scorePageForCutoffs(request.url, $ as any);
 
         if (score > 0) {
           const existing = candidates.get(request.url);

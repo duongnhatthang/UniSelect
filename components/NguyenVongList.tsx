@@ -52,16 +52,16 @@ export function NguyenVongList({ nguyenVong, setNguyenVong, results, userScore }
     setNguyenVong(next);
   }
 
-  const list = nguyenVong.slice(0, 15);
+  const list = (nguyenVong ?? []).slice(0, 15);
 
   return (
     <div className="space-y-3">
-      <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+      <h2 className="text-base font-semibold text-on-surface">
         {t('nguyenVong')}
       </h2>
 
       {list.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+        <p className="text-sm text-on-surface-muted text-center py-4">
           {t('addToList')}
         </p>
       ) : (
@@ -78,18 +78,18 @@ export function NguyenVongList({ nguyenVong, setNguyenVong, results, userScore }
               <li key={`${item.u}-${item.m}-${index}`}>
                 {header && (
                   <div className="flex items-center gap-2 mt-4 mb-2 first:mt-0">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-on-surface-muted">
                       {t(header.labelKey)} ({header.range})
                     </span>
-                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                    <span className="text-xs text-on-surface-muted opacity-70">
                       — {t(header.descKey)}
                     </span>
                   </div>
                 )}
-                <div className="flex items-center gap-3 border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-800 shadow-sm">
+                <div className="flex items-center gap-3 border border-border rounded-lg p-3 bg-surface shadow-sm">
                   <span
                     data-testid="nv-rank"
-                    className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-700 dark:text-gray-300"
+                    className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-surface-subtle text-xs font-bold text-on-surface"
                   >
                     {index + 1}
                   </span>
@@ -97,10 +97,10 @@ export function NguyenVongList({ nguyenVong, setNguyenVong, results, userScore }
                     <div className="flex items-center gap-2 mb-0.5">
                       <TierBadge tier={result?.tier ?? 'practical'} delta={deltaStr} />
                     </div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
+                    <p className="font-medium text-on-surface text-sm truncate">
                       {result?.university_name_vi ?? item.u}
                     </p>
-                    <p className="text-gray-600 dark:text-gray-400 text-xs truncate">
+                    <p className="text-on-surface-muted text-xs truncate">
                       {result?.major_name_vi ?? item.m}
                     </p>
                   </div>
@@ -110,7 +110,7 @@ export function NguyenVongList({ nguyenVong, setNguyenVong, results, userScore }
                       onClick={() => moveUp(index)}
                       disabled={index === 0}
                       aria-label={t('moveUp')}
-                      className="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      className="w-7 h-7 flex items-center justify-center rounded text-on-surface-muted hover:text-on-surface hover:bg-surface-subtle disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     >
                       ↑
                     </button>
@@ -119,7 +119,7 @@ export function NguyenVongList({ nguyenVong, setNguyenVong, results, userScore }
                       onClick={() => moveDown(index)}
                       disabled={index === list.length - 1}
                       aria-label={t('moveDown')}
-                      className="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      className="w-7 h-7 flex items-center justify-center rounded text-on-surface-muted hover:text-on-surface hover:bg-surface-subtle disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     >
                       ↓
                     </button>
@@ -128,7 +128,7 @@ export function NguyenVongList({ nguyenVong, setNguyenVong, results, userScore }
                     type="button"
                     onClick={() => removeFromList(index)}
                     aria-label={t('removeFromList')}
-                    className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-red-500 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/20 transition-colors"
+                    className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded text-on-surface-muted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                   >
                     ✕
                   </button>
@@ -141,8 +141,8 @@ export function NguyenVongList({ nguyenVong, setNguyenVong, results, userScore }
 
       {/* Share link hint */}
       {list.length > 0 && (
-        <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="mt-3 p-3 bg-surface-subtle rounded-lg border border-border">
+          <p className="text-xs text-on-surface-muted">
             {t('shareLink')}
           </p>
         </div>

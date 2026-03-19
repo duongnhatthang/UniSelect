@@ -120,13 +120,13 @@ export function ScoreForm() {
   return (
     <div className="w-full max-w-2xl mx-auto px-4">
       {/* Mode tabs */}
-      <div className="flex gap-2 mb-4 border-b border-gray-200">
+      <div className="flex gap-2 mb-4 border-b border-border">
         <button
           type="button"
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
             params.mode === 'quick'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-on-surface-muted hover:text-on-surface'
           }`}
           onClick={() => setParams({ mode: 'quick' })}
         >
@@ -136,8 +136,8 @@ export function ScoreForm() {
           type="button"
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
             params.mode === 'detailed'
-              ? 'border-blue-500 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-on-surface-muted hover:text-on-surface'
           }`}
           onClick={() => setParams({ mode: 'detailed' })}
         >
@@ -148,13 +148,13 @@ export function ScoreForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Tohop selector (shared between modes) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-on-surface mb-1">
             {t('selectTohop')}
           </label>
           <select
             value={params.tohop}
             onChange={e => setParams({ tohop: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
           >
             <option value="">{t('selectTohop')}</option>
             {tohopCodes.map(tc => (
@@ -167,7 +167,7 @@ export function ScoreForm() {
 
         {params.mode === 'quick' && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-on-surface mb-1">
               {t('totalScore')}
             </label>
             <input
@@ -178,7 +178,7 @@ export function ScoreForm() {
               value={params.score ?? ''}
               onChange={e => handleScoreChange(e.target.value)}
               placeholder={t('enterScore')}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
             />
             {scoreError && (
               <p data-testid="score-error" className="mt-1 text-sm text-red-600">
@@ -191,11 +191,11 @@ export function ScoreForm() {
         {params.mode === 'detailed' && (
           <div className="space-y-3">
             {selectedSubjects.length === 0 && (
-              <p className="text-sm text-gray-500">{t('selectTohop')}</p>
+              <p className="text-sm text-on-surface-muted">{t('selectTohop')}</p>
             )}
             {selectedSubjects.map(subject => (
               <div key={subject}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-on-surface mb-1">
                   {subject}
                 </label>
                 <input
@@ -213,14 +213,14 @@ export function ScoreForm() {
                       return next;
                     });
                   }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
             ))}
             {detailedTotal !== null && (
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <span className="text-sm font-medium text-gray-700">{t('totalScore')}: </span>
-                <span className="text-sm font-semibold text-blue-600">{detailedTotal.toFixed(1)}</span>
+              <div className="p-3 bg-surface-subtle rounded-lg">
+                <span className="text-sm font-medium text-on-surface">{t('totalScore')}: </span>
+                <span className="text-sm font-semibold text-primary">{detailedTotal.toFixed(1)}</span>
               </div>
             )}
           </div>
@@ -230,7 +230,7 @@ export function ScoreForm() {
           <button
             type="submit"
             disabled={!params.tohop || !params.score || !!scoreError || loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-primary text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? t('loading') : t('viewResults')}
           </button>

@@ -8,7 +8,7 @@ import { OnboardingBanner } from '../components/OnboardingBanner';
 // Lazy-load the below-fold university search to reduce initial JS bundle and improve TTI.
 const UniversitySearch = dynamic(
   () => import('../components/UniversitySearch').then(m => m.UniversitySearch),
-  { loading: () => <div className="animate-pulse h-48 bg-gray-100 rounded" /> }
+  { loading: () => <div className="animate-pulse h-48 bg-surface-subtle rounded" /> }
 );
 
 export default async function Home() {
