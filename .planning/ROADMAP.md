@@ -138,13 +138,20 @@ Plans:
 **Goal**: The UI communicates trust through correct data presentation, students can edit their nguyện vọng list directly, and first-time users understand what the app does and how to use it
 **Depends on**: Phase 11
 **Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, UI-07, UI-08, UI-09
+**Plans:** 4 plans
+
+Plans:
+- [ ] 14-01-PLAN.md — Design tokens, font fix, and dark mode (UI-01, UI-02, UI-08)
+- [ ] 14-02-PLAN.md — Error boundaries, onboarding banner, empty state (UI-03, UI-06, UI-09)
+- [ ] 14-03-PLAN.md — Editable nguyen vong list, tier grouping, tier badge tooltips (UI-04, UI-05, UI-07)
+- [ ] 14-04-PLAN.md — Semantic token migration and visual verification checkpoint
+
 **Success Criteria** (what must be TRUE):
   1. Be Vietnam Pro font is visibly applied to all body text — confirmed by DevTools computed font-family showing "Be Vietnam Pro"
   2. A student can reorder their nguyện vọng list using up/down buttons, add an item from search results, and remove an item — changes persist in the URL via nuqs
   3. A first-time visitor sees an onboarding banner explaining what UniSelect does before submitting their score
   4. Switching to dark mode persists across page reloads with no white flash on load
   5. Navigating to a non-existent route shows a Vietnamese/English not-found page with a link back to the home page
-**Plans**: TBD
 
 ## Progress
 
@@ -168,7 +175,7 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 11. Bug Fixes & Data Correctness | 3/3 | Complete    | 2026-03-19 | - |
 | 12. Testing & CI | 2/2 | Complete    | 2026-03-19 | - |
 | 13. Infrastructure Hardening | 2/2 | Complete    | 2026-03-19 | - |
-| 14. UI/UX Redesign | v2.0 | 0/? | Not started | - |
+| 14. UI/UX Redesign | v2.0 | 0/4 | Planning complete | - |
 
 ---
-*Last updated: 2026-03-19 — Phase 13 planning complete (2 plans)*
+*Last updated: 2026-03-19 — Phase 14 planning complete (4 plans)*
