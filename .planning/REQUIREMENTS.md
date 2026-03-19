@@ -40,7 +40,7 @@ Requirements for v2.0 release. Each maps to roadmap phases. Priority: Scraper Ex
 
 - [ ] **INFR-01**: GitHub Actions caches PaddleOCR models and Playwright browsers across workflow runs
 - [ ] **INFR-02**: Scraping shard count optimized to fit within GitHub Actions free-tier budget for July peak
-- [ ] **INFR-03**: Supabase keep-alive cron workflow prevents auto-pause during low-activity periods
+- [x] **INFR-03**: Supabase keep-alive cron workflow prevents auto-pause during low-activity periods
 
 ### UI/UX
 
@@ -104,7 +104,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-04 | Phase 12 | Complete |
 | INFR-01 | Phase 13 | Pending |
 | INFR-02 | Phase 13 | Pending |
-| INFR-03 | Phase 13 | Pending |
+| INFR-03 | Phase 13 | Complete |
 | UI-01 | Phase 14 | Pending |
 | UI-02 | Phase 14 | Pending |
 | UI-03 | Phase 14 | Pending |

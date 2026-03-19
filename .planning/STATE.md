@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
 status: planning
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-03-19T07:18:58.299Z"
+stopped_at: Completed 13-02-PLAN.md
+last_updated: "2026-03-19T07:32:52.790Z"
 last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 14
+  completed_plans: 13
   percent: 0
 ---
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 11-bug-fixes-data-correctness P02 | 2 | 2 tasks | 9 files |
 | Phase 12-testing-ci P01 | 2 | 2 tasks | 2 files |
 | Phase 12-testing-ci P02 | 1 | 2 tasks | 6 files |
+| Phase 13 P02 | 1 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,8 @@ Recent decisions affecting current work:
 - [Phase 12-testing-ci]: engine.test.ts uses literal values not faker for boundary tests — avoids non-determinism at tier classification edges
 - [Phase 12-testing-ci]: Supabase env var placeholder fallbacks in CI build step so fork PRs without repo secrets can run the workflow
 - [Phase 12-testing-ci]: CI triggers only on pull_request (not push) per TEST-02 — push events not gated
+- [Phase 13-02]: Cron */5 day-of-month keeps max gap to 6 days — safely inside 7-day Supabase pause window
+- [Phase 13-02]: postgres.js used for keepalive inline script (not pg) — consistency with lib/db/index.ts; prepare:false for Supavisor
 
 ### Pending Todos
 
@@ -115,6 +118,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T07:16:30.247Z
-Stopped at: Completed 12-02-PLAN.md
+Last session: 2026-03-19T07:32:52.788Z
+Stopped at: Completed 13-02-PLAN.md
 Resume file: None

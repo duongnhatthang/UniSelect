@@ -123,7 +123,7 @@ Plans:
 **Goal**: GitHub Actions scraping stays within the free-tier minute budget through July peak, and Supabase does not auto-pause during development quiet periods
 **Depends on**: Phase 12
 **Requirements**: INFR-01, INFR-02, INFR-03
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 13-01-PLAN.md — PaddleOCR and Playwright caching in scrape workflows + July budget verification
@@ -167,7 +167,7 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 10. Auto-Discovery Crawler | 2/2 | Complete    | 2026-03-19 | - |
 | 11. Bug Fixes & Data Correctness | 3/3 | Complete    | 2026-03-19 | - |
 | 12. Testing & CI | 2/2 | Complete    | 2026-03-19 | - |
-| 13. Infrastructure Hardening | v2.0 | 0/2 | Not started | - |
+| 13. Infrastructure Hardening | 1/2 | In Progress|  | - |
 | 14. UI/UX Redesign | v2.0 | 0/? | Not started | - |
 
 ---
