@@ -23,6 +23,8 @@ jobs:
     # For manual workflow_dispatch: always execute
     if: github.event_name == 'workflow_dispatch' || vars.PEAK_SCHEDULE_ENABLED == 'true'
     runs-on: ubuntu-latest
+    env:
+      PADDLE_PDX_MODEL_SOURCE: BOS
     strategy:
       matrix:
         shard: [0, 1, 2, 3, 4, 5]
@@ -34,12 +36,31 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
       - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install chromium --with-deps
+      - name: Install Playwright OS dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
+      - name: Cache PaddleOCR models (~/.paddlex)
+        uses: actions/cache@v4
+        with:
+          path: ~/.paddlex
+          key: paddleocr-models-${{ runner.os }}-${{ hashFiles('scripts/ocr_table.py') }}
+          restore-keys: |
+            paddleocr-models-${{ runner.os }}-
       - name: Install PaddleOCR
         run: pip install paddleocr
       - name: Warm up PaddleOCR models
