@@ -43,3 +43,6 @@ next-env.d.ts
 
 # static JSON snapshots (generated at deploy time by npm run generate-static)
 /public/data/*.json
+
+# auto-discovery crawler ephemeral output (never committed)
+discovery-candidates.json
