@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --webpack",
+    "build": "npm run generate-static && next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "generate-static": "tsx scripts/generate-static-json.ts",

@@ -3,8 +3,9 @@
     "id": "MINISTRY",
     "adapter": "ministry",
     "url": "https://thisinh.thitotnghiepthpt.edu.vn/",
-    "note": "Ministry portal — URL must be manually verified before first run. See CONTEXT.md blocker.",
-    "static_verified": false
+    "note": "Ministry portal — URL changes between admission cycles, requires yearly manual verification. See CONTEXT.md blocker.",
+    "static_verified": false,
+    "scraping_method": "deferred"
   },
   {
     "id": "BKA",
@@ -17,15 +18,17 @@
     "id": "KHA",
     "adapter": "kha",
     "url": "https://www.neu.edu.vn/",
-    "note": "Scores published as PDF download -- requires PDF parsing. Not viable for cheerio scraping.",
-    "static_verified": false
+    "note": "Scores published as PDF download — requires PDF parsing. Not viable for cheerio scraping.",
+    "static_verified": false,
+    "scraping_method": "manual"
   },
   {
     "id": "NTH",
     "adapter": "nth",
     "url": "https://ftu.edu.vn/",
-    "note": "Scores published via Google Drive link -- not viable for direct scraping.",
-    "static_verified": false
+    "note": "Scores published via Google Drive link — not viable for direct scraping.",
+    "static_verified": false,
+    "scraping_method": "manual"
   },
   {
     "id": "GHA",
@@ -471,9 +474,10 @@
   {
     "id": "SPH",
     "adapter": "sph",
-    "url": "https://hnue.edu.vn/Tuyensinh--Dai-hoc-chinh-quy/diem-trung-tuyen",
-    "note": "Static HTML adapter candidate. Verified pattern 2026-03-18. URL may need annual update.",
-    "static_verified": true
+    "url": "https://tuyensinh.hnue.edu.vn/thong-bao/545",
+    "note": "URL updated 2026-03-18: old path 404. New page is JS-rendered (Next.js SSR) — needs Playwright adapter. Cutoff data confirmed present (40+ rows).",
+    "static_verified": false,
+    "scraping_method": "playwright"
   },
   {
     "id": "TDD",
@@ -499,9 +503,9 @@
   {
     "id": "TLA",
     "adapter": "tla",
-    "url": "https://tuyensinh.tlu.edu.vn/diem-chuan",
-    "note": "Static HTML adapter candidate. Verified pattern 2026-03-18. URL may need annual update.",
-    "static_verified": true
+    "url": "https://ts.tlu.edu.vn/",
+    "note": "URL updated 2026-03-18: old subdomain redirects 301 to tlu.edu.vn. Admissions at ts.tlu.edu.vn returned 502. Needs manual re-verification.",
+    "static_verified": false
   },
   {
     "id": "TMA",
