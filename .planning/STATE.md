@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
 status: planning
-stopped_at: Completed 13-01-PLAN.md
-last_updated: "2026-03-19T07:36:17.702Z"
+stopped_at: Completed 14-01-PLAN.md
+last_updated: "2026-03-19T13:29:49.388Z"
 last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 14
-  completed_plans: 14
+  total_plans: 18
+  completed_plans: 15
   percent: 0
 ---
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 12-testing-ci P02 | 1 | 2 tasks | 6 files |
 | Phase 13 P02 | 1 | 1 tasks | 1 files |
 | Phase 13-infrastructure-hardening P01 | 2 | 2 tasks | 2 files |
+| Phase 14-ui-ux-redesign P01 | 5 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,9 @@ Recent decisions affecting current work:
 - [Phase 13-infrastructure-hardening]: PADDLE_PDX_MODEL_SOURCE=BOS must be at job level so it is present when PaddleOCR process starts; step-level env is too late for warm-up step
 - [Phase 13-infrastructure-hardening]: On Playwright cache hit, install-deps chromium still required — OS shared libraries not cached in ~/.cache/ms-playwright; skipping causes Chromium launch failure
 - [Phase 13-infrastructure-hardening]: Repo is PUBLIC so GitHub Actions minutes are free — INFR-02 verified as wall-clock: 28 triggers x 10 min = 280 min < 450 min target
+- [Phase 14-ui-ux-redesign]: next-themes was absent from package.json despite research claiming it was installed — installed at task time; ThemeProvider nesting: NuqsAdapter > ThemeProvider > NextIntlClientProvider
+- [Phase 14-ui-ux-redesign]: DarkModeToggle uses mounted state guard (useEffect + useState) to prevent SSR hydration mismatch on icon choice — server cannot know current theme
+- [Phase 14-ui-ux-redesign]: scripts/discover.ts cheerio type conflict is pre-existing build failure — deferred, not auto-fixed in this plan
 
 ### Pending Todos
 
@@ -122,6 +126,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T07:33:21.090Z
-Stopped at: Completed 13-01-PLAN.md
+Last session: 2026-03-19T13:29:49.386Z
+Stopped at: Completed 14-01-PLAN.md
 Resume file: None

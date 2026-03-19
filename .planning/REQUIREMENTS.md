@@ -44,14 +44,14 @@ Requirements for v2.0 release. Each maps to roadmap phases. Priority: Scraper Ex
 
 ### UI/UX
 
-- [ ] **UI-01**: Design token system established in Tailwind v4 @theme (semantic colors, spacing, typography scale)
-- [ ] **UI-02**: Be Vietnam Pro font correctly applied via --font-sans token (fix broken font-sans reference)
+- [x] **UI-01**: Design token system established in Tailwind v4 @theme (semantic colors, spacing, typography scale)
+- [x] **UI-02**: Be Vietnam Pro font correctly applied via --font-sans token (fix broken font-sans reference)
 - [ ] **UI-03**: Error boundaries added (error.tsx, not-found.tsx) with Vietnamese/English messaging and retry
 - [ ] **UI-04**: Nguyện vọng list is editable: user can reorder (up/down buttons + optional drag), add from results, and remove items
 - [ ] **UI-05**: Nguyện vọng list shows tier grouping headers (practical 1-5, dream 6-10, safe 11-15) with 5+5+5 strategy explanation
 - [ ] **UI-06**: First-time users see an onboarding banner explaining what UniSelect does and what information they need
 - [ ] **UI-07**: Tier badges show concrete score margins on hover/tap (e.g., "Your score is 2.3 above cutoff")
-- [ ] **UI-08**: Dark mode toggle with next-themes, persisted to localStorage, using semantic token variants
+- [x] **UI-08**: Dark mode toggle with next-themes, persisted to localStorage, using semantic token variants
 - [ ] **UI-09**: Empty state before first submission shows guidance text instead of "No matching results"
 
 ## Future Requirements (v3+)
@@ -105,14 +105,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFR-01 | Phase 13 | Complete |
 | INFR-02 | Phase 13 | Complete |
 | INFR-03 | Phase 13 | Complete |
-| UI-01 | Phase 14 | Pending |
-| UI-02 | Phase 14 | Pending |
+| UI-01 | Phase 14 | Complete |
+| UI-02 | Phase 14 | Complete |
 | UI-03 | Phase 14 | Pending |
 | UI-04 | Phase 14 | Pending |
 | UI-05 | Phase 14 | Pending |
 | UI-06 | Phase 14 | Pending |
 | UI-07 | Phase 14 | Pending |
-| UI-08 | Phase 14 | Pending |
+| UI-08 | Phase 14 | Complete |
 | UI-09 | Phase 14 | Pending |
 
 **Coverage:**

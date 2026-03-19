@@ -138,7 +138,7 @@ Plans:
 **Goal**: The UI communicates trust through correct data presentation, students can edit their nguyện vọng list directly, and first-time users understand what the app does and how to use it
 **Depends on**: Phase 11
 **Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, UI-07, UI-08, UI-09
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 - [ ] 14-01-PLAN.md — Design tokens, font fix, and dark mode (UI-01, UI-02, UI-08)
@@ -175,7 +175,7 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 11. Bug Fixes & Data Correctness | 3/3 | Complete    | 2026-03-19 | - |
 | 12. Testing & CI | 2/2 | Complete    | 2026-03-19 | - |
 | 13. Infrastructure Hardening | 2/2 | Complete    | 2026-03-19 | - |
-| 14. UI/UX Redesign | v2.0 | 0/4 | Planning complete | - |
+| 14. UI/UX Redesign | 1/4 | In Progress|  | - |
 
 ---
 *Last updated: 2026-03-19 — Phase 14 planning complete (4 plans)*
