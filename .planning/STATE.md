@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
 status: planning
-stopped_at: Completed 13-02-PLAN.md
-last_updated: "2026-03-19T07:32:52.790Z"
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-03-19T07:33:36.251Z"
 last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 14
-  completed_plans: 13
+  completed_plans: 14
   percent: 0
 ---
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 12-testing-ci P01 | 2 | 2 tasks | 2 files |
 | Phase 12-testing-ci P02 | 1 | 2 tasks | 6 files |
 | Phase 13 P02 | 1 | 1 tasks | 1 files |
+| Phase 13-infrastructure-hardening P01 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,9 @@ Recent decisions affecting current work:
 - [Phase 12-testing-ci]: CI triggers only on pull_request (not push) per TEST-02 — push events not gated
 - [Phase 13-02]: Cron */5 day-of-month keeps max gap to 6 days — safely inside 7-day Supabase pause window
 - [Phase 13-02]: postgres.js used for keepalive inline script (not pg) — consistency with lib/db/index.ts; prepare:false for Supavisor
+- [Phase 13-infrastructure-hardening]: PADDLE_PDX_MODEL_SOURCE=BOS must be at job level so it is present when PaddleOCR process starts; step-level env is too late for warm-up step
+- [Phase 13-infrastructure-hardening]: On Playwright cache hit, install-deps chromium still required — OS shared libraries not cached in ~/.cache/ms-playwright; skipping causes Chromium launch failure
+- [Phase 13-infrastructure-hardening]: Repo is PUBLIC so GitHub Actions minutes are free — INFR-02 verified as wall-clock: 28 triggers x 10 min = 280 min < 450 min target
 
 ### Pending Todos
 
@@ -118,6 +122,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T07:32:52.788Z
-Stopped at: Completed 13-02-PLAN.md
+Last session: 2026-03-19T07:33:21.090Z
+Stopped at: Completed 13-01-PLAN.md
 Resume file: None
