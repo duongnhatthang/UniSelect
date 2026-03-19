@@ -23,20 +23,63 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 
 ### Active
 
+<!-- v2.0 scope — priority: scraper expansion > bug fixes/testing > UI/UX -->
+
+**Scraper Expansion (P1)**
 - [ ] Auto-discovery crawler: scan university homepages to find newly published cutoff score pages without manual URL maintenance
 - [ ] Scraper resilience testing: fake local university websites to test against irregular formats and layout changes
 - [ ] PaddleOCR CI integration test: verify full OCR pipeline in GitHub Actions
 - [ ] More university data: expand beyond 6 verified adapters to broader coverage
+- [ ] Batch database inserts in scraper runner (replace N+1 row-by-row upserts)
+- [ ] Extract generic adapter factory (replace 70+ copy-pasted cheerio adapters)
+
+**Bug Fixes & Testing (P2)**
+- [ ] Fix inverted delta sign convention between ResultsList and NguyenVongList
+- [ ] Fix misleading trend colors (rising cutoff = bad for student, should not be green)
+- [ ] Fix null score → NaN propagation in recommendation engine
+- [ ] Fix unsafe `as CutoffDataRow[]` cast (scraped_at Date vs string mismatch)
+- [ ] Fix withTimeout timer leak (clearTimeout on resolution)
+- [ ] Add static fallback for /api/recommend endpoint
+- [ ] Add error handling UI for failed API calls (replace silent .catch(() => {}))
+- [ ] Recommendation engine tests with synthetic/fake data (edge cases, tiers, boundaries)
+- [ ] Add CI workflow for build/test verification on PRs
+
+**UI/UX Redesign (P3)**
+- [ ] Editable nguyện vọng list (drag-to-reorder, add, remove)
+- [ ] Brand identity and design token system
+- [ ] Onboarding/context for first-time users
+- [ ] Tier label explanations with concrete numbers
+- [ ] Dark mode support
+- [ ] Error boundaries (error.tsx, not-found.tsx)
+- [ ] Improved result card information hierarchy
+- [ ] Fix font configuration (Be Vietnam Pro not actually applied)
 
 ### Out of Scope
 
-- Học bạ (GPA-based) admission pathway — defer to v2+
-- Aptitude test pathways (VNU TSA, HUST TSA) — defer to v2+
-- Direct admission (xét tuyển thẳng) — defer to v2+
+- Học bạ (GPA-based) admission pathway — defer to v3+
+- Aptitude test pathways (VNU TSA, HUST TSA) — defer to v3+
+- Direct admission (xét tuyển thẳng) — defer to v3+
 - Native iOS/Android apps — PWA is sufficient
 - Account/user profiles — no login required for core lookup flow
 - Real-time seat availability tracking — cutoff scores are the core data
 - LLM as primary scraping method — cost prohibitive for charity project
+- Client-side offline recommendation engine — defer to v3+ (requires bundling engine + data in SW)
+- Share card generation (visual screenshot for Zalo/Facebook) — defer to v3+
+- Score scenario comparison mode ("what if I scored 24 vs 25") — defer to v3+
+
+## Current Milestone: v2.0 Scraper Expansion + Quality + UX
+
+**Goal:** Make the scraping pipeline self-sustaining (auto-discovery, resilience testing), fix data correctness bugs found in 7-agent audit, and redesign the UI/UX for trust and usability.
+
+**Target features:**
+- Auto-discovery crawler for newly published cutoff pages
+- Scraper resilience testing with fake university websites
+- PaddleOCR CI integration
+- Generic adapter factory (replace 70+ copy-pasted files)
+- Fix critical data correctness bugs (delta signs, trend colors, NaN scores)
+- Recommendation engine tests with synthetic data
+- Editable nguyện vọng list
+- Brand identity, design tokens, onboarding, dark mode
 
 ## Current State
 
@@ -47,12 +90,22 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 **Tests:** 349 passing (vitest)
 **Infrastructure:** Vercel (frontend/API), Supabase (DB), GitHub Actions (scraping cron)
 
-### Known Tech Debt
+### Known Tech Debt (from 7-agent audit, 2026-03-18)
 - 72/78 adapters dormant (static_verified: false) — v2 auto-discovery will address
+- 70+ adapter files are copy-pasted — extract generic factory
 - Ministry portal adapter is a stub — URL changes yearly
 - SPH/TLA URLs broke after Phase 7 verification — need re-audit
 - PaddleOCR tested locally but not in CI
 - generate-static chained into build script but Vercel may need manual config
+- withTimeout timer leak (setTimeout not cleared)
+- Null score → NaN propagation in recommend engine
+- readFileSync in API fallback paths (blocks event loop)
+- No error.tsx boundaries, no CI workflow
+- Dead src/ directory (unused Next.js scaffold)
+- Font loaded but not applied (font-sans doesn't reference Be Vietnam Pro)
+- Delta sign convention inverted between ResultsList and NguyenVongList
+- Trend colors misleading (green = rising cutoff = bad for student)
+- GitHub Actions July budget: 4x/day × 6 shards exceeds free tier by 3.7x
 
 ## Context
 
@@ -86,5 +139,7 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 | 6-shard matrix for GitHub Actions scraping | 78 universities / 6 = 13 per shard, within 30min per job | ✓ Good |
 | next-intl cookie-based locale (no i18n routing) | Simpler deployment, avoids URL rewriting complexity | ✓ Good |
 
+| 7-agent audit before v2.0 | Independent specialist review catches issues self-review misses | — Pending |
+
 ---
-*Last updated: 2026-03-18 after v1.0 milestone*
+*Last updated: 2026-03-18 after v2.0 milestone kickoff (7-agent audit)*

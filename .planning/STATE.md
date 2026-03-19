@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: milestone_complete
-stopped_at: v1.0 milestone complete
-last_updated: "2026-03-19T02:45:00.000Z"
-last_activity: 2026-03-18 — v1.0 MVP shipped, milestone archived
+milestone: v2.0
+milestone_name: Scraper Expansion + Quality + UX
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-03-18T12:00:00.000Z"
+last_activity: 2026-03-18 — Milestone v2.0 started (7-agent audit complete)
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 19
-  completed_plans: 19
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Give every Vietnamese student the data and strategy to order their nguyện vọng list correctly — because getting the ranking wrong means being locked out of better options permanently.
-**Current focus:** Planning next milestone (v2 — auto-discovery crawler)
+**Current focus:** Defining requirements for v2.0
 
 ## Current Position
 
-Phase: 1 of 5 (Data Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-17 — Roadmap created; all 14 v1 requirements mapped across 5 phases
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-18 — Milestone v2.0 started
 
 Progress: [░░░░░░░░░░] 0%
 
