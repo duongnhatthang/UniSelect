@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server';
-import { readFileSync } from 'fs';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { db } from '../../../lib/db';
 import { tohopCodes } from '../../../lib/db/schema';
@@ -25,7 +25,7 @@ export async function GET(_req: NextRequest) {
     if (err instanceof Error && err.message === 'DB_TIMEOUT') {
       try {
         const staticData = JSON.parse(
-          readFileSync(join(process.cwd(), 'public/data/tohop.json'), 'utf-8')
+          await readFile(join(process.cwd(), 'public/data/tohop.json'), 'utf-8')
         );
         return Response.json(staticData, {
           headers: {

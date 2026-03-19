@@ -1,5 +1,5 @@
 import type { NextRequest } from 'next/server';
-import { readFileSync } from 'fs';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { getUniversities } from '../../../lib/api/universities';
 import { withTimeout } from '../../../lib/db/timeout';
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     if (err instanceof Error && err.message === 'DB_TIMEOUT') {
       try {
         const staticData = JSON.parse(
-          readFileSync(join(process.cwd(), 'public/data/universities.json'), 'utf-8')
+          await readFile(join(process.cwd(), 'public/data/universities.json'), 'utf-8')
         );
         return Response.json(staticData, {
           headers: {
