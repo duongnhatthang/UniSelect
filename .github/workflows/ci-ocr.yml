@@ -31,10 +31,10 @@ jobs:
             paddleocr-models-${{ runner.os }}-
 
       - name: Install dependencies
-        run: pip install paddlepaddle paddleocr Pillow
+        run: pip install -r requirements.txt
 
       - name: Warm up / download PaddleOCR models
-        run: python3 -c "from paddleocr import PaddleOCR; PaddleOCR(lang='vi')"
+        run: python3 -c "from paddleocr import PaddleOCR; PaddleOCR(lang='vi', use_gpu=False, show_log=False)"
 
       - name: Generate synthetic test image
         run: python3 tests/fixtures/ocr-smoke-generator.py /tmp/ocr-smoke.jpg
