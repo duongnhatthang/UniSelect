@@ -3,7 +3,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { formatStaleness, isStale } from '../lib/utils/staleness';
 
 interface Props {
-  scrapedAt: Date | null;
+  scrapedAt: Date | string | null;
   sourceUrl: string | null;
 }
 
@@ -15,10 +15,11 @@ export function StalenessIndicator({ scrapedAt, sourceUrl }: Props) {
 
   const stale = isStale(scrapedAt);
   const age = formatStaleness(scrapedAt, locale);
+  const isoString = scrapedAt instanceof Date ? scrapedAt.toISOString() : scrapedAt;
 
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-gray-500">
-      <time dateTime={scrapedAt.toISOString()}>{age}</time>
+      <time dateTime={isoString}>{age}</time>
       {sourceUrl && (
         <a
           href={sourceUrl}

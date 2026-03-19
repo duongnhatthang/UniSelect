@@ -5,7 +5,12 @@
 
 /* Font fix: map Next.js Be Vietnam Pro variable to Tailwind's font-sans utility */
 @theme inline {
-  --font-sans: var(--font-be-vietnam);
+  --font-sans: var(--font-be-vietnam), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Direct fallback: ensure body always uses Be Vietnam Pro even if @theme resolution fails */
+body {
+  font-family: var(--font-be-vietnam), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Semantic color tokens that change per theme */
