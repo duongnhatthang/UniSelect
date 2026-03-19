@@ -90,12 +90,18 @@ Plans:
 **Goal**: All known data correctness bugs are fixed atomically — delta signs, trend colors, NaN scores, type mismatches, timer leak, async I/O, and error UI are all corrected in a single phase
 **Depends on**: Phase 8
 **Requirements**: FIX-01, FIX-02, FIX-03, FIX-04, FIX-05, FIX-07, FIX-08
+**Plans:** 3 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Delta sign fix (computeDelta utility) and trend color correction
+- [ ] 11-02-PLAN.md — NaN filtering in engine, scraped_at type fix, timer leak fix
+- [ ] 11-03-PLAN.md — Error UI with retry and async readFile migration
+
 **Success Criteria** (what must be TRUE):
   1. A student whose score is above cutoff sees a positive delta in both ResultsList and NguyenVongList (userScore - cutoff is positive = above cutoff)
   2. A university whose cutoff score rose year-over-year displays an amber/warning color (not green) in the trend indicator
   3. A university with a null or unparseable cutoff score is excluded from recommendation results — no NaN values appear in output
   4. When an API call fails, a visible error banner with a retry button appears in the UI (no silent failures)
-**Plans**: TBD
 
 ### Phase 12: Testing & CI
 **Goal**: The recommendation engine has tests covering all known edge cases, every pull request runs the full test suite automatically, and the repository is free of build artifacts and dead code
@@ -149,10 +155,10 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 8. Scraper Foundation | 3/3 | Complete   | 2026-03-19 | - |
 | 9. Scraper Resilience Testing | 1/2 | In Progress|  | - |
 | 10. Auto-Discovery Crawler | 2/2 | Complete    | 2026-03-19 | - |
-| 11. Bug Fixes & Data Correctness | v2.0 | 0/? | Not started | - |
+| 11. Bug Fixes & Data Correctness | v2.0 | 0/3 | Not started | - |
 | 12. Testing & CI | v2.0 | 0/? | Not started | - |
 | 13. Infrastructure Hardening | v2.0 | 0/? | Not started | - |
 | 14. UI/UX Redesign | v2.0 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-03-19 — Phase 10 planning complete (2 plans)*
+*Last updated: 2026-03-19 — Phase 11 planning complete (3 plans)*
