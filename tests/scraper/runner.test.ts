@@ -1,29 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RawRow, ScraperAdapter } from '../../lib/scraper/types';
 
-// Capture all .values() arguments across all insert() calls
-const capturedInsertValues: Array<Record<string, unknown>> = [];
-
-const { mockInsert } = vi.hoisted(() => {
-  const capturedInsertValues: Array<Record<string, unknown>> = [];
-
-  const mockInsert = vi.fn().mockImplementation(() => {
-    const valuesForThisInsert = vi.fn().mockImplementation((v: Record<string, unknown>) => {
-      capturedInsertValues.push(v);
-      return {
-        onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
-        onConflictDoNothing: vi.fn().mockResolvedValue(undefined),
-      };
-    });
-    return { values: valuesForThisInsert };
+const { mockInsert, mockTxInsert } = vi.hoisted(() => {
+  const mockTxInsert = vi.fn().mockImplementation(() => {
+    const valuesFn = vi.fn().mockImplementation(() => ({
+      onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
+      onConflictDoNothing: vi.fn().mockResolvedValue(undefined),
+    }));
+    return { values: valuesFn };
   });
 
-  return { mockInsert, capturedInsertValues };
+  const mockInsert = vi.fn().mockImplementation(() => {
+    const valuesFn = vi.fn().mockImplementation(() => ({
+      onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
+      onConflictDoNothing: vi.fn().mockResolvedValue(undefined),
+    }));
+    return { values: valuesFn };
+  });
+
+  return { mockInsert, mockTxInsert };
 });
 
 vi.mock('../../lib/db', () => ({
   db: {
     insert: mockInsert,
+    transaction: vi.fn().mockImplementation(
+      async (fn: (tx: { insert: typeof mockTxInsert }) => Promise<unknown>) =>
+        fn({ insert: mockTxInsert })
+    ),
   },
 }));
 
@@ -58,7 +62,8 @@ const makeAdapter = (id: string, rows: RawRow[] | Error): ScraperAdapter => ({
     : vi.fn().mockResolvedValue(rows),
 });
 
-// Helper: extract values() args that have a `status` field from all insert() calls this test
+// Helper: extract values() args that have a `status` field from all mockInsert() calls this test
+// scrapeRuns are still inserted via db.insert (not tx.insert), so we look at mockInsert
 function getScrapeRunInserts(): Array<Record<string, unknown>> {
   const results: Array<Record<string, unknown>> = [];
   for (const result of mockInsert.mock.results) {
@@ -72,9 +77,9 @@ function getScrapeRunInserts(): Array<Record<string, unknown>> {
 }
 
 describe('runScraper', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-    // Re-apply implementation after clearAllMocks
+    // Re-apply implementations after clearAllMocks
     mockInsert.mockImplementation(() => {
       const valuesFn = vi.fn().mockImplementation((v: Record<string, unknown>) => ({
         onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
@@ -83,6 +88,19 @@ describe('runScraper', () => {
       }));
       return { values: valuesFn };
     });
+    mockTxInsert.mockImplementation(() => {
+      const valuesFn = vi.fn().mockImplementation(() => ({
+        onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
+        onConflictDoNothing: vi.fn().mockResolvedValue(undefined),
+      }));
+      return { values: valuesFn };
+    });
+    // Re-apply transaction mock implementation after clearAllMocks
+    const { db } = await import('../../lib/db');
+    (db.transaction as ReturnType<typeof vi.fn>).mockImplementation(
+      async (fn: (tx: { insert: typeof mockTxInsert }) => Promise<unknown>) =>
+        fn({ insert: mockTxInsert })
+    );
   });
 
   it('logs scrape_run with status "ok" and rows_written count when adapter succeeds with 0 rejections', async () => {
@@ -151,6 +169,57 @@ describe('runScraper', () => {
     expect(errorRun).toBeDefined();
     expect(okRun).toBeDefined();
     expect(errorRun!.university_id).toBe('BKA');
+    expect(okRun!.university_id).toBe('DHQGHN');
+  });
+
+  it('logs status "zero_rows" when adapter returns empty array without throwing', async () => {
+    const adapter = makeAdapter('BKA', []); // returns [] without throwing
+
+    await runScraper([{ id: 'BKA', adapter, url: 'https://example.com' }]);
+
+    const scrapeRuns = getScrapeRunInserts();
+    expect(scrapeRuns).toHaveLength(1);
+    expect(scrapeRuns[0].status).toBe('zero_rows');
+    expect(scrapeRuns[0].rows_written).toBe(0);
+    expect(scrapeRuns[0].rows_rejected).toBe(0);
+    expect(scrapeRuns[0].error_log).toContain('0 rows');
+  });
+
+  it('does not call db.transaction when adapter returns empty array', async () => {
+    const adapter = makeAdapter('BKA', []);
+
+    await runScraper([{ id: 'BKA', adapter, url: 'https://example.com' }]);
+
+    const { db } = await import('../../lib/db');
+    expect(db.transaction).not.toHaveBeenCalled();
+  });
+
+  it('calls db.transaction for batch insert when adapter returns valid rows', async () => {
+    const rows = [makeValidRow(), makeValidRow({ major_raw: '7480202' })];
+    const adapter = makeAdapter('BKA', rows);
+
+    await runScraper([{ id: 'BKA', adapter, url: 'https://example.com' }]);
+
+    const { db } = await import('../../lib/db');
+    expect(db.transaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('continues to next adapter after zero_rows (fail-open preserved)', async () => {
+    const emptyAdapter = makeAdapter('BKA', []);
+    const successAdapter = makeAdapter('DHQGHN', [makeValidRow({ university_id: 'DHQGHN' })]);
+
+    await runScraper([
+      { id: 'BKA', adapter: emptyAdapter, url: 'https://bka.example.com' },
+      { id: 'DHQGHN', adapter: successAdapter, url: 'https://dhqghn.example.com' },
+    ]);
+
+    const scrapeRuns = getScrapeRunInserts();
+    expect(scrapeRuns).toHaveLength(2);
+    const zeroRun = scrapeRuns.find(v => v.status === 'zero_rows');
+    const okRun = scrapeRuns.find(v => v.status === 'ok');
+    expect(zeroRun).toBeDefined();
+    expect(okRun).toBeDefined();
+    expect(zeroRun!.university_id).toBe('BKA');
     expect(okRun!.university_id).toBe('DHQGHN');
   });
 });
