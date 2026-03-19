@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
 status: planning
-stopped_at: Completed 08-02-PLAN.md
-last_updated: "2026-03-19T04:27:40.669Z"
+stopped_at: Completed 08-03-PLAN.md
+last_updated: "2026-03-19T04:34:01.822Z"
 last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 08-scraper-foundation P01 | 2 | 2 tasks | 2 files |
 | Phase 08 P02 | 8 | 2 tasks | 3 files |
+| Phase 08-scraper-foundation P03 | 297 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ Recent decisions affecting current work:
 - [Phase 08-scraper-foundation]: CHUNK_SIZE=500 for batch inserts to stay under Postgres 65535 parameter limit
 - [Phase 08]: async readFile in DB_TIMEOUT catch block keeps recommend API available with stale data instead of returning 503
 - [Phase 08]: meta.fallback: true in response body surfaces static-data state to frontend without breaking API contract
+- [Phase 08-scraper-foundation]: Factory uses Array.some() over config keyword arrays for flexible config-driven column detection
+- [Phase 08-scraper-foundation]: scrapers.json factory_config added to all cheerio adapters including static_verified:false — registry skips them but configs are ready for when URLs are verified
 
 ### Pending Todos
 
@@ -83,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T04:27:40.667Z
-Stopped at: Completed 08-02-PLAN.md
+Last session: 2026-03-19T04:34:01.820Z
+Stopped at: Completed 08-03-PLAN.md
 Resume file: None
