@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
 last_updated: "2026-03-18T12:00:00.000Z"
-last_activity: 2026-03-18 — Milestone v2.0 started (7-agent audit complete)
+last_activity: 2026-03-18 — v2.0 roadmap created (7 phases, 32 requirements mapped)
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,55 +21,35 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Give every Vietnamese student the data and strategy to order their nguyện vọng list correctly — because getting the ranking wrong means being locked out of better options permanently.
-**Current focus:** Defining requirements for v2.0
+**Current focus:** Phase 8 — Scraper Foundation (ready to plan)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-18 — Milestone v2.0 started
+Phase: 8 of 14 (Scraper Foundation)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-03-18 — v2.0 roadmap created
 
 Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
-**Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+**Velocity (v1.0 history):**
+- Total plans completed: 19
+- Average duration: ~6 min
+- Total execution time: ~2 hours
 
-**By Phase:**
+**v2.0 By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | - | - | - | - |
 
 **Recent Trend:**
-- Last 5 plans: -
-- Trend: -
+- Last 5 plans (v1.0): 5min, 2min, 8min, 8min, 2min
+- Trend: Stable
 
 *Updated after each plan completion*
-| Phase 01-data-foundation P01 | 6min | 2 tasks | 12 files |
-| Phase 01-data-foundation P02 | 6min | 2 tasks | 6 files |
-| Phase 01-data-foundation P03 | 15min | 2 tasks | 14 files |
-| Phase 01-data-foundation P03 | 15min | 3 tasks | 14 files |
-| Phase 02-core-api-and-algorithm P01 | 4min | 2 tasks | 6 files |
-| Phase 02-core-api-and-algorithm P02 | 9min | 2 tasks | 13 files |
-| Phase 03-frontend-pwa P01 | 7min | 2 tasks | 18 files |
-| Phase 03-frontend-pwa P03 | 5min | 2 tasks | 8 files |
-| Phase 03-frontend-pwa P02 | 15min | 2 tasks | 10 files |
-| Phase 03-frontend-pwa P04 | 3min | 1 tasks | 12 files |
-| Phase 03-frontend-pwa P05 | 3min | 2 tasks | 5 files |
-| Phase 04-scraper-expansion P01 | 3min | 2 tasks | 73 files |
-| Phase 04-scraper-expansion P02 | 2min | 2 tasks | 4 files |
-| Phase 05-infrastructure-hardening P02 | 8min | 2 tasks | 2 files |
-| Phase 05-infrastructure-hardening P03 | 8min | 2 tasks | 4 files |
-| Phase 05-infrastructure-hardening P01 | 2min | 2 tasks | 5 files |
-| Phase 06-tech-debt-cleanup P01 | 2min | 2 tasks | 10 files |
-| Phase 07-adapter-verification P01 | 2min | 2 tasks | 4 files |
-| Phase 07-adapter-verification P02 | 8min | 3 tasks | 12 files |
-| Phase 07-adapter-verification P03 | 5min | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -78,57 +58,11 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [Init]: GitHub Actions is mandatory as scraper scheduler — Vercel Hobby cron is capped at once/day, insufficient for July peak
-- [Init]: Supabase free tier row/connection limits are a schema constraint — design for ~50k rows, use PgBouncer from day one
-- [Init]: Database schema must be stable before any adapters are written — retroactive schema changes invalidate all scrapers
-- [Init]: Validation layer (score range, tổ hợp format, encoding) must ship before any data reaches production
-- [Phase 01-data-foundation]: Use timestamp with withTimezone:true instead of timestamptz — drizzle-orm 0.45.x dropped the timestamptz alias
-- [Phase 01-data-foundation]: DB connection always via Supabase pooler URL (port 6543) with prepare:false for serverless transaction-mode safety
-- [Phase 01-data-foundation]: Use vi.hoisted() for Vitest mock references in vi.mock() factories — avoids ReferenceError from hoisting
-- [Phase 01-data-foundation]: Mock drizzle-orm sql as tagged template function not Proxy — sql is called as a tag, must be callable
-- [Phase 01-data-foundation]: scrapeRuns insert is plain insert (no upsert) — run records are append-only logs
-- [Phase 01-data-foundation]: All adapter static_verified flags default to false — adapters will not run until manually audited and enabled
-- [Phase 01-data-foundation]: tsx declared as devDependency so npm ci in GitHub Actions installs it for npx tsx lib/scraper/run.ts
-- [Phase 01-data-foundation]: GitHub Actions uses single job for Phase 1 pilot; matrix sharding deferred to Phase 4
-- [Phase 01-data-foundation]: All adapter static_verified flags default to false — adapters will not run until manually audited and enabled
-- [Phase 01-data-foundation]: tsx declared as devDependency so npm ci in GitHub Actions installs it for npx tsx lib/scraper/run.ts
-- [Phase 01-data-foundation]: GitHub Actions uses single job for Phase 1 pilot; matrix sharding deferred to Phase 4
-- [Phase 02-core-api-and-algorithm]: CutoffDataRow.score typed as string matching Postgres numeric return; parseFloat called in engine before arithmetic
-- [Phase 02-core-api-and-algorithm]: withTimeout uses Promise.race (not postgres.js timeout option) — required for Supabase transaction-mode pooler at port 6543
-- [Phase 02-core-api-and-algorithm]: Relative imports used in route handlers instead of @/ alias — tsconfig paths map @/* to ./src/* which does not exist in this project
-- [Phase 02-core-api-and-algorithm]: anchorYear derived from max(year) DB query per tohop code — ensures results include most recently scraped data regardless of calendar year
-- [Phase 03-frontend-pwa]: Serwist sw.ts uses matcher property and NetworkOnly class instance — sw9.5.7 API change from urlPattern string approach in older docs
-- [Phase 03-frontend-pwa]: Split dev/build scripts: dev=next dev --turbopack, build=next build --webpack — Serwist requires webpack for SW bundling
-- [Phase 03-frontend-pwa]: next-intl without i18n routing: cookie-based locale with NEXT_LOCALE key, router.refresh() on toggle
-- [Phase 03-frontend-pwa]: cleanup() + afterEach required for jsdom test isolation — screen.getByText finds elements from all renders without it
-- [Phase 03-frontend-pwa]: tohop filter in UniversitySearch shows dropdown but does not filter university list — universities table has no tohop_codes column; applies at recommendation layer
-- [Phase 03-frontend-pwa]: parseAsJson in nuqs 2.8.9 requires a validator argument: parseAsJson(validator) not parseAsJson()
-- [Phase 03-frontend-pwa]: afterEach cleanup() required in jsdom component tests to prevent DOM accumulation across vitest test runs
-- [Phase 03-frontend-pwa]: resolveLocale named export in i18n/request.ts: extracts pure locale logic from Next.js server context for unit testability without mocking cookies()
-- [Phase 03-frontend-pwa]: TierBadge uses t(tier) — tier values exactly match translation keys so t('dream') returns Ước mơ in vi locale
-- [Phase 03-frontend-pwa]: array_agg(distinct ...) via sql template tag in subquery — Drizzle has no built-in array aggregation; coalesce to empty array for universities with no cutoff scores
-- [Phase 04-scraper-expansion]: Generator script approach for 72 adapter files — reduces error surface, re-runnable for future university additions
-- [Phase 04-scraper-expansion]: UNIVERSITIES array embedded in generator (not read from DB) — keeps generator self-contained and executable without DB access
-- [Phase 04-scraper-expansion]: 6-shard matrix chosen: 78 universities / 6 = 13 per shard, well within 30min per job
-- [Phase 04-scraper-expansion]: PEAK_SCHEDULE_ENABLED repo variable toggle avoids code changes to switch peak mode on/off
-- [Phase 04-scraper-expansion]: Contract test uses dynamic import loop over scrapers.json — zero test file changes needed for future adapters
-- [Phase 05-infrastructure-hardening]: STALENESS_DAYS defaults to 7 in script; workflow hardcodes 3 for tighter production alerting window
-- [Phase 05-infrastructure-hardening]: process.exit(1) on stale detection uses GitHub built-in failure notification — no external alerting service needed
-- [Phase 05-infrastructure-hardening]: UniversitySearch lazy-loaded via next/dynamic — below-fold heavy component; deferring its JS bundle reduces TTI for the above-fold score form
-- [Phase 05-infrastructure-hardening]: Load test runs both endpoints in parallel (Promise.all) — realistic peak simulation, exits 1 on >1% error rate threshold
-- [Phase 05-infrastructure-hardening]: next/font display:swap added explicitly even though next/font may default to swap — makes intent clear and guards against future default changes
-- [Phase 05-infrastructure-hardening]: scores-by-tohop.json keyed by tohop_code for O(1) fallback filter without full scan
-- [Phase 05-infrastructure-hardening]: public/data/*.json excluded from git — generated at deploy time, not version controlled
-- [Phase 05-infrastructure-hardening]: Double-nested try/catch: 503 only if static file is also missing; recommend route excluded from static fallback
-- [Phase 06-tech-debt-cleanup]: TohopCode interface extended with label_vi: string | null — DB column already existed, type was silently discarding it
-- [Phase 06-tech-debt-cleanup]: Dropdown falls back to subjects list when label_vi is null — same pattern as UniversitySearch.tsx line 94
-- [Phase 07-adapter-verification]: BVH adapter matches 'thpt' keyword first in scoreIdx — PTIT uses THPT (100) as column name, not generic diem chuan
-- [Phase 07-adapter-verification]: SPH and TLA entries get candidate tuyensinh URLs but static_verified remains false until Plan 02 confirms table presence
-- [Phase 07-adapter-verification]: KHA and NTH entries annotated as PDF/Google Drive — permanently not viable for cheerio scraping
-- [Phase 07-adapter-verification]: DCN treated as Playwright adapter -- tuyensinh.haui.edu.vn SSL issues handled by headless browser
-- [Phase 07-adapter-verification]: vi.hoisted() required for Playwright/fs mocks in dcn.test.ts and gha.test.ts -- same pattern as Phase 01 vitest mock factories
-- [Phase 07-adapter-verification]: PaddleOCR warm-up step added to CI -- pre-downloads models before scraper runs to avoid slow first-run
-- [Phase 07-adapter-verification]: public/data/*.json gitignored per Phase 5 decision; plan 07-03 force-adds a snapshot via git add -f to satisfy Phase 7 success criterion 3
+- [Phase 8]: Zero-rows guard must be the first commit before any factory work — silent `rows_written: 0` as `'ok'` is an invisible regression
+- [Phase 8]: Batch inserts must wrap chunks in a single `db.transaction()` — partial failure without transaction leaves inconsistent university data
+- [Phase 10]: Auto-discovery writes only to ephemeral `discovery-candidates.json` — scrapers.json is never written by crawler; human gate required
+- [Phase 11]: Delta sign fix must touch both ResultsList.tsx and NguyenVongList.tsx in a single PR with a shared `computeDelta()` utility
+- [Phase 14]: Design tokens (`@theme` block) must be implemented before dark mode — scattered `dark:text-gray-100` classes create a maintenance trap
 
 ### Pending Todos
 
@@ -136,13 +70,13 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 1 research flag]: Ministry portal URL and HTML structure must be verified manually before building the Ministry adapter — portal URLs change between cycles
-- [Phase 1 research flag]: For each high-priority university, manually check whether cutoff pages are static HTML (Cheerio) or JS-rendered (Playwright) before writing adapters
-- [Phase 3 research flag]: Serwist offline caching with Next.js App Router differs from Pages Router — worth a research pass before implementation
-- [General]: Verify current library versions at npmjs.com before pinning (drizzle-orm, @serwist/next, next-intl, nuqs) — research used August 2025 training knowledge
+- [Phase 10 research flag]: crawlee `enqueueLinks` glob pattern configuration for Vietnamese URL paths needs validation; Vietnamese keyword list must be checked against all 78 scrapers.json entries before implementation
+- [Phase 12]: Verify @faker-js/faker v10 Node.js 20+ requirement against GitHub Actions runner before Phase 12 — pin to v9 or upgrade runner if on Node 18
+- [Phase 13]: Verify GitHub Actions free tier minute limit for this repo's visibility (public vs private) before designing caching strategy — limits differ
+- [Phase 14 research flag]: motion Reorder Android touch behavior must be validated before committing to the library; dark mode selector inconsistency (.dark class vs [data-theme=dark]) must be resolved before writing any CSS
 
 ## Session Continuity
 
-Last session: 2026-03-18T22:31:29.067Z
-Stopped at: Completed 07-adapter-verification/07-03-PLAN.md
+Last session: 2026-03-18
+Stopped at: v2.0 roadmap created — all 32 requirements mapped to phases 8-14
 Resume file: None

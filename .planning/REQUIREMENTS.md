@@ -82,44 +82,44 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCRP-01 | — | Pending |
-| SCRP-02 | — | Pending |
-| SCRP-03 | — | Pending |
-| SCRP-04 | — | Pending |
-| SCRP-05 | — | Pending |
-| SCRP-06 | — | Pending |
-| SCRP-07 | — | Pending |
-| SCRP-08 | — | Pending |
-| FIX-01 | — | Pending |
-| FIX-02 | — | Pending |
-| FIX-03 | — | Pending |
-| FIX-04 | — | Pending |
-| FIX-05 | — | Pending |
-| FIX-06 | — | Pending |
-| FIX-07 | — | Pending |
-| FIX-08 | — | Pending |
-| TEST-01 | — | Pending |
-| TEST-02 | — | Pending |
-| TEST-03 | — | Pending |
-| TEST-04 | — | Pending |
-| INFR-01 | — | Pending |
-| INFR-02 | — | Pending |
-| INFR-03 | — | Pending |
-| UI-01 | — | Pending |
-| UI-02 | — | Pending |
-| UI-03 | — | Pending |
-| UI-04 | — | Pending |
-| UI-05 | — | Pending |
-| UI-06 | — | Pending |
-| UI-07 | — | Pending |
-| UI-08 | — | Pending |
-| UI-09 | — | Pending |
+| SCRP-01 | Phase 8 | Pending |
+| SCRP-02 | Phase 8 | Pending |
+| SCRP-03 | Phase 8 | Pending |
+| SCRP-04 | Phase 10 | Pending |
+| SCRP-05 | Phase 10 | Pending |
+| SCRP-06 | Phase 9 | Pending |
+| SCRP-07 | Phase 9 | Pending |
+| SCRP-08 | Phase 9 | Pending |
+| FIX-01 | Phase 11 | Pending |
+| FIX-02 | Phase 11 | Pending |
+| FIX-03 | Phase 11 | Pending |
+| FIX-04 | Phase 11 | Pending |
+| FIX-05 | Phase 11 | Pending |
+| FIX-06 | Phase 8 | Pending |
+| FIX-07 | Phase 11 | Pending |
+| FIX-08 | Phase 11 | Pending |
+| TEST-01 | Phase 12 | Pending |
+| TEST-02 | Phase 12 | Pending |
+| TEST-03 | Phase 12 | Pending |
+| TEST-04 | Phase 12 | Pending |
+| INFR-01 | Phase 13 | Pending |
+| INFR-02 | Phase 13 | Pending |
+| INFR-03 | Phase 13 | Pending |
+| UI-01 | Phase 14 | Pending |
+| UI-02 | Phase 14 | Pending |
+| UI-03 | Phase 14 | Pending |
+| UI-04 | Phase 14 | Pending |
+| UI-05 | Phase 14 | Pending |
+| UI-06 | Phase 14 | Pending |
+| UI-07 | Phase 14 | Pending |
+| UI-08 | Phase 14 | Pending |
+| UI-09 | Phase 14 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 32 total
-- Mapped to phases: 0
-- Unmapped: 32 ⚠️
+- Mapped to phases: 32
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-18*
-*Last updated: 2026-03-18 after initial definition*
+*Last updated: 2026-03-18 — traceability filled after roadmap creation*
