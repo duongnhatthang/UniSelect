@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Scraper Expansion + Quality + UX
 status: planning
-stopped_at: Completed 12-01-PLAN.md
-last_updated: "2026-03-19T07:13:46.145Z"
+stopped_at: Completed 12-02-PLAN.md
+last_updated: "2026-03-19T07:16:30.250Z"
 last_activity: 2026-03-18 — v2.0 roadmap created
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
   percent: 0
 ---
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 11-bug-fixes-data-correctness P03 | 8 | 2 tasks | 5 files |
 | Phase 11-bug-fixes-data-correctness P02 | 2 | 2 tasks | 9 files |
 | Phase 12-testing-ci P01 | 2 | 2 tasks | 2 files |
+| Phase 12-testing-ci P02 | 1 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,8 @@ Recent decisions affecting current work:
 - [Phase 11-02]: clearTimeout via .finally() — .finally() fires on both resolution and rejection paths, ensuring no timer handle is ever left dangling
 - [Phase 12-testing-ci]: vitest run added to package.json test script after lint entry — no new dependencies required (vitest already installed)
 - [Phase 12-testing-ci]: engine.test.ts uses literal values not faker for boundary tests — avoids non-determinism at tier classification edges
+- [Phase 12-testing-ci]: Supabase env var placeholder fallbacks in CI build step so fork PRs without repo secrets can run the workflow
+- [Phase 12-testing-ci]: CI triggers only on pull_request (not push) per TEST-02 — push events not gated
 
 ### Pending Todos
 
@@ -112,6 +115,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T07:13:46.142Z
-Stopped at: Completed 12-01-PLAN.md
+Last session: 2026-03-19T07:16:30.247Z
+Stopped at: Completed 12-02-PLAN.md
 Resume file: None

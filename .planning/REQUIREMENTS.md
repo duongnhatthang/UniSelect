@@ -32,9 +32,9 @@ Requirements for v2.0 release. Each maps to roadmap phases. Priority: Scraper Ex
 ### Testing & CI
 
 - [x] **TEST-01**: Recommendation engine has synthetic data tests covering NaN input, null score, comma-decimal, all 5 tier boundary values, 0-practical pool, and exactly-15 pool
-- [ ] **TEST-02**: GitHub Actions CI workflow runs `npm test` and `npm run build` on pull requests
-- [ ] **TEST-03**: Dead `src/` directory removed from repository
-- [ ] **TEST-04**: `public/sw.js` added to .gitignore (build artifact, not source)
+- [x] **TEST-02**: GitHub Actions CI workflow runs `npm test` and `npm run build` on pull requests
+- [x] **TEST-03**: Dead `src/` directory removed from repository
+- [x] **TEST-04**: `public/sw.js` added to .gitignore (build artifact, not source)
 
 ### Infrastructure
 
@@ -99,9 +99,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FIX-07 | Phase 11 | Complete |
 | FIX-08 | Phase 11 | Complete |
 | TEST-01 | Phase 12 | Complete |
-| TEST-02 | Phase 12 | Pending |
-| TEST-03 | Phase 12 | Pending |
-| TEST-04 | Phase 12 | Pending |
+| TEST-02 | Phase 12 | Complete |
+| TEST-03 | Phase 12 | Complete |
+| TEST-04 | Phase 12 | Complete |
 | INFR-01 | Phase 13 | Pending |
 | INFR-02 | Phase 13 | Pending |
 | INFR-03 | Phase 13 | Pending |
