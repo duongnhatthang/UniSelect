@@ -74,7 +74,7 @@ Plans:
 **Goal**: Running the discovery crawler against university homepages produces a ranked list of candidate cutoff-page URLs in a review file — without touching scrapers.json or the production database
 **Depends on**: Phase 9
 **Requirements**: SCRP-04, SCRP-05
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 10-01-PLAN.md — Keyword scorer, types, constants, and Crawlee dependency install
@@ -148,7 +148,7 @@ Note: Phase 14 depends on Phase 11 (not Phase 13) — UI work can proceed in par
 | 7. Adapter Verification | v1.0 | 3/3 | Complete | 2026-03-18 |
 | 8. Scraper Foundation | 3/3 | Complete   | 2026-03-19 | - |
 | 9. Scraper Resilience Testing | 1/2 | In Progress|  | - |
-| 10. Auto-Discovery Crawler | v2.0 | 0/2 | Planned | - |
+| 10. Auto-Discovery Crawler | 1/2 | In Progress|  | - |
 | 11. Bug Fixes & Data Correctness | v2.0 | 0/? | Not started | - |
 | 12. Testing & CI | v2.0 | 0/? | Not started | - |
 | 13. Infrastructure Hardening | v2.0 | 0/? | Not started | - |

@@ -12,7 +12,7 @@ Requirements for v2.0 release. Each maps to roadmap phases. Priority: Scraper Ex
 - [x] **SCRP-01**: Generic adapter factory replaces 70+ copy-pasted cheerio adapters with a config-driven `createCheerioAdapter(config)` function
 - [x] **SCRP-02**: Scraper runner uses batched DB inserts (one INSERT per table per adapter) instead of row-by-row upserts
 - [x] **SCRP-03**: Zero-rows guard in runner rejects adapters returning empty results with explicit error logging
-- [ ] **SCRP-04**: Auto-discovery crawler scans university homepages and outputs ranked cutoff-page URL candidates to a review file
+- [x] **SCRP-04**: Auto-discovery crawler scans university homepages and outputs ranked cutoff-page URL candidates to a review file
 - [ ] **SCRP-05**: Auto-discovery enforces per-domain rate limiting and robots.txt compliance
 - [x] **SCRP-06**: Fake HTTP server serves HTML fixtures for scraper integration tests (cheerio + Playwright adapters)
 - [x] **SCRP-07**: HTML fixture library covers verified adapter formats plus irregular edge cases (comma-decimal, missing table, multi-method)
@@ -85,7 +85,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCRP-01 | Phase 8 | Complete |
 | SCRP-02 | Phase 8 | Complete |
 | SCRP-03 | Phase 8 | Complete |
-| SCRP-04 | Phase 10 | Pending |
+| SCRP-04 | Phase 10 | Complete |
 | SCRP-05 | Phase 10 | Pending |
 | SCRP-06 | Phase 9 | Complete |
 | SCRP-07 | Phase 9 | Complete |
