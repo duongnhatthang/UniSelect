@@ -31,7 +31,7 @@ jobs:
             paddleocr-models-${{ runner.os }}-
 
       - name: Install dependencies
-        run: pip install paddleocr Pillow
+        run: pip install paddlepaddle paddleocr Pillow
 
       - name: Warm up / download PaddleOCR models
         run: python3 -c "from paddleocr import PaddleOCR; PaddleOCR(lang='vi')"

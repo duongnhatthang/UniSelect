@@ -16,6 +16,6 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - name: Ping Supabase database
-        run: npx tsx scripts/keepalive.ts
+        run: node scripts/keepalive.mjs
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

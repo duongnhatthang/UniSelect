@@ -1,6 +1,7 @@
 /**
  * Supabase keep-alive ping.
  * Runs via GitHub Actions cron to prevent free-tier auto-pause.
+ * Uses .mjs extension for native ESM (avoids tsx/esbuild dependency).
  */
 import postgres from 'postgres';
 
@@ -11,7 +12,6 @@ if (!url) {
 }
 
 const sql = postgres(url, { prepare: false });
-
 try {
   const result = await sql`SELECT 1 as ok`;
   console.log('keep-alive: database is active', result);
