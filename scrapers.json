@@ -12,7 +12,12 @@
     "adapter": "bka",
     "url": "https://hust.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["diem chuan", "Diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "KHA",
@@ -20,7 +25,12 @@
     "url": "https://www.neu.edu.vn/",
     "note": "Scores published as PDF download — requires PDF parsing. Not viable for cheerio scraping.",
     "static_verified": false,
-    "scraping_method": "manual"
+    "scraping_method": "manual",
+    "factory_config": {
+      "scoreKeywords": ["diem chuan", "Diem chuan"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop"]
+    }
   },
   {
     "id": "NTH",
@@ -28,7 +38,12 @@
     "url": "https://ftu.edu.vn/",
     "note": "Scores published via Google Drive link — not viable for direct scraping.",
     "static_verified": false,
-    "scraping_method": "manual"
+    "scraping_method": "manual",
+    "factory_config": {
+      "scoreKeywords": ["diem chuan", "Diem chuan"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop"]
+    }
   },
   {
     "id": "GHA",
@@ -49,427 +64,732 @@
     "adapter": "bvh",
     "url": "https://tuyensinh.ptit.edu.vn/gioi-thieu/xem-diem-cac-nam-truoc/diem-trung-tuyen-2024/",
     "note": "Verified 2026-03-18: static HTML table with THPT (100) score column. URL is year-specific -- update annually.",
-    "static_verified": true
+    "static_verified": true,
+    "factory_config": {
+      "scoreKeywords": ["thpt", "diem chuan", "diem trung tuyen"],
+      "majorKeywords": ["ma nganh", "ma xet tuyen", "nganh"],
+      "tohopKeywords": ["to hop", "khoi", "to hop xet tuyen"]
+    }
   },
   {
     "id": "CCM",
     "adapter": "ccm",
     "url": "http://hict.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "CMC",
     "adapter": "cmc",
     "url": "https://cmc-u.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "DCQ",
     "adapter": "dcq",
     "url": "https://utm.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "DDD",
     "adapter": "ddd",
     "url": "https://hdiu.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "DDL",
     "adapter": "ddl",
     "url": "https://epu.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "DDN",
     "adapter": "ddn",
     "url": "https://dainam.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "DKH",
     "adapter": "dkh",
     "url": "https://hup.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "DKK",
     "adapter": "dkk",
     "url": "https://uneti.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "DKS",
     "adapter": "dks",
     "url": "https://hpu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "DLX",
     "adapter": "dlx",
     "url": "http://ulsa.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "DMT",
     "adapter": "dmt",
     "url": "https://hunre.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "DNV",
     "adapter": "dnv",
     "url": "https://huha.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "DPD",
     "adapter": "dpd",
     "url": "https://phuongdong.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "DQK",
     "adapter": "dqk",
     "url": "https://hubt.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "DTL",
     "adapter": "dtl",
     "url": "https://thanglong.edu.vn/node/1",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "FBU",
     "adapter": "fbu",
     "url": "https://fbu.edu.vn/gioi-thieu/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "FPT",
     "adapter": "fpt",
     "url": "https://hanoi.fpt.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "GNT",
     "adapter": "gnt",
     "url": "http://www.spnttw.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "GTA",
     "adapter": "gta",
     "url": "https://utt.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "HBU",
     "adapter": "hbu",
     "url": "https://daihochoabinh.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "HCH",
     "adapter": "hch",
     "url": "https://www1.napa.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "HCP",
     "adapter": "hcp",
     "url": "https://apd.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "HNM",
     "adapter": "hnm",
     "url": "https://hnmu.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "HPN",
     "adapter": "hpn",
     "url": "https://hvpnvn.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "HQT",
     "adapter": "hqt",
     "url": "https://www.dav.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "HTA",
     "adapter": "hta",
     "url": "http://hocvientoaan.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "HTC",
     "adapter": "htc",
     "url": "https://tuyensinh.hvtc.edu.vn/tabid/1699/catid/916/news/38174/TB-vv-Ket-qua-trung-tuyen-he-dai-hoc-chinh-quy-nam-2025/Default.aspx",
     "note": "Verified 2026-03-18: static HTML table with TT/Mã ngành/Tên ngành/Điểm trúng tuyển columns",
-    "static_verified": true
+    "static_verified": true,
+    "factory_config": {
+      "scoreKeywords": ["điểm trúng tuyển", "diem trung tuyen", "điểm chuẩn", "diem chuan"],
+      "majorKeywords": ["mã ngành", "ma nganh", "mã xét tuyển", "ma xet tuyen"],
+      "defaultTohop": "A00"
+    }
   },
   {
     "id": "HTN",
     "adapter": "htn",
     "url": "https://vya.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "HVD",
     "adapter": "hvd",
     "url": "https://hvdt.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "HVM",
     "adapter": "hvm",
     "url": "https://www.vnad.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "HVN",
     "adapter": "hvn",
     "url": "https://tuyensinh.vnua.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "HVQ",
     "adapter": "hvq",
     "url": "https://www.naem.edu.vn/vi",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "HYD",
     "adapter": "hyd",
     "url": "http://vutm.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "KCN",
     "adapter": "kcn",
     "url": "https://usth.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "KMA",
     "adapter": "kma",
     "url": "https://actvn.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "KTA",
     "adapter": "kta",
     "url": "https://hau.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "LDA",
     "adapter": "lda",
     "url": "http://dhcd.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "LNH",
     "adapter": "lnh",
     "url": "https://vnuf.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "LPH",
     "adapter": "lph",
     "url": "https://hlu.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "MDA",
     "adapter": "mda",
     "url": "http://humg.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "MHN",
     "adapter": "mhn",
     "url": "https://hou.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "MTC",
     "adapter": "mtc",
     "url": "https://uad.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "MTH",
     "adapter": "mth",
     "url": "https://mythuatvietnam.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "NHF",
     "adapter": "nhf",
     "url": "https://www.hanu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "NHH",
     "adapter": "nhh",
     "url": "https://hvnh.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "NTU",
     "adapter": "ntu",
     "url": "https://daihocnguyentrai.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "NVH",
     "adapter": "nvh",
     "url": "https://vnam.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "PKA",
     "adapter": "pka",
     "url": "https://phenikaa-uni.edu.vn/vi",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "QH",
     "adapter": "qh",
     "url": "https://www.vnu.edu.vn/home/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "QHE",
     "adapter": "qhe",
     "url": "https://ueb.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "QHF",
     "adapter": "qhf",
     "url": "https://ulis.vnu.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "QHI",
     "adapter": "qhi",
     "url": "https://uet.vnu.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "QHJ",
     "adapter": "qhj",
     "url": "https://vju.ac.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "QHL",
     "adapter": "qhl",
     "url": "https://law.vnu.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "QHQ",
     "adapter": "qhq",
     "url": "https://tuyensinh.vnuis.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "QHS",
     "adapter": "qhs",
     "url": "https://education.vnu.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "QHT",
     "adapter": "qht",
     "url": "https://hus.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "QHX",
     "adapter": "qhx",
     "url": "https://ussh.vnu.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "QHY",
     "adapter": "qhy",
     "url": "https://ump.vnu.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "SKD",
     "adapter": "skd",
     "url": "https://skda.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "SPH",
@@ -477,76 +797,131 @@
     "url": "https://tuyensinh.hnue.edu.vn/thong-bao/545",
     "note": "URL updated 2026-03-18: old path 404. New page is JS-rendered (Next.js SSR) — needs Playwright adapter. Cutoff data confirmed present (40+ rows).",
     "static_verified": false,
-    "scraping_method": "playwright"
+    "scraping_method": "playwright",
+    "factory_config": {
+      "scoreKeywords": ["điểm chuẩn", "diem chuan", "điểm trúng tuyển", "diem trung tuyen"],
+      "majorKeywords": ["mã ngành", "ma nganh", "mã xét tuyển", "ma xet tuyen"],
+      "tohopKeywords": ["tổ hợp", "to hop", "khối", "khoi"]
+    }
   },
   {
     "id": "TDD",
     "adapter": "tdd",
     "url": "https://thanhdo.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "TDH",
     "adapter": "tdh",
     "url": "https://hupes.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "TGC",
     "adapter": "tgc",
     "url": "https://daotaoajc.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "TLA",
     "adapter": "tla",
     "url": "https://ts.tlu.edu.vn/",
     "note": "URL updated 2026-03-18: old subdomain redirects 301 to tlu.edu.vn. Admissions at ts.tlu.edu.vn returned 502. Needs manual re-verification.",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["điểm chuẩn", "diem chuan", "điểm trúng tuyển", "diem trung tuyen"],
+      "majorKeywords": ["mã ngành", "ma nganh", "mã xét tuyển", "ma xet tuyen"],
+      "tohopKeywords": ["tổ hợp", "to hop", "khối", "khoi"]
+    }
   },
   {
     "id": "TMA",
     "adapter": "tma",
     "url": "https://tmu.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "VHD",
     "adapter": "vhd",
     "url": "https://viu.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "VHH",
     "adapter": "vhh",
     "url": "https://huc.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "XDA",
     "adapter": "xda",
     "url": "https://huce.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "YHB",
     "adapter": "yhb",
     "url": "https://hmu.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   },
   {
     "id": "YTC",
     "adapter": "ytc",
     "url": "https://huph.edu.vn/",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false
+    "static_verified": false,
+    "factory_config": {
+      "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
+      "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
+      "tohopKeywords": ["To hop", "Khoi", "to hop", "Tổ hợp"]
+    }
   }
 ]

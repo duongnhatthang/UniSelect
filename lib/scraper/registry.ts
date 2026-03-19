@@ -1,6 +1,8 @@
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { ScraperAdapter } from './types';
+import type { ScraperAdapter } from './types';
+import { createCheerioAdapter } from './factory';
+import type { CheerioAdapterConfig } from './factory';
 
 interface RegistryEntry {
   id: string;
@@ -8,6 +10,7 @@ interface RegistryEntry {
   url: string;
   static_verified: boolean;
   note?: string;
+  factory_config?: Omit<CheerioAdapterConfig, 'id'>;  // id comes from entry.id
 }
 
 interface ResolvedEntry {
@@ -28,9 +31,18 @@ export async function loadRegistry(): Promise<ResolvedEntry[]> {
       );
       continue;
     }
-    const mod = await import(`./adapters/${entry.adapter}`);
-    // Each adapter module exports a named adapter object conforming to ScraperAdapter
-    const adapter: ScraperAdapter = mod.default ?? mod[`${entry.adapter}Adapter`];
+
+    let adapter: ScraperAdapter;
+
+    if (entry.factory_config) {
+      // Use factory for cheerio-based adapters
+      adapter = createCheerioAdapter({ id: entry.id, ...entry.factory_config });
+    } else {
+      // Dynamic import for non-cheerio adapters (GHA/PaddleOCR, Playwright)
+      const mod = await import(`./adapters/${entry.adapter}`);
+      adapter = mod.default ?? mod[`${entry.adapter}Adapter`];
+    }
+
     resolved.push({ id: entry.id, adapter, url: entry.url });
   }
 
