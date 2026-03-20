@@ -71,19 +71,21 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 **Target features:**
 - ✓ Comprehensive Vietnamese university/college master list (343 institutions) — Phase 15
 - ✓ Registry gate fixed: scrape_url presence check replaces static_verified — Phase 15
-- Working end-to-end scraper that produces real data in Supabase
-- Auto-discovery integrated into GitHub Actions workflow
-- Scrape status logging so progress is observable
-- All tổ hợp combinations captured per university
+- ✓ Auto-discovery integrated into GitHub Actions (weekly cron + manual dispatch) — Phase 16
+- ✓ apply-discovery.ts: human-gated script to patch scrapers.json from discovery output — Phase 16
+- ✓ Scrape status API endpoint (GET /api/admin/scrape-status) — Phase 17
+- ✓ 90-day scrape_runs pruning in keepalive.mjs — Phase 17
+- ✓ RunSummary + GHA shard summary logging — Phase 17
+- ✓ Wide-table tổ hợp parsing (wideTable flag in factory) — Phase 18
+- ✓ 24-job type-isolated shard matrix (20 cheerio + 2 playwright + 2 paddleocr) — Phase 18
 
 ## Current State
 
-**Shipped:** v2.0 (2026-03-19)
-**In progress:** v3.0 — Phase 15 complete (registry gate fixed, 343 universities seeded)
-**Codebase:** ~14,500 LOC TypeScript + Python (PaddleOCR helper)
+**Shipped:** v3.0 (2026-03-20)
+**Codebase:** ~15,200 LOC TypeScript + Python (PaddleOCR helper)
 **Tech stack:** Next.js 16, Supabase (PostgreSQL), Drizzle ORM, Serwist (PWA), next-intl, nuqs, next-themes, MSW, Crawlee, Playwright, PaddleOCR
-**Universities:** 343 in master list (up from 78), 4 with verified scrape URLs
-**Tests:** 578 passing (vitest)
+**Universities:** 343 in master list, 4 with verified scrape URLs, auto-discovery pipeline ready
+**Tests:** 611 passing (vitest)
 **Infrastructure:** Vercel (frontend/API), Supabase (DB), GitHub Actions (scraping cron + CI + PaddleOCR smoke + keepalive)
 
 ### Critical Problem (v3.0 Focus)
@@ -139,4 +141,4 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 | Score range 0-30 | User feedback: 10-30 was too restrictive | ✓ Good |
 
 ---
-*Last updated: 2026-03-20 after Phase 15 complete*
+*Last updated: 2026-03-20 after v3.0 milestone complete*
