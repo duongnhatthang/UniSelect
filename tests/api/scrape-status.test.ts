@@ -35,7 +35,7 @@ vi.mock('drizzle-orm', () => ({
   ),
 }));
 
-import { getScrapeStatus } from '../../app/api/admin/scrape-status/route';
+import { getScrapeStatus } from '../../lib/api/scrape-status';
 
 const makeRow = (
   university_id: string,

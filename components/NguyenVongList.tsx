@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { RecommendResult } from '../lib/recommend/types';
+import type { RecommendResult, Tier } from '../lib/recommend/types';
 import { TierBadge } from './TierBadge';
 import { computeDelta } from '../lib/recommend/delta';
 import { classifyTier } from '../lib/recommend/engine';
@@ -11,7 +11,7 @@ export interface NvItem {
   m: string;   // major_id
   un?: string;  // university_name_vi (for display after reload)
   mn?: string;  // major_name_vi
-  t?: string;   // tier
+  t?: Tier;     // tier
   wc?: number;  // weighted_cutoff
 }
 
