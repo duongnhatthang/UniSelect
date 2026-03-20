@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { mockDb } = vi.hoisted(() => {
+// Must use vi.hoisted to ensure mocks are hoisted before imports
+const { mockDb, mockGroupBy, mockFrom } = vi.hoisted(() => {
   const mockGroupBy = vi.fn();
   const mockFrom = vi.fn();
   const mockSelect = vi.fn();
@@ -9,25 +10,26 @@ const { mockDb } = vi.hoisted(() => {
   mockFrom.mockReturnValue({ groupBy: mockGroupBy });
   mockSelect.mockReturnValue({ from: mockFrom });
 
-  return { mockDb };
+  return { mockDb, mockGroupBy, mockFrom };
 });
 
-vi.mock('../../../../lib/db', () => ({ db: mockDb }));
+// Mock lib/db — path relative to project root (vitest normalizes these)
+vi.mock('../../lib/db', () => ({ db: mockDb }));
 
-vi.mock('../../../../lib/db/schema', () => ({
+vi.mock('../../lib/db/schema', () => ({
   scrapeRuns: {
-    university_id: 'university_id',
-    run_at: 'run_at',
-    status: 'status',
-    rows_written: 'rows_written',
+    university_id: 'col_university_id',
+    run_at: 'col_run_at',
+    status: 'col_status',
+    rows_written: 'col_rows_written',
   },
 }));
 
 vi.mock('drizzle-orm', () => ({
-  max: vi.fn((col) => ({ _max: col })),
+  max: vi.fn((col) => `max(${col})`),
   sql: Object.assign(
     (strings: TemplateStringsArray, ..._values: unknown[]) => {
-      return strings.join('?');
+      return strings.raw.join('?');
     },
     { raw: {} }
   ),
@@ -46,20 +48,16 @@ const makeRow = (
 describe('getScrapeStatus', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    const mockGroupBy = vi.fn();
-    const mockFrom = vi.fn();
+    mockGroupBy.mockReset();
+    mockFrom.mockReset();
     mockFrom.mockReturnValue({ groupBy: mockGroupBy });
     mockDb.select.mockReturnValue({ from: mockFrom });
-
-    // Store groupBy ref so tests can configure resolved values
-    (mockDb as any)._groupBy = mockGroupBy;
   });
 
   it('returns array of objects with university_id, last_run_at, last_status, last_rows_written, has_error fields', async () => {
     const now = new Date();
     const rows = [makeRow('BKA', now, 'ok', 42, false)];
-    (mockDb as any)._groupBy.mockResolvedValue(rows);
+    mockGroupBy.mockResolvedValue(rows);
 
     const result = await getScrapeStatus();
 
@@ -72,7 +70,7 @@ describe('getScrapeStatus', () => {
   });
 
   it('returns empty array when no scrape_runs exist', async () => {
-    (mockDb as any)._groupBy.mockResolvedValue([]);
+    mockGroupBy.mockResolvedValue([]);
 
     const result = await getScrapeStatus();
 
@@ -86,7 +84,7 @@ describe('getScrapeStatus', () => {
       makeRow('NEU', now, 'error', 0, true),
       makeRow('HUS', now, 'flagged', 50, false),
     ];
-    (mockDb as any)._groupBy.mockResolvedValue(rows);
+    mockGroupBy.mockResolvedValue(rows);
 
     const result = await getScrapeStatus();
 
@@ -97,7 +95,7 @@ describe('getScrapeStatus', () => {
   it('reflects has_error=true for rows with error status', async () => {
     const now = new Date();
     const rows = [makeRow('DCN', now, 'error', 0, true)];
-    (mockDb as any)._groupBy.mockResolvedValue(rows);
+    mockGroupBy.mockResolvedValue(rows);
 
     const result = await getScrapeStatus();
 
@@ -105,15 +103,15 @@ describe('getScrapeStatus', () => {
     expect(result[0].last_status).toBe('error');
   });
 
-  it('calls db.select with scrapeRuns table', async () => {
-    (mockDb as any)._groupBy.mockResolvedValue([]);
+  it('calls db.select and groups by scrapeRuns.university_id', async () => {
+    mockGroupBy.mockResolvedValue([]);
 
     await getScrapeStatus();
 
     expect(mockDb.select).toHaveBeenCalledTimes(1);
-    const fromMock = mockDb.select.mock.results[0].value.from;
-    expect(fromMock).toHaveBeenCalledWith(
-      expect.objectContaining({ university_id: 'university_id' })
+    expect(mockFrom).toHaveBeenCalledWith(
+      expect.objectContaining({ university_id: 'col_university_id' })
     );
+    expect(mockGroupBy).toHaveBeenCalledWith('col_university_id');
   });
 });
