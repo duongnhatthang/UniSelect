@@ -43,7 +43,7 @@ vi.mock('drizzle-orm', () => ({
   sql: (strings: TemplateStringsArray, ..._values: unknown[]) => strings.join(''),
 }));
 
-import { runScraper } from '../../lib/scraper/runner';
+import { runScraper, RunSummary } from '../../lib/scraper/runner';
 
 const makeValidRow = (overrides: Partial<RawRow> = {}): RawRow => ({
   university_id: 'BKA',
@@ -221,5 +221,91 @@ describe('runScraper', () => {
     expect(okRun).toBeDefined();
     expect(zeroRun!.university_id).toBe('BKA');
     expect(okRun!.university_id).toBe('DHQGHN');
+  });
+});
+
+describe('RunSummary counts', () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    mockInsert.mockImplementation(() => {
+      const valuesFn = vi.fn().mockImplementation((v: Record<string, unknown>) => ({
+        onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
+        onConflictDoNothing: vi.fn().mockResolvedValue(undefined),
+        _capturedValue: v,
+      }));
+      return { values: valuesFn };
+    });
+    mockTxInsert.mockImplementation(() => {
+      const valuesFn = vi.fn().mockImplementation(() => ({
+        onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
+        onConflictDoNothing: vi.fn().mockResolvedValue(undefined),
+      }));
+      return { values: valuesFn };
+    });
+    const { db } = await import('../../lib/db');
+    (db.transaction as ReturnType<typeof vi.fn>).mockImplementation(
+      async (fn: (tx: { insert: typeof mockTxInsert }) => Promise<unknown>) =>
+        fn({ insert: mockTxInsert })
+    );
+  });
+
+  it('returns { attempted: 2, succeeded: 2, failed: 0, zero_rows: 0 } for 2 ok adapters', async () => {
+    const adapter1 = makeAdapter('BKA', [makeValidRow()]);
+    const adapter2 = makeAdapter('DHQGHN', [makeValidRow({ university_id: 'DHQGHN' })]);
+
+    const summary: RunSummary = await runScraper([
+      { id: 'BKA', adapter: adapter1, url: 'https://bka.example.com' },
+      { id: 'DHQGHN', adapter: adapter2, url: 'https://dhqghn.example.com' },
+    ]);
+
+    expect(summary.attempted).toBe(2);
+    expect(summary.succeeded).toBe(2);
+    expect(summary.failed).toBe(0);
+    expect(summary.zero_rows).toBe(0);
+  });
+
+  it('returns { attempted: 2, succeeded: 1, failed: 1, zero_rows: 0 } for 1 ok + 1 error adapter', async () => {
+    const okAdapter = makeAdapter('DHQGHN', [makeValidRow({ university_id: 'DHQGHN' })]);
+    const errorAdapter = makeAdapter('BKA', new Error('Network timeout'));
+
+    const summary: RunSummary = await runScraper([
+      { id: 'BKA', adapter: errorAdapter, url: 'https://bka.example.com' },
+      { id: 'DHQGHN', adapter: okAdapter, url: 'https://dhqghn.example.com' },
+    ]);
+
+    expect(summary.attempted).toBe(2);
+    expect(summary.succeeded).toBe(1);
+    expect(summary.failed).toBe(1);
+    expect(summary.zero_rows).toBe(0);
+  });
+
+  it('returns { attempted: 1, succeeded: 0, failed: 0, zero_rows: 1 } for 1 zero_rows adapter', async () => {
+    const emptyAdapter = makeAdapter('BKA', []);
+
+    const summary: RunSummary = await runScraper([
+      { id: 'BKA', adapter: emptyAdapter, url: 'https://bka.example.com' },
+    ]);
+
+    expect(summary.attempted).toBe(1);
+    expect(summary.succeeded).toBe(0);
+    expect(summary.failed).toBe(0);
+    expect(summary.zero_rows).toBe(1);
+  });
+
+  it('returns { attempted: 1, succeeded: 1, failed: 0, zero_rows: 0 } for 1 flagged adapter (flagged counts as succeeded)', async () => {
+    // score_raw '9.0' is below 10.0, so the row is rejected → rowsRejected > 0 → status = 'flagged'
+    const flaggedAdapter = makeAdapter('BKA', [
+      makeValidRow(),
+      makeValidRow({ score_raw: '9.0' }),
+    ]);
+
+    const summary: RunSummary = await runScraper([
+      { id: 'BKA', adapter: flaggedAdapter, url: 'https://bka.example.com' },
+    ]);
+
+    expect(summary.attempted).toBe(1);
+    expect(summary.succeeded).toBe(1);
+    expect(summary.failed).toBe(0);
+    expect(summary.zero_rows).toBe(0);
   });
 });
