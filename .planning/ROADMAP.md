@@ -63,8 +63,8 @@ Full details: `.planning/milestones/v2.0-phases/`
   5. At least 4 previously-verified adapters produce real cutoff score rows in Supabase after the registry gate fix
 **Plans:** 2/2 plans complete
 Plans:
-- [ ] 15-01-PLAN.md — Registry gate fix + scrapers.json schema migration (SCRP-09, SCRP-10)
-- [ ] 15-02-PLAN.md — University master list data + seed script (UNIC-01, UNIC-02, UNIC-03)
+- [x] 15-01-PLAN.md — Registry gate fix + scrapers.json schema migration (SCRP-09, SCRP-10)
+- [x] 15-02-PLAN.md — University master list data + seed script (UNIC-01, UNIC-02, UNIC-03)
 
 ### Phase 16: Auto-Discovery CI Integration
 **Goal**: The auto-discovery crawler runs automatically every week via GitHub Actions, producing a reviewed candidate list of cutoff page URLs that can be applied to scrapers.json through a human-gated script
@@ -75,7 +75,10 @@ Plans:
   2. Each workflow run produces a `discovery-candidates.json` artifact downloadable from the Actions run summary, containing ranked URL candidates with confidence scores
   3. Running `scripts/apply-discovery.ts` with a reviewed candidates file patches `scrapers.json` — entries with existing `verified_at` are never overwritten
   4. After a manual `workflow_dispatch` run against all 400+ university homepages, at least some entries in `scrapers.json` have a non-null `scrape_url` populated from discovery output
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 16-01-PLAN.md — discover.ts schema migration + discover.yml workflow (DISC-01, DISC-02)
+- [ ] 16-02-PLAN.md — apply-discovery.ts script + guard tests (DISC-03)
 
 ### Phase 17: Scrape Monitoring + DB Health
 **Goal**: Pipeline health is observable — maintainers can query per-university scrape status, the scrape_runs table will not exhaust Supabase's 500 MB free tier, and each GHA scrape run logs a human-readable summary
@@ -121,10 +124,10 @@ Note: Phase 17 and Phase 18 both depend on Phase 16 completing. They can proceed
 | 12. Testing & CI | v2.0 | 2/2 | Complete | 2026-03-19 |
 | 13. Infrastructure Hardening | v2.0 | 2/2 | Complete | 2026-03-19 |
 | 14. UI/UX Redesign | v2.0 | 4/4 | Complete | 2026-03-19 |
-| 15. University Master List + Registry Gate Fix | 2/2 | Complete    | 2026-03-20 | - |
-| 16. Auto-Discovery CI Integration | v3.0 | 0/? | Not started | - |
+| 15. University Master List + Registry Gate Fix | v3.0 | 2/2 | Complete | 2026-03-20 |
+| 16. Auto-Discovery CI Integration | v3.0 | 0/2 | Planned | - |
 | 17. Scrape Monitoring + DB Health | v3.0 | 0/? | Not started | - |
 | 18. tổ Hợp Coverage + Infrastructure Scale | v3.0 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-03-20 — Phase 15 planned (2 plans, Wave 1)*
+*Last updated: 2026-03-20 — Phase 16 planned (2 plans, Wave 1)*
