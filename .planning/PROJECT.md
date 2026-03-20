@@ -66,10 +66,11 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 
 ## Current Milestone: v3.0 Complete Data Pipeline
 
-**Goal:** Make the scraper pipeline actually produce data — expand university coverage from 78 to 400+, fix the registry gate that silently skips 95% of adapters, integrate auto-discovery into CI, and ensure all cutoff scores are stored in Supabase with monitoring.
+**Goal:** Make the scraper pipeline actually produce data — expand university coverage from 78 to 250+, fix the registry gate that silently skips 95% of adapters, integrate auto-discovery into CI, and ensure all cutoff scores are stored in Supabase with monitoring.
 
 **Target features:**
-- Comprehensive Vietnamese university/college master list (400+ institutions)
+- ✓ Comprehensive Vietnamese university/college master list (343 institutions) — Phase 15
+- ✓ Registry gate fixed: scrape_url presence check replaces static_verified — Phase 15
 - Working end-to-end scraper that produces real data in Supabase
 - Auto-discovery integrated into GitHub Actions workflow
 - Scrape status logging so progress is observable
@@ -78,10 +79,11 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 ## Current State
 
 **Shipped:** v2.0 (2026-03-19)
-**Codebase:** ~14,091 LOC TypeScript + Python (PaddleOCR helper)
+**In progress:** v3.0 — Phase 15 complete (registry gate fixed, 343 universities seeded)
+**Codebase:** ~14,500 LOC TypeScript + Python (PaddleOCR helper)
 **Tech stack:** Next.js 16, Supabase (PostgreSQL), Drizzle ORM, Serwist (PWA), next-intl, nuqs, next-themes, MSW, Crawlee, Playwright, PaddleOCR
-**Verified adapters:** 6 of 78 (config-driven factory for all cheerio adapters)
-**Tests:** 517 passing (vitest)
+**Universities:** 343 in master list (up from 78), 4 with verified scrape URLs
+**Tests:** 578 passing (vitest)
 **Infrastructure:** Vercel (frontend/API), Supabase (DB), GitHub Actions (scraping cron + CI + PaddleOCR smoke + keepalive)
 
 ### Critical Problem (v3.0 Focus)
@@ -137,4 +139,4 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 | Score range 0-30 | User feedback: 10-30 was too restrictive | ✓ Good |
 
 ---
-*Last updated: 2026-03-19 after v3.0 milestone started*
+*Last updated: 2026-03-20 after Phase 15 complete*
