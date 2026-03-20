@@ -14,10 +14,11 @@ interface RegistryEntry {
   factory_config?: Omit<CheerioAdapterConfig, 'id'>;
 }
 
-interface ResolvedEntry {
+export interface ResolvedEntry {
   id: string;
   adapter: ScraperAdapter;
   url: string;
+  adapterType: string;
 }
 
 export async function loadRegistry(): Promise<ResolvedEntry[]> {
@@ -44,7 +45,7 @@ export async function loadRegistry(): Promise<ResolvedEntry[]> {
       adapter = mod.default ?? mod[`${entry.adapter}Adapter`];
     }
 
-    resolved.push({ id: entry.id, adapter, url: entry.scrape_url });
+    resolved.push({ id: entry.id, adapter, url: entry.scrape_url, adapterType: entry.adapter_type ?? 'cheerio' });
   }
 
   return resolved;
