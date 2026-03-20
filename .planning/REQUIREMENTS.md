@@ -29,8 +29,8 @@ Requirements for v3.0 release. Priority: Data Pipeline > Monitoring > Scale.
 ### Scrape Monitoring
 
 - [x] **MON-01**: Scrape status is queryable — shows per-university last successful scrape time, rows written, and error status
-- [ ] **MON-02**: scrape_runs table has a retention policy (90-day pruning) to stay within Supabase 500MB free-tier limit
-- [ ] **MON-03**: GitHub Actions scrape workflow logs summary statistics (total universities attempted, succeeded, failed, zero-rows) at end of each run
+- [x] **MON-02**: scrape_runs table has a retention policy (90-day pruning) to stay within Supabase 500MB free-tier limit
+- [x] **MON-03**: GitHub Actions scrape workflow logs summary statistics (total universities attempted, succeeded, failed, zero-rows) at end of each run
 
 ### Infrastructure Scale
 
@@ -84,8 +84,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DISC-02 | Phase 16 | Complete |
 | DISC-03 | Phase 16 | Complete |
 | MON-01 | Phase 17 | Complete |
-| MON-02 | Phase 17 | Pending |
-| MON-03 | Phase 17 | Pending |
+| MON-02 | Phase 17 | Complete |
+| MON-03 | Phase 17 | Complete |
 | SCRP-11 | Phase 18 | Pending |
 | SCRP-12 | Phase 18 | Pending |
 | INFR-04 | Phase 18 | Pending |

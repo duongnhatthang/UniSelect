@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Complete Data Pipeline
 status: unknown
-stopped_at: Completed 17-02-PLAN.md
-last_updated: "2026-03-20T08:19:02.294Z"
+stopped_at: Completed 17-01-PLAN.md
+last_updated: "2026-03-20T08:19:45.713Z"
 progress:
   total_phases: 4
   completed_phases: 3
@@ -52,6 +52,8 @@ Key v3.0 decisions:
 - [Phase 17]: Cache-Control: no-store on scrape-status endpoint — scrape health must always be fresh
 - [Phase 17]: has_error boolean not raw error_log in GET /api/admin/scrape-status — avoids exposing internal rejection details
 - [Phase 17]: No auth guard on scrape-status endpoint per FUTURE-07 — admin UI/auth deferred to v4+
+- [Phase 17-scrape-monitoring-db-health]: flagged counts as succeeded in RunSummary; zero_rows is separate counter not failed
+- [Phase 17-scrape-monitoring-db-health]: keepalive.mjs uses RETURNING id for pruned row count; stays pure ESM with only postgres import
 
 ### Pending Todos
 
@@ -65,6 +67,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T08:18:54.834Z
-Stopped at: Completed 17-02-PLAN.md
+Last session: 2026-03-20T08:19:45.711Z
+Stopped at: Completed 17-01-PLAN.md
 Resume file: None
