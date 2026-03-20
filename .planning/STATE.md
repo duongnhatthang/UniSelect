@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Complete Data Pipeline
 status: unknown
-stopped_at: Completed 15-02-PLAN.md
-last_updated: "2026-03-20T07:41:22.873Z"
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-03-20T07:57:10.302Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Give every Vietnamese student the data and strategy to order their nguyện vọng list correctly — because getting the ranking wrong means being locked out of better options permanently.
-**Current focus:** Phase 15 — University Master List + Registry Gate Fix
+**Current focus:** Phase 16 — Auto-Discovery CI Integration
 
 ## Current Position
 
-Phase: 15 (University Master List + Registry Gate Fix) — EXECUTING
-Plan: 2 of 2 (both plans complete)
+Phase: 16 (Auto-Discovery CI Integration) — EXECUTING
+Plan: 1 of 2
 
 ## Performance Metrics
 
@@ -46,6 +46,8 @@ Key v3.0 decisions:
 - scrapers.json schema migration: static_verified removed, scrape_url added (null = not yet discovered)
 - [Phase 15]: onConflictDoNothing preserves manually-edited Supabase rows; seed script safe for re-runs
 - [Phase 15]: data/uni_list.json sorted by id alphabetically for grep-ability and future maintenance
+- [Phase 16]: Skip entries with non-null scrape_url in buildStartUrlsFromScrapers to avoid re-crawling already-discovered universities
+- [Phase 16]: discover.yml uses if-no-files-found: warn not error — crawler may legitimately find zero candidates
 
 ### Pending Todos
 
@@ -59,6 +61,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T07:35:19.230Z
-Stopped at: Completed 15-02-PLAN.md
+Last session: 2026-03-20T07:57:10.299Z
+Stopped at: Completed 16-01-PLAN.md
 Resume file: None

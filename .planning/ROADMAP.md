@@ -45,7 +45,7 @@ Full details: `.planning/milestones/v2.0-phases/`
 **Milestone Goal:** Make the scraper pipeline actually produce data — expand university coverage from 78 to 250+ (MOET recognizes ~243 degree-granting universities), fix the registry gate that silently skips 95% of adapters, integrate auto-discovery into CI, and ensure all cutoff scores are stored in Supabase with monitoring.
 
 - [x] **Phase 15: University Master List + Registry Gate Fix** — Seed 400+ MOET-authoritative universities, rewrite registry gate so adapters with known cutoff URLs actually run (completed 2026-03-20)
-- [ ] **Phase 16: Auto-Discovery CI Integration** — Wire discover.ts into GitHub Actions with weekly cron, produce human-reviewable candidate list, apply-discovery script patches scrapers.json
+- [x] **Phase 16: Auto-Discovery CI Integration** — Wire discover.ts into GitHub Actions with weekly cron, produce human-reviewable candidate list, apply-discovery script patches scrapers.json (completed 2026-03-20)
 - [ ] **Phase 17: Scrape Monitoring + DB Health** — Per-university status queryable, scrape_runs pruned to stay within 500 MB free tier, CI summary logged per run
 - [ ] **Phase 18: tổ Hợp Coverage + Infrastructure Scale** — Factory handles wide-table format, shard count scales to cover 400+ universities, Playwright/OCR adapters isolated to dedicated shards
 
@@ -75,7 +75,7 @@ Plans:
   2. Each workflow run produces a `discovery-candidates.json` artifact downloadable from the Actions run summary, containing ranked URL candidates with confidence scores
   3. Running `scripts/apply-discovery.ts` with a reviewed candidates file patches `scrapers.json` — entries with existing `verified_at` are never overwritten
   4. After a manual `workflow_dispatch` run against all 400+ university homepages, at least some entries in `scrapers.json` have a non-null `scrape_url` populated from discovery output
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 16-01-PLAN.md — discover.ts schema migration + discover.yml workflow (DISC-01, DISC-02)
 - [ ] 16-02-PLAN.md — apply-discovery.ts script + guard tests (DISC-03)
@@ -125,7 +125,7 @@ Note: Phase 17 and Phase 18 both depend on Phase 16 completing. They can proceed
 | 13. Infrastructure Hardening | v2.0 | 2/2 | Complete | 2026-03-19 |
 | 14. UI/UX Redesign | v2.0 | 4/4 | Complete | 2026-03-19 |
 | 15. University Master List + Registry Gate Fix | v3.0 | 2/2 | Complete | 2026-03-20 |
-| 16. Auto-Discovery CI Integration | v3.0 | 0/2 | Planned | - |
+| 16. Auto-Discovery CI Integration | 2/2 | Complete   | 2026-03-20 | - |
 | 17. Scrape Monitoring + DB Health | v3.0 | 0/? | Not started | - |
 | 18. tổ Hợp Coverage + Infrastructure Scale | v3.0 | 0/? | Not started | - |
 
