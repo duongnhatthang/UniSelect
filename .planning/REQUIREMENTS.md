@@ -75,27 +75,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UNIC-01 | — | Pending |
-| UNIC-02 | — | Pending |
-| UNIC-03 | — | Pending |
-| SCRP-09 | — | Pending |
-| SCRP-10 | — | Pending |
-| SCRP-11 | — | Pending |
-| SCRP-12 | — | Pending |
-| DISC-01 | — | Pending |
-| DISC-02 | — | Pending |
-| DISC-03 | — | Pending |
-| MON-01 | — | Pending |
-| MON-02 | — | Pending |
-| MON-03 | — | Pending |
-| INFR-04 | — | Pending |
-| INFR-05 | — | Pending |
+| UNIC-01 | Phase 15 | Pending |
+| UNIC-02 | Phase 15 | Pending |
+| UNIC-03 | Phase 15 | Pending |
+| SCRP-09 | Phase 15 | Pending |
+| SCRP-10 | Phase 15 | Pending |
+| DISC-01 | Phase 16 | Pending |
+| DISC-02 | Phase 16 | Pending |
+| DISC-03 | Phase 16 | Pending |
+| MON-01 | Phase 17 | Pending |
+| MON-02 | Phase 17 | Pending |
+| MON-03 | Phase 17 | Pending |
+| SCRP-11 | Phase 18 | Pending |
+| SCRP-12 | Phase 18 | Pending |
+| INFR-04 | Phase 18 | Pending |
+| INFR-05 | Phase 18 | Pending |
 
 **Coverage:**
 - v3.0 requirements: 15 total
-- Mapped to phases: 0
-- Unmapped: 15
+- Mapped to phases: 15
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-19*
-*Last updated: 2026-03-19 after initial definition*
+*Last updated: 2026-03-19 — traceability table populated during roadmap creation*

@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Complete Data Pipeline
-status: planning
-stopped_at: Defining requirements
+status: ready_to_plan
+stopped_at: Roadmap created — ready to plan Phase 15
 last_updated: "2026-03-19"
-last_activity: 2026-03-19 — Milestone v3.0 started
+last_activity: 2026-03-19 — v3.0 roadmap created (4 phases, 15 requirements mapped)
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Give every Vietnamese student the data and strategy to order their nguyện vọng list correctly — because getting the ranking wrong means being locked out of better options permanently.
-**Current focus:** v3.0 — Complete Data Pipeline (defining requirements)
+**Current focus:** v3.0 Phase 15 — University Master List + Registry Gate Fix
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-19 — Milestone v3.0 started
+Phase: 15 of 18 (University Master List + Registry Gate Fix)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-03-19 — v3.0 roadmap created (Phases 15-18)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -36,7 +36,7 @@ Progress: [░░░░░░░░░░] 0%
 
 **Velocity (v1.0 + v2.0 history):**
 - Total plans completed: 37
-- Total phases: 14
+- Total phases: 14 (across v1.0 and v2.0)
 
 ## Accumulated Context
 
@@ -44,19 +44,23 @@ Progress: [░░░░░░░░░░] 0%
 
 Decisions are logged in PROJECT.md Key Decisions table.
 
+Key v3.0 decisions:
+- Phase 15 before Phase 16: registry gate fix must precede adding new universities (hollow registry risk)
+- Discovery is human-gated: apply-discovery.ts never auto-promotes URLs; prevents config corruption
+- scrapers.json schema migration: static_verified removed, scrape_url added (null = not yet discovered)
+
 ### Pending Todos
 
 None yet.
 
 ### Blockers/Concerns
 
-- Registry `static_verified` gate causes 95% of adapters to be silently skipped
-- Most URLs in scrapers.json point to homepages, not cutoff pages
-- Auto-discovery crawler (discover.ts) has no GHA workflow
-- Only 78 universities in DB — need comprehensive 400+ list
+- MOET portal scrapeability unconfirmed: may need Playwright if institution dropdown is JS-rendered
+- Wide-table prevalence unknown until Phase 16 discovery run audits real cutoff pages
+- p-limit ESM compatibility: verify-adapters.ts must use import syntax before installing p-limit
 
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: Defining v3.0 requirements
+Stopped at: Roadmap created — 4 phases (15-18), 15/15 requirements mapped
 Resume file: None
