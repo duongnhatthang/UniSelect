@@ -129,7 +129,7 @@ Note: Phase 17 and Phase 18 both depend on Phase 16 completing. They can proceed
 | 14. UI/UX Redesign | v2.0 | 4/4 | Complete | 2026-03-19 |
 | 15. University Master List + Registry Gate Fix | v3.0 | 2/2 | Complete | 2026-03-20 |
 | 16. Auto-Discovery CI Integration | v3.0 | 2/2 | Complete | 2026-03-20 |
-| 17. Scrape Monitoring + DB Health | 2/2 | Complete   | 2026-03-20 | - |
+| 17. Scrape Monitoring + DB Health | 2/2 | Complete    | 2026-03-20 | - |
 | 18. tổ Hợp Coverage + Infrastructure Scale | v3.0 | 0/? | Not started | - |
 
 ---
