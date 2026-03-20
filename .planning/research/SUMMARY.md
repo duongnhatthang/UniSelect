@@ -1,251 +1,230 @@
 # Project Research Summary
 
-**Project:** UniSelect v2.0 — Vietnamese University Admissions PWA
-**Domain:** Vietnamese university admissions data aggregation, scraping pipeline, PWA
-**Researched:** 2026-03-18
-**Confidence:** HIGH
+**Project:** UniSelect v3.0 — Complete Data Pipeline
+**Domain:** Vietnamese university admissions scraper scaling (78 to 400+ institutions)
+**Researched:** 2026-03-19
+**Confidence:** HIGH (architecture derived from direct codebase inspection; stack verified via npm registry and GitHub Actions docs)
 
 ## Executive Summary
 
-UniSelect v2.0 builds incrementally on a shipped v1.0 system. The existing stack (Next.js 16, Supabase, Drizzle ORM, Playwright, PaddleOCR, Cheerio, Tailwind v4, vitest, nuqs, Serwist) remains unchanged. v2.0 adds five capability areas: auto-discovery of cutoff score URLs without manual maintenance, scraper resilience testing via fake local HTTP servers, recommendation engine edge-case tests with synthetic data, an editable nguyện vọng list, and a design token system with dark mode. Each new area requires only minimal library additions — crawlee (auto-discovery), sirv (test server), motion (drag-reorder), next-themes (dark mode toggle), and @faker-js/faker (test data) — none of which conflict with the existing stack. The biggest architectural wins are the generic adapter factory (reducing 70+ copy-pasted files to config-driven one-liners) and batch DB inserts (reducing N+1 writes to 2 round-trips per university).
+UniSelect's scraper pipeline is architecturally correct but functionally hollow. The codebase ships a working factory-based scraper, auto-discovery crawler, audit logging, and sharded GitHub Actions cron — yet produces real cutoff data for only 4 of 78 registered universities. The root cause is a single registry gate (`static_verified: true` in `lib/scraper/registry.ts`) that silently skips 94 of 99 adapters on every daily run. v3.0's goal is not to rewrite the pipeline but to unblock it: fix the gate, source a 400+ university list from MOET, wire the existing `scripts/discover.ts` into CI, and add visibility into what is and isn't working.
 
-The recommended build order is: adapter factory first (internal refactor, no UI or DB risk), then resilience test infrastructure, then auto-discovery crawler, then bug fixes, then recommendation engine tests and CI, then infrastructure hardening, then UI/UX. This ordering is driven by hard dependencies — the fake site infrastructure must exist before the crawler can be tested, and the adapter factory reduces surface area before the crawler adds new complexity. Bug fixes must precede engine tests because tests written against broken behavior document wrong outcomes. UI work has no upstream dependencies and goes last.
+The recommended approach is strictly sequential. University master list first (provides homepage URLs for discovery to crawl), registry gate fix second (replaces the binary boolean with a `scrape_url`-presence gate that grows naturally as discovery populates URLs), auto-discovery CI integration third (makes URL-finding repeatable and auditable), then shard scaling and monitoring. Nothing in this sequence requires a new framework or major architectural change. The only new npm dependency is `p-limit` for concurrency control during bulk adapter verification; all scraping, crawling, and database tooling is already installed and working.
 
-The primary risks are three GitHub Actions infrastructure concerns — IP banning from aggressive auto-discovery crawling, free-tier minute budget exhaustion during July peak, and Supabase auto-pause during development quiet periods. All three are preventable with rate limiting, caching, and a lightweight keep-alive workflow. A fourth critical risk is the silent 0-row success pattern in runner.ts: if the adapter factory regresses a working adapter to return zero rows, the scrape_run record shows `status: 'ok', rows_written: 0` — an invisible failure. A zero-rows guard must be the first commit before any factory work begins.
+The dominant risk is treating completeness of the university list as a proxy for pipeline completeness. Adding 400 entries to `scrapers.json` with homepage URLs produces zero additional data — the URLs must point to actual cutoff score pages, discovered by the crawler and reviewed by a human before being activated. A secondary risk is discovery false positives: the existing keyword scorer has a low confidence threshold (score >= 3) that surfaces general admissions pages alongside real cutoff pages. Automating discovery output directly into `scrapers.json` without a human review gate will corrupt the scraper config and serve wrong data to students.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The existing stack is stable and does not change. v2.0 adds five packages. For auto-discovery, `crawlee` (@crawlee/cheerio ^3.13.7) is the correct choice because it wraps Cheerio with a built-in BFS request queue, retry logic, politeness delays, and `enqueueLinks` URL glob filtering — avoiding 2-3x custom implementation time. For test fixtures, `sirv` (^3.0.2) provides a lightweight Node.js static file server suitable for vitest `globalSetup`, giving Playwright adapters a real HTTP endpoint to navigate (MSW cannot do this — it intercepts at the module level, not the network level). For drag-to-reorder, `motion` (^12.37.0, formerly framer-motion) is the only major library with confirmed React 19 support as of December 2025; every other library (@hello-pangea/dnd, @atlaskit/pragmatic-drag-and-drop, @dnd-kit/react) either hard-caps React peerDeps at v18 or has open critical bugs. For dark mode, `next-themes` (^0.4.6) adds the blocking inline script that prevents the white flash on reload; the design token system itself is pure Tailwind v4 `@theme` CSS with no library required. For synthetic test data, `@faker-js/faker` (^10.3.0) with seeded factories eliminates hand-written fixtures across 20+ edge-case tests.
+The existing stack (Next.js 16, Supabase, Drizzle ORM, Crawlee 3.16, Cheerio, Playwright, PaddleOCR, Vitest, Serwist) requires no new additions for scraping or crawling. The only net-new dependency is `p-limit ^6.2.0` (ESM-native, no transitive dependencies) for capping concurrent HTTP requests when verifying 400+ adapter URLs in `verify-adapters.ts`. Everything else — the new `discover.yml` workflow, `seed-universities.ts` script, `apply-discovery.ts` patch script, and `/admin/scrape-status` monitoring page — is configuration and code built on already-installed tools.
 
-**Core new technologies:**
-- `crawlee` ^3.13.7: BFS homepage crawler — wraps Cheerio with queue, retry, politeness; TypeScript-native unlike Python-first alternatives
-- `sirv` ^3.0.2 (dev): static fixture server — needed for Playwright adapter tests where MSW cannot intercept headless browser navigation
-- `motion` ^12.37.0: drag-to-reorder nguyện vọng list — only React 19-compatible drag library; `Reorder.Group` + `Reorder.Item` matches the use case exactly
-- `next-themes` ^0.4.6: flash-free dark mode toggle — injects blocking script before React hydration; `attribute="data-theme"` aligns with Tailwind v4 `@custom-variant`
-- `@faker-js/faker` ^10.3.0 (dev): synthetic test data factory — seeded for deterministic CI; requires Node.js 20+ on GitHub Actions runner (verify before enabling)
+**Core new additions:**
+- `p-limit ^6.2.0`: Concurrent HTTP probe control — prevents OOM and rate-limiting when probing 400+ URLs; 300 bytes, ESM-only (use `import`, not `require`)
+- `data/uni_list.json`: Static seed file (400+ MOET-authoritative entries) committed to the repo — eliminates runtime dependency on the MOET portal
+- `scripts/seed-universities.ts`: One-time Drizzle upsert from `uni_list.json` into the Supabase `universities` table
+- `scripts/apply-discovery.ts`: Merges `discovery-candidates.json` into `scrapers.json`; protects manually curated entries via `verified_at` field
+- `.github/workflows/discover.yml`: Weekly cron + `workflow_dispatch`; 4-shard matrix to stay under 6-hour GHA job limit
+- `app/admin/scrape-status/page.tsx`: Next.js Server Component querying `scrape_runs` via a `DISTINCT ON` Postgres view; protected by simple `ADMIN_SECRET` middleware
 
-**Critical version constraints:**
-- `motion` Reorder is incompatible with Next.js page-level scrolling/routing — only safe within a single-page section (acceptable for nguyện vọng list)
-- `@faker-js/faker` v10 requires Node.js 20+ — confirm GitHub Actions runner version before Phase 5
-- `@dnd-kit/react` 0.3.2 has an open critical bug where `onDragEnd` source/target are always identical (issue #1664) — do not use
+**What NOT to add:** LLM-based scraping (cost-prohibitive at $3,000-$30,000/year at scale), BullMQ/Redis (no Redis on free tier), Prometheus/Grafana (infrastructure overkill for a single-developer project), full Playwright for all universities by default (4,000+ seconds per shard).
 
 ### Expected Features
 
-**Must have (P1 — scraper pipeline):**
-- Generic adapter factory — reduces 70+ copy-pasted files to config-driven one-liners; prerequisite before expanding beyond 6 verified adapters
-- Auto-discovery crawler — keyword-heuristic link scoring from university homepages; outputs ranked candidates to review file (human gate before scrapers.json update); prevents silent URL rot
-- Fake server fixtures — required specifically for Playwright adapter tests; additive alongside existing vi.mock pattern for Cheerio adapters
+The FEATURES.md research identifies a strict dependency chain. Missing any link in the chain breaks everything downstream.
 
-**Must have (P2 — quality and correctness):**
-- Fix NaN propagation, delta sign inversion, and trend color bugs — prerequisites for trustworthy test assertions; delta fix must touch both ResultsList.tsx and NguyenVongList.tsx atomically
-- Recommendation engine edge-case tests — 8 identified missing scenarios: NaN input, null score, comma-decimal scores, all 5 tier boundary values, 0-practical pool, exactly-15-entry pool
-- CI workflow on pull_request — depends on tests passing cleanly first
-- Static fallback for /api/recommend — already missing per PROJECT.md; same pattern as existing universities fallback
+**Must have (P1 — pipeline produces real data):**
+- Complete Vietnamese university master list (400+) — only 78 of ~400 institutions seeded; all from Northern Vietnam
+- Registry gate replacement (`static_verified: true` → `scrape_url` presence + `adapter_type != "skip"`) — unblocks 94 silently-skipped adapters
+- Correct cutoff page URLs per university — most current entries point to homepages that return zero data rows
+- Auto-discovery integrated into GitHub Actions — `scripts/discover.ts` is implemented but has no CI trigger
+- Scrape status CI summary — maintainers have no visibility into which universities produce data
 
-**Should have (P3 — UX):**
-- Design token system (`@theme` in globals.css, three-layer architecture) — required before dark mode; also fixes the broken Be Vietnam Pro font application
-- Editable nguyện vọng list — fix useEffect auto-overwrite first; up/down buttons as mobile-first primary; optional drag-to-reorder via motion as progressive enhancement
-- Dark mode — low effort once tokens exist; `@custom-variant dark` + next-themes
-- Onboarding copy and tier label explanations — low-code, high student value
-- Error boundaries (error.tsx, not-found.tsx)
+**Should have (P2 — architecture cleanliness, enables v4+):**
+- Adapter health classification (`cheerio` | `playwright` | `paddleocr` | `skip` | `pending` enum)
+- Automated URL re-validation workflow (monthly HTTP probe to detect URL rot)
+- tổ hợp wide-table factory extension (large universities use wide-table format; current factory handles tall-table only)
+- Soft-gate mode (`SOFT_GATE=true` env var for manual runs against unverified adapters)
 
-**Defer to v3+:**
-- Score scenario comparison mode ("what if I scored X vs Y")
-- Share card generation (Zalo/Facebook)
-- Client-side offline recommendation engine
-- Học bạ and aptitude test pathways
+**Defer (v4+):**
+- Multi-year historical scraping (partially supported; not urgent)
+- Admin dashboard UI (CI summary + direct Supabase query is sufficient for v3.0)
+- Discovery output auto-proposal via PR (convenience feature)
 
 ### Architecture Approach
 
-The v2.0 architecture adds a pre-scrape discovery phase and a test infrastructure layer without restructuring the existing three-tier system (GitHub Actions scraper pipeline → Supabase → Vercel API → Next.js PWA). The auto-discovery crawler runs as a GitHub Actions pre-step before `run.ts`, writes `discovered-urls.json` as ephemeral output, and `loadRegistry()` merges it at runtime — keeping `scrapers.json` as the human-edited source of truth with no write permissions required from Actions. The adapter factory is purely internal: each adapter file still exports `${id}Adapter` by name, so `registry.ts`'s dynamic import pattern requires zero changes. Batch DB inserts wrap each university's full row set in a database transaction, chunked at 200 rows to stay under Postgres's parameter limit, reducing from 2N sequential round-trips to 2 (or 2 × ceil(N/200)) per university. The design token layer is additive to `globals.css` — no component breaks on day one.
+The architecture is a static-registry, batch-cron pipeline where `scrapers.json` is the single source of truth for adapter configuration. v3.0 adds a two-step URL-finding process: a weekly discovery crawl (finds cutoff page URLs from university homepages) followed by `apply-discovery.ts` which writes confirmed URLs back into `scrapers.json` after human review. The scrape cron reads only the static file — no live DB query at startup — which protects against Supabase free-tier cold-start failures. The key architectural change is replacing the binary `static_verified` gate with a `scrape_url`-presence gate: an adapter runs if and only if it has a target URL and is not explicitly marked `skip`. This allows the pipeline to grow organically as discovery populates URLs over time.
 
-**Major components:**
-1. `lib/scraper/crawler/` (new) — discover.ts (spider), classifier.ts (page type detection), types.ts (DiscoveredPage interface); runs as GitHub Actions pre-step only, never in Vercel API
-2. `lib/scraper/adapters/generic-cheerio-factory.ts` (new) — config-driven factory returning ScraperAdapter; dcn (Playwright) and gha (PaddleOCR) stay as custom adapters
-3. `tests/fixtures/` (new) — fake-sites HTML per university format + server.ts (sirv globalSetup); test-only, no production impact
-4. `app/globals.css` `@theme` block (new) — three-layer token architecture: base palette → semantic aliases → dark mode overrides; Tailwind v4 CSS-first, no tailwind.config.ts
-5. `components/NguyenVongList.tsx` (modified) — fix useEffect auto-overwrite, add up/down reorder buttons, optional motion Reorder component
+**Major components and their v3.0 status:**
 
-**Key patterns to follow:**
-- Discovery as pre-pass: discovery failures are non-fatal; fall back to scrapers.json URL; skip with `SKIP_DISCOVERY=1` for fast local runs
-- Factory over inheritance: config-driven function returning plain object conforming to ScraperAdapter; no base class; works with existing dynamic registry import
-- Collect-then-batch write: normalize all rows first, then single transaction with chunked INSERT; all-or-nothing per university
+1. `lib/scraper/registry.ts` — CHANGES: replaces `static_verified` boolean gate with `scrape_url` presence + `adapter_type` routing; new `RegistryEntry` interface adds `website_url`, `scrape_url`, `adapter_type`, `verified_at`
+2. `scrapers.json` — CHANGES: `url` → `website_url` (homepage, discovery input) + new `scrape_url` field (cutoff page, discovery output, null initially); expands from 78 to 400+ entries; `static_verified` removed
+3. `.github/workflows/discover.yml` — NEW: weekly 4-shard Crawlee discovery run; outputs `discovery-candidates.json` as GHA artifact; `apply-discovery.ts` patches `scrapers.json` after human review
+4. `scripts/seed-universities.ts` — NEW: one-time seeder from `uni_list.json` to Supabase `universities` table
+5. `scripts/apply-discovery.ts` — NEW: merges discovery candidates into `scrapers.json` with human review gate; never overwrites entries with `verified_at`
+6. `lib/api/scrape-status.ts` + `app/admin/scrape-status/page.tsx` — NEW (optional within v3.0): read-only monitoring view of `scrape_runs`
+7. All scraping components (`runner.ts`, `run.ts`, `factory.ts`, `normalizer.ts`, `discovery/`) — UNCHANGED
 
 ### Critical Pitfalls
 
-1. **Silent 0-row success in runner.ts** — Adapter factory regression returns `[]`; runner.ts logs `status: 'ok', rows_written: 0` — an invisible failure. Prevention: add zero-rows guard (`status: 'zero_rows'`) as the very first commit before factory work begins. Never allow `rows_written: 0` to be logged as `'ok'`.
+1. **`static_verified` gate silently blocks 95% of adapters** — Fix the gate before adding any new university entries. Adding 322 new entries with `static_verified: false` while this gate exists is purely cosmetic — the cron stays green, the pipeline stays hollow. Prevention: address in Phase 1 before any expansion.
 
-2. **GitHub Actions minute budget exhaustion before July peak** — Peak schedule (4×/day × 6 shards × 30 min) = 720 min/day vs. 2,000 min/month free tier. Prevention: cache Playwright browsers and PaddleOCR models via `actions/cache`, reduce scrape-low.yml to 3×/week, gate scrape-peak.yml to the specific 2-3 weeks of Ministry submission period, reduce shards from 6 to 3 until verified adapter count grows.
+2. **Homepage URLs in `scrapers.json` produce zero data rows** — A registry of 400 universities with homepage URLs is a hollow registry. The temptation to add all entries quickly and "fix URLs later" means later never comes. Prevention: treat URL audit as a distinct done criterion separate from university list population; use discovery candidates but require human confirmation before promoting any URL to runnable.
 
-3. **Auto-discovery crawler triggering IP bans during July peak** — Vietnamese university servers are often shared hosting; 10-50 requests per university at full speed looks like a DDoS. Prevention: 2-3 second inter-request delay per domain, respect robots.txt (robots-parser npm), cap depth at 2 hops, cap at 20 pages per domain, set `User-Agent: UniSelectBot/1.0 (educational; non-commercial)`.
+3. **Auto-discovery false positives corrupt production scraper config** — The keyword scorer's default threshold (score >= 3) flags general admissions landing pages alongside real cutoff pages. `tuyen-sinh` in a URL slug alone is enough to score above threshold. Automating discovery-to-config without a human gate writes bad URLs into production. Prevention: discovery workflow outputs artifact only; `apply-discovery.ts` runs manually after human review; raise auto-routing threshold to score >= 8 requiring both URL slug AND table header keywords.
 
-4. **Delta sign convention fix applied to only one component** — ResultsList.tsx and NguyenVongList.tsx have mirrored delta inversions. Fixing one without the other creates a worse state than either broken state alone. Prevention: define a shared `computeDelta()` utility, fix both components in a single PR with a test asserting correct sign in both.
+4. **GHA shard count does not scale with university count** — At 400 universities on 6 shards, per-shard runtime approaches the 360-minute hard job timeout during July peak (4x/day × 6 shards × potentially 200+ min). Prevention: increase to 10 shards when runnable adapter count exceeds 100; PaddleOCR/Playwright adapters should be isolated to dedicated shards to avoid setup overhead multiplication.
 
-5. **Supabase free tier auto-pause killing July scraping pipeline** — Database pauses after 7 consecutive days of inactivity. v2.0 development (March-June) involves deliberate scraping pauses that expose this gap. Prevention: GitHub Actions keep-alive workflow running `SELECT 1` every 5 days — less than 1 minute of Actions budget per week.
+5. **Supabase 500 MB free tier exhausted by unbounded `scrape_runs` logs** — At 400 universities, verbose `error_log` JSON fields can consume 200-400 MB within 6-12 months. Prevention: add 90-day pruning to keepalive cron; truncate `error_log` to 2 KB at insert time in `runner.ts`; add storage monitoring.
 
-6. **Batch insert partial failure leaving inconsistent university data** — Multiple INSERT chunks without a wrapping transaction means a mid-batch network blip leaves some years/majors updated and others stale. Prevention: wrap all chunks for a university in a single `db.transaction()` call; test rollback with an intentionally failing mid-batch row.
+6. **tổ hợp coverage collapses on wide-table pages** — Large universities publish one score column per tổ hợp (wide format). The current factory handles tall-table only. Scraping wide-table pages with the current factory produces one row per major using only the last tổ hợp column. Prevention: classify table format during URL audit; extend factory before mass adapter creation.
 
 ## Implications for Roadmap
 
-The architecture's hard dependency chain dictates phase ordering: factory before crawler (crawler tests need fake sites; factory reduces surface area before crawler adds complexity), resilience infrastructure before crawler tests, bug fixes before engine tests, UI last (no upstream dependencies).
+Based on the strict dependency chain established across all four research files, a 5-phase structure is recommended. Phases 1-3 are on the critical path and must ship in order. Phases 4 and 5 are independent of each other and can proceed in parallel or either order after Phase 3 completes.
 
-### Phase 1: Scraper Foundation
+### Phase 1: University Master List + Registry Gate Fix
 
-**Rationale:** The generic adapter factory and batch DB inserts are purely internal refactors with no UI or DB schema dependency. They reduce code surface area and establish the zero-rows guard safety net before any new complexity is added. All downstream phases depend on a working factory.
+**Rationale:** Both items have no upstream dependencies and together unlock everything else. The registry gate fix must precede any university expansion — adding entries while the gate exists achieves nothing. The university list provides the homepage URLs that discovery will crawl in Phase 2.
 
-**Delivers:** Generic cheerio adapter factory, migration of 4 verified adapters (htc, bvh, sph, tla) to factory configs, zero-rows guard in runner.ts, batch upsert in runner.ts with transaction wrapping, static fallback for /api/recommend.
+**Delivers:**
+- `uni_list.json` (400+ MOET-authoritative entries with mã trường codes sourced from MOET portal)
+- `scripts/seed-universities.ts` — Supabase `universities` table expanded to 400+ rows
+- `scrapers.json` schema migration: `url` → `website_url`, add `scrape_url` (null initially), add `adapter_type` enum, remove `static_verified`; 4 already-verified adapters have their existing `url` promoted to `scrape_url`
+- `lib/scraper/registry.ts` gate rewritten: `if (!entry.scrape_url || entry.adapter_type === 'skip') continue;`
+- `is_active` boolean added to `universities` schema for tracking institution lifecycle
 
-**Addresses features from FEATURES.md:** Generic adapter factory (P1), static fallback for /api/recommend (P2).
+**Addresses:** Complete university master list (P1), registry gate removal (P1)
 
-**Avoids pitfalls:** Silent 0-row success (zero-rows guard is the first commit), batch insert partial failure (transaction wrapping from day one), adapter factory silent regressions (golden fixture comparison before deleting originals, one adapter at a time, originals kept in _legacy/).
+**Avoids:** Hollow registry from homepage URLs (Pitfall 2), MOET institution list drift (Pitfall 7), `static_verified` silent blackout (Pitfall 1)
 
-**Research flag:** Standard patterns — factory function returning typed object is well-established; Drizzle batch insert and transaction wrapping are documented. No phase research needed.
+**Research flag:** No additional research needed. Changes are well-scoped: a data sourcing task (MOET portal scrape via existing CheerioCrawler) and a targeted code change to `registry.ts`.
 
-### Phase 2: Resilience Test Infrastructure
+### Phase 2: Auto-Discovery Integration + URL Audit
 
-**Rationale:** Fake site infrastructure must exist before the crawler can be tested against controlled HTML. Establishing the fixture server and HTML fixtures gives a safety net for both the existing adapters and the upcoming crawler work.
+**Rationale:** Depends on Phase 1 having populated `website_url` for 400+ entries. Converts the existing orphaned `scripts/discover.ts` into an automated CI workflow and establishes the human-gated pipeline from discovery output to `scrapers.json` update. The URL audit is the most labor-intensive part of v3.0 — it determines how many of the 400 universities produce actual data.
 
-**Delivers:** `tests/fixtures/fake-sites/` HTML library covering 7+ edge case formats (generic table, no-thead headers, JS-stub, score image, Windows-1252 encoding, broken table, renamed headers, comma-decimal scores), vitest globalSetup fixture server (sirv), integration test suite for generic adapter factory against fake sites, PaddleOCR CI job with model caching.
+**Delivers:**
+- `.github/workflows/discover.yml` — weekly 4-shard cron + `workflow_dispatch`; shards keep each shard under 60 min; outputs `discovery-candidates.json` as GHA artifact
+- `scripts/apply-discovery.ts` — human-reviewed merge of candidates into `scrapers.json`; protects `verified_at` entries
+- Keyword scorer threshold raised: score >= 8 requiring both URL slug AND table header keywords for auto-routing
+- First manual discovery run via `workflow_dispatch` against all 400 homepages
+- Initial batch of `scrape_url` values populated in `scrapers.json` after human review
 
-**Addresses features from FEATURES.md:** Fake server fixtures (P1), per-format HTML fixture library (differentiator).
+**Addresses:** Auto-discovery in CI (P1), correct cutoff page URLs (P1)
 
-**Avoids pitfalls:** Fixture drift from real university pages (versioned filenames + adapter-to-fixture link comment + fixture audit step in verify-adapters.ts), PaddleOCR CI disk/time issue (cache models, separate job from Playwright, trigger only on relevant file changes).
+**Avoids:** Discovery false positives in production config (Pitfall 4)
 
-**Research flag:** Standard patterns — sirv globalSetup is documented; Node.js HTTP server pattern is established. No phase research needed.
+**Research flag:** No additional research needed. `discover.ts` implementation is correct; the work is wiring into GHA, defining the human review gate, and running it.
 
-### Phase 3: Auto-Discovery Crawler
+### Phase 3: CI Workflow Scaling + Scrape Status Monitoring
 
-**Rationale:** Depends on fake sites (Phase 2) for testing crawler behavior against controlled HTML without hitting live university servers. Must come after factory work (Phase 1) because discovered pages feed into adapters.
+**Rationale:** Once Phase 2 populates URLs for a meaningful number of adapters (50+), the daily scrape cron produces real data and the 6-shard setup may approach its runtime limits. Monitoring is only meaningful after real scrape runs are happening at scale. `scrape_runs` pruning must be in place before storage grows unchecked.
 
-**Delivers:** `lib/scraper/crawler/discover.ts` (spider + link extraction with politeness), `lib/scraper/crawler/classifier.ts` (page type detection), `lib/scraper/crawler/types.ts` (DiscoveredPage interface), modifications to `run.ts` and `registry.ts` to merge discovered-urls.json, integration tests against fake sites, discovery-candidates.json output format for human review.
+**Delivers:**
+- Shard count increase from 6 to 10 in `scrape-low.yml` and `scrape-peak.yml` (triggered when runnable adapter count exceeds 100)
+- `scrape_runs` 90-day row pruning added to `supabase-keepalive.yml`
+- `error_log` field capped to 2 KB at insert time in `runner.ts`
+- `latest_scrape_runs` Postgres `DISTINCT ON` view for efficient monitoring queries
+- Scrape status CI summary step printed at end of each shard run
+- Optional: `app/admin/scrape-status/page.tsx` Server Component + simple `ADMIN_SECRET` middleware
+- Storage monitoring step in keepalive that warns when Supabase reports > 300 MB
 
-**Addresses features from FEATURES.md:** Auto-discovery crawler (P1), candidate scoring without auto-commit (differentiator — human gate prevents wrong-year URL commits).
+**Addresses:** Scrape status dashboard/observability (P1), audit trail in Supabase (P1)
 
-**Avoids pitfalls:** IP banning (rate limiting + robots.txt + depth cap + page cap + User-Agent from first implementation, not retrofitted), storing discovered URLs in DB (ephemeral discovered-urls.json only; source_url in cutoff_scores is the permanent record), crawler inside Vercel API (never — GitHub Actions only).
+**Avoids:** GHA shard timeout at 400 universities (Pitfall 3), Supabase storage exhaustion (Pitfall 5)
 
-**Research flag:** Needs phase research — crawlee `enqueueLinks` glob pattern configuration for Vietnamese URL paths, robots-parser integration with CheerioCrawler lifecycle hooks, per-domain delay configuration within crawlee's RequestQueue API. Vietnamese keyword list should be validated against all 78 scrapers.json entries before implementation.
+**Research flag:** No additional research needed. Standard Postgres view + Next.js Server Component + GHA job configuration — all fully documented patterns.
 
-### Phase 4: Bug Fixes
+### Phase 4: tổ Hợp Wide-Table Factory Extension
 
-**Rationale:** Isolated code-level patches with no architectural dependency. Doing them after scraper work avoids merge conflicts on files being simultaneously modified. Bug fixes must precede engine tests (Phase 5) because tests written against broken behavior document wrong outcomes.
+**Rationale:** Can only proceed after Phase 2 has populated enough `scrape_url` values to audit actual page structures. Wide-table detection is meaningless until real cutoff pages are being scraped and their structure can be classified.
 
-**Delivers:** Fixed delta sign convention in both ResultsList.tsx and NguyenVongList.tsx (single PR with shared `computeDelta()` utility), fixed trend color semantics with copy update (amber + "Harder this year" tooltip), fixed NaN/null propagation in recommendation engine, fixed withTimeout timer leak, error boundaries (error.tsx, not-found.tsx), readFileSync → async in API fallback paths.
+**Delivers:**
+- Table format classification field in `scrapers.json` (`table_format: "tall" | "wide" | "sectioned"`)
+- Factory extension in `lib/scraper/factory.ts` for wide-table extraction (multiple score columns per tổ hợp)
+- Wide-table fixture added to test suite before factory extension is built
+- Audit of top 50 universities by enrollment to classify their table structure
 
-**Addresses features from FEATURES.md:** Fix NaN/delta/trend bugs (P2), error boundaries (P3).
+**Addresses:** All tổ hợp combinations captured (P2)
 
-**Avoids pitfalls:** Delta sign regression in one component only (both components in one PR, single shared utility, test asserting correct sign in both), trend color without copy (color and tooltip updated in same PR — color alone is ambiguous without domain context).
+**Avoids:** Silent tổ hợp coverage gaps for major universities (Pitfall 6)
 
-**Research flag:** Standard patterns — all fixes are targeted patches to known files with identified line numbers. No phase research needed.
+**Research flag:** Needs targeted research during planning — page-by-page audit of top 50 universities to quantify how many use wide-table format and which specific column patterns are used. This determines whether the factory extension is a small patch or a significant refactor.
 
-### Phase 5: Recommendation Engine Tests and CI
+### Phase 5: Adapter Health Classification + URL Re-validation
 
-**Rationale:** After bug fixes (Phase 4), the recommendation engine's behavior is correct. Write tests that assert the corrected behavior. CI workflow depends on tests passing cleanly.
+**Rationale:** Clean architecture improvements that reduce ongoing maintenance burden. Independent of Phase 4; can be done in parallel or after.
 
-**Delivers:** 8 new engine test scenarios (NaN input, null score, comma-decimal scores, all 5 tier boundary values, 0-practical pool, exactly-15-entry pool) using `@faker-js/faker` factory with `faker.seed(42)`, GitHub Actions CI workflow on `pull_request` running `npm test` and `npm run build`.
+**Delivers:**
+- `adapter_type` enum fully operationalized across all 400+ `scrapers.json` entries
+- `SOFT_GATE=true` env var mode for manual verification runs against unverified adapters
+- Monthly URL re-validation GHA workflow — HTTP probe on all `scrape_url` entries; flags 404s and zero-table responses
+- `verify-adapters.ts` extended with `p-limit` concurrency control (install `p-limit ^6.2.0` as dev dependency)
+- `UniSelectBot/1.0` User-Agent set in all scraper HTTP requests (ethical compliance + avoids IP blocks)
 
-**Addresses features from FEATURES.md:** Recommendation engine edge-case tests (P2), CI workflow (P2), synthetic test data factory (differentiator).
+**Addresses:** Adapter health classification (P2), URL re-validation workflow (P2), soft-gate mode (P2)
 
-**Avoids pitfalls:** No new pitfalls specific to this phase. Verify @faker-js/faker v10 Node.js 20+ requirement against GitHub Actions runner before this phase begins — if runner is Node 18, pin faker at v9 or upgrade runner.
+**Avoids:** Silent URL rot, OOM from unconcurrency-controlled 400+ URL probes (Pitfall integration gotchas)
 
-**Research flag:** Standard patterns — vitest factory pattern and GitHub Actions pull_request trigger are well-established. No phase research needed.
-
-### Phase 6: Infrastructure Hardening
-
-**Rationale:** Actions caching and Supabase keep-alive are CI-level concerns that don't affect feature code. Group them into a dedicated hardening phase after all feature development is stable, timed before the July peak window.
-
-**Delivers:** PaddleOCR model caching in GitHub Actions (`actions/cache` keyed on paddleocr version), Playwright browser caching, scrape-low.yml reduced to 3×/week, shard count reduced from 6 to 3 (matching current verified adapter count), scrape-peak.yml gated to Ministry submission window only, Supabase keep-alive workflow (SELECT 1 every 5 days), GitHub Actions minute budget verified at less than 450 min/week during peak simulation.
-
-**Addresses features from FEATURES.md:** Infrastructure hygiene items from PROJECT.md tech debt.
-
-**Avoids pitfalls:** GitHub Actions budget exhaustion (caching + schedule reduction), Supabase auto-pause (keep-alive workflow), N+1 adapter sharding waste (reduce shards to match actual verified adapter count).
-
-**Research flag:** Standard patterns — `actions/cache` for Playwright and Python pip/model caches is documented. Verify GitHub Actions free tier minute limit for this repo's visibility (public vs private — limits differ). No phase research needed.
-
-### Phase 7: UI/UX Redesign
-
-**Rationale:** No other phase depends on UI changes. UI work is high-effort with low breakage risk for non-UI code. Design tokens must come before dark mode within this phase — implementing dark mode with scattered `dark:text-gray-100` classes across 8 components creates a maintenance trap.
-
-**Delivers:** `@theme` design token block in globals.css (three-layer: brand palette → semantic aliases → tier/trend semantic tokens), Be Vietnam Pro font correctly applied via `--font-sans`, TierBadge.tsx migrated as reference component, editable NguyenVongList with useEffect fix + up/down reorder buttons + optional motion Reorder, onboarding overlay and tier label explanations, dark mode via `@custom-variant dark` + next-themes, remaining component token migration, grep verification (`grep -r 'text-green-600\|text-red-600\|bg-gray-100' components/` returns zero deprecated semantic classes).
-
-**Addresses features from FEATURES.md:** Design token system (P3), editable nguyện vọng list (P3), dark mode (P3), onboarding + tier explanations (P3).
-
-**Avoids pitfalls:** Design token migration missing hard-coded classes in dynamic objects (TREND_DISPLAY object must be migrated; grep verification at end of phase), dark mode partial coverage (sub-phase: tokens first, dark mode after tokens are stable — not simultaneous), motion Reorder cross-route incompatibility (list is single-page-section only — acceptable scope but must be tested explicitly on Android touch before committing).
-
-**Research flag:** Needs phase research — (1) motion Reorder component touch behavior on Android (project's primary platform — primary validation before committing to the library); (2) dark mode selector: FEATURES.md uses `.dark` class-based selector, STACK.md uses `[data-theme=dark]` data-attribute — these must align with the `next-themes` `attribute` prop; resolve before writing any CSS.
+**Research flag:** No additional research needed. Standard patterns — HTTP probe loop with p-limit, env var feature flag, GHA monthly cron.
 
 ### Phase Ordering Rationale
 
-- Phase 1 before Phase 3: factory reduces adapter surface area before crawler adds new complexity; discovered pages feed into adapter pattern
-- Phase 2 before Phase 3: fake sites are the test substrate for crawler integration tests
-- Phase 4 before Phase 5: engine tests must assert correct (post-fix) behavior; tests written before fixes document wrong outcomes
-- Phase 6 before July: caching and schedule changes must be in place before peak traffic; adding them during peak is too risky
-- Phase 7 last: no feature phase depends on UI; design tokens are additive-only on day one; UI work is tolerant of being the last thing completed
+- **Phase 1 before Phase 2:** Discovery needs `website_url` populated in `scrapers.json`; the gate must be fixed so discovered `scrape_url` values actually trigger scrape runs.
+- **Phase 2 before Phase 3:** Monitoring is only meaningful when real scrape runs are happening; shard scaling is only needed when runnable adapter count grows.
+- **Phase 2 before Phase 4:** tổ hợp format audit requires real cutoff pages to examine, not homepages.
+- **Phases 4 and 5 are parallelizable:** No dependency between them; both require Phase 2 to have completed.
+- **Critical path:** Phase 1 → Phase 2 → Phase 3. These three must ship in order; Phases 4 and 5 are improvements on a working pipeline.
 
 ### Research Flags
 
 Phases needing deeper research during planning:
-- **Phase 3 (Auto-Discovery Crawler):** crawlee `enqueueLinks` glob patterns for Vietnamese URL paths, robots-parser integration within CheerioCrawler lifecycle, per-domain rate limiting configuration, Vietnamese keyword list validation against full scrapers.json (78 entries including 72 unverified)
-- **Phase 7 (UI/UX Redesign):** motion Reorder Android touch behavior + nuqs interaction (test first before committing); `@custom-variant dark` with `data-theme` attribute vs `.dark` class — inconsistency between FEATURES.md and STACK.md must be resolved before writing CSS
+- **Phase 4:** Requires a targeted audit of the top 50 universities by enrollment to classify their HTML table structure (tall, wide, sectioned). The prevalence of wide-table format determines the scope of the factory extension. This audit should happen during Phase 2 (while running the first discovery batch) to inform Phase 4 planning.
 
-Phases with standard patterns (no phase research needed):
-- **Phase 1 (Scraper Foundation):** Factory function pattern and Drizzle batch insert are documented and in current use
-- **Phase 2 (Resilience Testing):** sirv + vitest globalSetup is a standard Node.js integration test pattern
-- **Phase 4 (Bug Fixes):** Targeted patches to known files at identified line numbers
-- **Phase 5 (Engine Tests and CI):** vitest factory pattern and GitHub Actions pull_request trigger are well-established
-- **Phase 6 (Infrastructure Hardening):** actions/cache documentation is comprehensive for both Playwright and Python/pip caches
+Phases with standard patterns (no research-phase needed):
+- **Phase 1:** Data sourcing from MOET portal (existing CheerioCrawler pattern) + targeted code change to `registry.ts`. No ambiguity.
+- **Phase 2:** `discover.ts` is already implemented and correct; work is wiring into GHA and defining the human review gate.
+- **Phase 3:** Standard Postgres view + Next.js Server Component + GHA job configuration.
+- **Phase 5:** Standard HTTP probe loop, env var feature flag, monthly cron — all documented patterns.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | MEDIUM-HIGH | Versions verified via npm registry web search (March 2026); React 19 compatibility issues confirmed via GitHub issues; motion Reorder Android touch behavior not independently confirmed — must validate in Phase 7 |
-| Features | HIGH | Derived from direct codebase inspection + PROJECT.md requirements; test gaps identified by reading existing test file line-by-line against known bug list in PROJECT.md |
-| Architecture | HIGH | Derived directly from reading the existing codebase (line numbers cited for integration points) — not from web search; all proposed changes are additive with identified zero-breakage integration contracts |
-| Pitfalls | HIGH | Grounded in direct code inspection (line numbers cited: runner.ts line 63, ResultsList.tsx lines 46-47, NguyenVongList.tsx lines 52-53), confirmed by 7-agent v1.0 audit findings in PROJECT.md |
+| Stack | HIGH | p-limit version confirmed via npm registry; GHA limits confirmed via official docs (March 2026); all other dependencies already in production and working |
+| Features | HIGH | Derived from direct codebase inspection of `scrapers.json` (78 entries, 4 verified), `registry.ts` (gate condition at line 28), `runner.ts`, `discover.ts`; dependency chain is code-verifiable |
+| Architecture | HIGH | All component behavior derived from reading actual source files; proposed changes are surgical (gate logic change, JSON schema migration, new workflow file); no speculative patterns |
+| Pitfalls | HIGH | All 7 pitfalls are directly observable in the existing codebase; no theoretical risks — the `static_verified` gate, homepage URLs, 6-shard count, and unbounded `error_log` field are present facts |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **motion Reorder Android touch behavior:** Not independently confirmed. Must be the first validation step in Phase 7 before committing to the library. If Android touch fails, up/down buttons remain the only interaction — which is the mobile-first recommendation anyway, so this is a safe fallback.
-
-- **Dark mode selector inconsistency:** FEATURES.md describes `.dark` class-based toggle; STACK.md describes `[data-theme=dark]` data-attribute. Both are functionally equivalent but must match the `next-themes` `attribute` prop. Resolve during Phase 7 planning before writing any CSS — do not let both approaches coexist.
-
-- **@faker-js/faker v10 Node.js 20 requirement:** Verify GitHub Actions runner Node.js version before Phase 5. If on Node 18, pin faker at v9 or upgrade the runner. Check with `node --version` in a workflow step.
-
-- **Auto-discovery keyword list completeness:** The Vietnamese URL keyword list is derived from verified adapter URLs already in scrapers.json. It has not been validated against the 72 unverified adapters' homepage URLs. Run a manual scan of all 78 scrapers.json homepage URLs during Phase 3 planning to identify any keyword gaps.
-
-- **GitHub Actions free vs. public repo minute limits:** PITFALLS.md cites 2,000 minutes/month. If the repository is public, limits are more generous. Verify repo visibility setting before designing caching strategy in Phase 6 — this determines how aggressively caching needs to be applied.
+- **MOET portal scrapeability:** The official university list at `thisinh.thitotnghiepthpt.edu.vn` may require Playwright if the institution dropdown is JS-rendered. Confirm before building the seed scrape — if JS-rendered, use the existing Playwright adapter pattern already in the project.
+- **Discovery run duration at 400 universities:** Estimated 30-60 minutes for a full discovery run (400 universities × up to 50 pages × 2 seconds per page at `sameDomainDelaySecs: 2`, single concurrency per domain). The first run should be a `workflow_dispatch` to validate actual timing before committing to a weekly cron schedule and finalizing shard configuration.
+- **tổ hợp wide-table prevalence:** Unknown what fraction of the 400 universities use wide-table vs. tall-table format. This determines whether Phase 4 is a small patch or a significant factory rewrite. Needs a targeted page audit during Phase 2 to quantify.
+- **p-limit ESM compatibility:** `p-limit ^6.2.0` is ESM-only. All scripts that import it must use `import` syntax. Verify `verify-adapters.ts` uses ESM imports (it runs via `tsx`) before installing.
+- **Supabase keepalive single point of failure:** The `supabase-keepalive.yml` workflow prevents free-tier pause. If accidentally disabled (e.g., after a repo visibility change), the database pauses within 7 days. Add a health-check verification step to the keepalive response to make failures observable.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Existing codebase (direct inspection, 2026-03-18): runner.ts, registry.ts, types.ts, all adapters, NguyenVongList.tsx, ResultsList.tsx, recommend/engine.ts, globals.css, package.json, .github/workflows/, scrapers.json, tests/
-- `.planning/PROJECT.md` — v2.0 requirements, known bugs (7-agent audit), tech debt constraints
-- Tailwind CSS v4 docs — `@theme`, `@custom-variant dark`, CSS-first configuration
-- motion (framer-motion) docs — Reorder component API; React 19 support confirmed since v12.27.5 (Dec 2025)
-- crawlee docs — enqueueLinks, CheerioCrawler, request queue configuration
-- Drizzle ORM docs — batch `.values()` insert, transaction wrapping, `prepare: false` requirement
-- Supabase docs — free tier auto-pause policy (7 days inactivity), Supavisor transaction pool mode
-- @hello-pangea/dnd GitHub — peerDeps explicitly cap at React 18 (discussion #810)
-- @atlaskit/pragmatic-drag-and-drop GitHub — React 19 issue #181 (open, no ETA)
-- @dnd-kit/react GitHub — onDragEnd source/target bug issue #1664 (open)
+- Direct codebase inspection: `lib/scraper/registry.ts`, `runner.ts`, `run.ts`, `factory.ts`, `scripts/discover.ts`, `lib/scraper/discovery/` (keyword-scorer, constants, candidate types), `scrapers.json`, `lib/db/schema.ts`, `.github/workflows/scrape-low.yml`, `scrape-peak.yml`
+- GitHub Actions official limits: 360 min per-job hard timeout, 256 matrix jobs max, 20 concurrent jobs on free plan, unlimited minutes for public repos
+- Supabase pricing (official): 500 MB database storage cap; 1-week inactivity pause policy
+- p-limit npm registry: current version 7.3.0 (general); v6.2.0 minimum ESM-compatible; Node >= 18 required
+- Next.js middleware documentation: route protection patterns
 
 ### Secondary (MEDIUM confidence)
-- npm registry web search (March 2026) — version confirmations for crawlee 3.13.7, sirv 3.0.2, motion 12.37.0, next-themes 0.4.6, @faker-js/faker 10.3.0
-- sirv + vitest globalSetup — eshlox.net implementation guide
-- Dark mode + Tailwind v4 — thingsaboutweb.dev guide, iifx.dev next-themes + Tailwind v4 guide
-- Design tokens + Tailwind v4 — maviklabs.com 2026 three-layer token pattern article
-- ScrapeOps Playwright testing guide — fake HTTP server pattern for scraper tests
-- Memory files: project_v2_auto_discovery.md, project_v2_scraper_resilience.md, project_scraper_limitations.md
+- MOET official university portal (`thisinh.thitotnghiepthpt.edu.vn`): source for mã trường codes; no JSON API; requires one-time scrape
+- MOET quality management portal (`vqa.moet.gov.vn`): accredited institution list updated through 2025
+- `uni_list_examples.md` in project root: 78 Northern Vietnamese universities already documented with ministry codes and homepage URLs — the verified base for Phase 1
 
-### Tertiary (LOW confidence — needs validation during implementation)
-- @dnd-kit/react onDragEnd bug (issue #1664) — check whether resolved before Phase 7; cited as reason to prefer motion
-- GitHub Actions free tier minute limit — depends on repo visibility (public vs private); verify at github.com/features/actions
-- motion Reorder Android touch behavior — not independently tested; must be verified before Phase 7 commitment
+### Tertiary (MEDIUM-LOW confidence)
+- Vietnam university count (~237-400): Wikipedia and MOET sources give varying counts depending on whether vocational colleges are included; 400 is a safe upper bound for licensed degree-granting institutions
+- Discovery run duration estimate (30-60 min for 400 universities): calculated from `sameDomainDelaySecs: 2` × up to 50 pages × 400 sites; actual duration depends on server response times and how many universities have easily-discoverable cutoff pages
 
 ---
-*Research completed: 2026-03-18*
+*Research completed: 2026-03-19*
 *Ready for roadmap: yes*

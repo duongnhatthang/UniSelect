@@ -1,688 +1,444 @@
 # Architecture Research
 
-**Domain:** Vietnamese university admissions data aggregation PWA — v2.0 integration
-**Researched:** 2026-03-18
-**Confidence:** HIGH (derived directly from reading the existing codebase, not from web search)
+**Domain:** Vietnamese university scraper pipeline — scaling from 78 to 400+ institutions
+**Researched:** 2026-03-19
+**Confidence:** HIGH (all findings derived from direct codebase inspection)
 
-> This document supersedes the v1.0 architecture research (2026-03-17). It focuses exclusively on how the five new v2.0 feature areas integrate with the existing system. Unchanged parts of the architecture are not repeated here.
-
----
-
-## Current System Overview (as-built v1.0)
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  GITHUB ACTIONS (scraping pipeline)                             │
-│                                                                 │
-│  run.ts → loadRegistry() → runScraper() → DB upsert (N+1)      │
-│              scrapers.json    per-row insert loop               │
-│              skips !static_verified                             │
-└────────────────────────────────┬────────────────────────────────┘
-                                 │ writes (service_role)
-                                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  SUPABASE POSTGRESQL                                            │
-│  universities | majors | tohop_codes | cutoff_scores            │
-│  scrape_runs (audit log)                                        │
-└────────────────────────────────┬────────────────────────────────┘
-                                 │ reads (pooler port 6543)
-                                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  VERCEL SERVERLESS API                                          │
-│  /api/universities  /api/universities/[id]                      │
-│  /api/recommend  /api/tohop                                     │
-│  + static JSON fallback (generated at build time)              │
-└────────────────────────────────┬────────────────────────────────┘
-                                 │ fetches
-                                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  NEXT.JS 16 FRONTEND PWA                                        │
-│  components/ (flat), Tailwind v4, no design tokens             │
-│  next-intl (vi/en cookie), nuqs (URL state)                    │
-└─────────────────────────────────────────────────────────────────┘
-```
+> This document supersedes the v2.0 architecture research (2026-03-18). It focuses exclusively on how the v3.0 features (400+ university list, auto-discovery integration, registry gate fix, scrape monitoring) integrate with the as-built v2.0 system.
 
 ---
 
-## Integration Point 1: Auto-Discovery Crawler
-
-### Where It Lives
-
-The crawler is a new **pre-scrape discovery phase** that runs inside the same GitHub Actions job, before `run.ts` executes the adapter pipeline. It does NOT live in the Vercel API layer.
+## Current Architecture (v2.0 Baseline — as-built)
 
 ```
-GitHub Actions job (modified)
-  ├── [NEW] crawler/discover.ts
-  │     ↓ reads scrapers.json (homepage URLs)
-  │     ↓ spiders to find cutoff score pages
-  │     ↓ writes discovered URLs back to scrapers.json or a separate discovered-urls.json
-  │
-  └── run.ts (existing — unchanged interface)
-        ↓ loadRegistry() reads URLs (now potentially discovered URLs)
-        ↓ runScraper() calls adapters as before
+┌──────────────────────────────────────────────────────────────────────┐
+│                        GitHub Actions (Cron)                          │
+│  ┌────────────────┐  ┌──────────────────┐  ┌──────────────────────┐  │
+│  │  scrape-low    │  │  scrape-peak     │  │  discover.ts         │  │
+│  │  daily, 6     │  │  4x/day July,    │  │  ORPHANED — never    │  │
+│  │  shards       │  │  6 shards        │  │  runs in CI today    │  │
+│  └───────┬────────┘  └────────┬─────────┘  └──────────────────────┘  │
+└──────────┼───────────────────┼────────────────────────────────────────┘
+           │                   │
+           ▼                   ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                        lib/scraper/run.ts                             │
+│   loadRegistry() → shard by SHARD_INDEX/SHARD_TOTAL                  │
+└──────────────────────────────────────────────────────────────────────┘
+           │
+           ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                       lib/scraper/registry.ts                         │
+│   Reads scrapers.json                                                 │
+│   GATE: if (!entry.static_verified) → SKIP (warn, continue)         │
+│   Result: 4 of 78 adapters actually load                             │
+└──────────────────────────────────────────────────────────────────────┘
+           │ 4 adapters pass gate
+           ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│                       lib/scraper/runner.ts                           │
+│   Per adapter: scrape() → normalize() → batch upsert (transaction)   │
+│   Writes scrape_runs audit row: ok / zero_rows / flagged / error     │
+└──────────────────────────────────────────────────────────────────────┘
+           │
+           ▼
+┌────────────────────────┐    ┌──────────────────────────────────────┐
+│   Supabase / PostgreSQL │    │        scrapers.json (registry)       │
+│   universities (78)     │    │        78 entries, 4 verified        │
+│   cutoff_scores         │    │        74 gated by static_verified   │
+│   scrape_runs (audit)   │    │        most urls point at homepages  │
+│   majors                │    └──────────────────────────────────────┘
+│   tohop_codes           │
+└────────────────────────┘
 ```
 
-### What Changes vs. What Stays the Same
+### Component Responsibilities (v2.0 baseline)
 
-**Unchanged:**
-- `ScraperAdapter` interface (`scrape(url): Promise<RawRow[]>`)
-- `runScraper()` in runner.ts
-- `loadRegistry()` in registry.ts
-- `scrapers.json` entry format
+| Component | File | Responsibility | v3.0 Status |
+|-----------|------|----------------|-------------|
+| Registry | `lib/scraper/registry.ts` | Loads scrapers.json, gates on `static_verified`, resolves adapters | CHANGE — gate logic |
+| Runner | `lib/scraper/runner.ts` | Calls adapters, normalizes, batch-upserts, writes audit row | UNCHANGED |
+| Factory | `lib/scraper/factory.ts` | Creates Cheerio adapters from JSON config | UNCHANGED |
+| Normalizer | `lib/scraper/normalizer.ts` | Validates RawRow → NormalizedRow | UNCHANGED |
+| Discovery module | `lib/scraper/discovery/` | Keyword scorer + DiscoveryCandidate types | UNCHANGED |
+| Discovery script | `scripts/discover.ts` | Crawlee CheerioCrawler; orphaned, no CI trigger | CHANGE — add CI trigger + output path |
+| Scrape workflows | `.github/workflows/scrape-*.yml` | Cron, 6-shard matrix, full toolchain setup | CHANGE — shard count |
+| DB Schema | `lib/db/schema.ts` | universities, cutoff_scores, scrape_runs, majors, tohop_codes | UNCHANGED (schema is correct) |
 
-**New:**
-- `lib/scraper/crawler/discover.ts` — the discovery engine
-- `lib/scraper/crawler/classifier.ts` — page classification (HTML table / JS-rendered / image / PDF)
-- `lib/scraper/crawler/types.ts` — `DiscoveredPage` interface
+---
 
-### Data Flow
+## v3.0 Target Architecture
+
+Four structural problems to resolve:
+
+1. **Registry gate** — `static_verified: true` blocks 74/78 adapters
+2. **URL problem** — most scrapers.json entries point to homepages, not cutoff pages; discovery must populate real URLs
+3. **University list gap** — only 78 universities seeded; need 400+
+4. **Discovery orphan** — `scripts/discover.ts` is implemented and correct but has no GHA workflow
 
 ```
-scrapers.json (homepage URL per university)
-    ↓
-discover.ts
-    ├── fetchHTML(homepage)
-    ├── extract all <a href> links
-    ├── filter: href text or URL contains tuyen-sinh / diem-chuan / diem-trung-tuyen / year
-    ├── for each candidate link:
-    │     ├── fetchHTML(link)
-    │     └── classify page:
-    │           ├── has <table> with score headers → "html_table"
-    │           ├── has <img> matching score image patterns → "image"
-    │           ├── has <script> tags → "js_rendered"
-    │           └── has .pdf link → "pdf"
-    └── emit DiscoveredPage[] with confidence score
-          ↓
-run.ts reads discovered URLs and picks the adapter strategy based on page type
+┌───────────────────────────────────────────────────────────────────────┐
+│                       Data Sources (one-time seed)                     │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │  uni_list.json (400+ entries: id, name_vi, website_url)          │  │
+│  │  compiled from uni_list_examples.md + central/southern regions   │  │
+│  └──────────────────────────┬─────────────────────────────────────────┘
+└───────────────────────────────────────────────────────────────────────┘
+                              │ seed via scripts/seed-universities.ts
+                              ▼
+              Supabase universities table (400+ rows)
+              scrapers.json expanded to 400+ entries
+                   (website_url field, scrape_url = null initially)
+
+┌───────────────────────────────────────────────────────────────────────┐
+│             GitHub Actions: discover.yml (NEW, weekly)                 │
+│  Input:  scrapers.json (website_url fields, 400+ entries)             │
+│  Runs:   scripts/discover.ts (Crawlee — already implemented)          │
+│  Output: discovery-candidates.json (GHA artifact)                     │
+│          → scripts/apply-discovery.ts patches scrapers.json           │
+│            with scrape_url values                                      │
+└───────────────────────┬───────────────────────────────────────────────┘
+                        │ scrapers.json updated with scrape_url values
+                        ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│              scrapers.json — Registry Gate Fix (CHANGED)              │
+│                                                                        │
+│  Old fields:  url (homepage), static_verified (boolean gate)          │
+│  New fields:  website_url (homepage, discovery input)                 │
+│               scrape_url (actual cutoff page, discovery output)       │
+│               adapter_type: "cheerio"|"playwright"|"paddleocr"|"skip" │
+│               verified_at (optional ISO date, informational only)     │
+│                                                                        │
+│  Gate rule in registry.ts:                                            │
+│    RUN if  scrape_url present AND adapter_type != "skip"              │
+│    SKIP if scrape_url missing OR adapter_type == "skip"               │
+└───────────────────────┬───────────────────────────────────────────────┘
+                        │ resolved adapters (grows as discovery populates URLs)
+                        ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│              lib/scraper/run.ts (UNCHANGED logic)                      │
+│  Reads SHARD_INDEX / SHARD_TOTAL                                      │
+│  Sharding: i % shardTotal === shardIndex                              │
+│  Shard count increases as adapter count grows (GHA matrix config)    │
+└───────────────────────┬───────────────────────────────────────────────┘
+                        │
+                        ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│              lib/scraper/runner.ts (UNCHANGED)                        │
+│  Per adapter: scrape() → normalize() → batch upsert → audit row      │
+└───────────────────────┬───────────────────────────────────────────────┘
+                        │
+                        ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│                       Supabase / PostgreSQL                            │
+│  universities (400+ rows, seeded from uni_list.json)                  │
+│  cutoff_scores (populated by runner as adapters run)                  │
+│  scrape_runs (audit — powers monitoring; meaningful now at scale)     │
+│  majors / tohop_codes (unchanged)                                     │
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
-### `DiscoveredPage` Interface (new type)
+---
+
+## Component Change Map
+
+### Components That Do NOT Change
+
+| Component | Why Unchanged |
+|-----------|---------------|
+| `lib/scraper/runner.ts` | Batch upsert + audit trail already works correctly |
+| `lib/scraper/run.ts` | Shard logic is correct; shard count is a GHA matrix config number |
+| `lib/scraper/factory.ts` | Cheerio adapter factory is correct |
+| `lib/scraper/normalizer.ts` | Validation logic is correct |
+| `lib/scraper/discovery/` | Keyword scorer + candidate types are correct |
+| `scripts/discover.ts` | Script logic is correct (reads website_url origins, outputs candidates) |
+| DB schema (all tables) | `universities`, `cutoff_scores`, `scrape_runs`, `majors`, `tohop_codes` |
+
+### Components That Change
+
+#### 1. `lib/scraper/registry.ts` — Gate Logic Replacement
+
+**Current behavior:** Hard gate on `static_verified: true`. 74/78 entries skip with a console.warn.
+
+**New gate model:**
+- Remove `static_verified` gate entirely
+- Run entry if `scrape_url` is populated AND `adapter_type !== "skip"`
+- `scrape_url` is populated by `apply-discovery.ts` or manual edit
+- `adapter_type` explicitly controls which code path runs
 
 ```typescript
-// lib/scraper/crawler/types.ts
-export interface DiscoveredPage {
-  university_id: string;
-  url: string;
-  page_type: 'html_table' | 'js_rendered' | 'image' | 'pdf' | 'unknown';
-  confidence: number;      // 0.0–1.0 — how likely this is a cutoff score page
-  discovered_at: Date;
-  link_text: string;       // the anchor text that led here (for debugging)
+// New RegistryEntry shape
+interface RegistryEntry {
+  id: string;
+  name_vi?: string;
+  website_url: string;           // Homepage — fed to discover.ts
+  scrape_url?: string;           // Actual cutoff page URL — gate trigger
+  adapter?: string;              // Custom adapter filename (playwright/paddleocr)
+  adapter_type: 'cheerio' | 'playwright' | 'paddleocr' | 'skip';
+  factory_config?: Omit<CheerioAdapterConfig, 'id'>;
+  verified_at?: string;          // ISO date — informational, never gates
+  note?: string;
+}
+
+// New gate
+if (!entry.scrape_url || entry.adapter_type === 'skip') {
+  console.warn(`[registry] Skipping ${entry.id} — no scrape_url yet`);
+  continue;
 }
 ```
 
-### Registry Integration
+**Migration for existing 4 verified adapters:** Their current `url` field (which already points to a real cutoff page) is renamed to `scrape_url`. `website_url` is set to the homepage origin. `adapter_type` is set based on what they currently use (`static_verified: true` + no playwright → `"cheerio"`).
 
-Two options. **Use Option A.**
+#### 2. `scrapers.json` — Registry Data Model Expansion
 
-**Option A — scrapers.json stays the source of truth, discovered URLs injected at runtime:**
-- `scrapers.json` keeps `"url": "https://homepage.edu.vn/"` (the homepage)
-- `discover.ts` runs first and writes `public/discovered-urls.json` (or similar temp file)
-- `loadRegistry()` is modified: if `discovered_urls.json` has a fresher URL for this university_id, use it instead of scrapers.json URL
-- This means zero changes to scrapers.json format and the registry signature stays identical
+**Current state:** 78 entries, schema: `{ id, adapter, url, static_verified, factory_config, note }`.
 
-**Option B — scrapers.json updated in-place:**
-- Discovery run writes the found cutoff URL directly back into scrapers.json
-- Triggers a git commit from Actions
-- Messier (requires git push from Actions), but makes the discovered URL permanent
+**Changes:**
+- Rename `url` → `website_url` (homepage, input to discovery)
+- Add `scrape_url` (actual cutoff page, output from discovery — null initially for most entries)
+- Add `adapter_type` (replaces the implicit `static_verified` + `scraping_method` pattern)
+- Remove `static_verified`
+- Expand from 78 to 400+ entries (sourced from `uni_list.json`)
+- `factory_config` and `adapter` fields stay unchanged
 
-Option A is preferred: it decouples discovery from the registry file, avoids Actions needing write permissions to the repo, and keeps scrapers.json as human-edited truth.
+#### 3. `.github/workflows/` — New Workflow, Updated Shard Count
 
-### New scrapers.json field (optional enrichment)
+**Add:** `discover.yml` — weekly cron (`0 3 * * 0`) + `workflow_dispatch`. Runs `scripts/discover.ts` against all `website_url` entries. Outputs `discovery-candidates.json` as a GHA artifact. A separate step runs `scripts/apply-discovery.ts` to patch `scrapers.json` and open a PR (or commit directly to a `discovery/auto` branch for review).
+
+**Change:** `scrape-low.yml` and `scrape-peak.yml` — increase shard count from 6 to 10+ once `scrape_url`-populated entries exceed ~100. The shard count is just a number in the `strategy.matrix.shard` array; all other job logic stays the same.
+
+### New Components
+
+#### 4. `uni_list.json` (NEW — static asset)
+
+Master list of all Vietnamese universities and colleges. Compiled from `uni_list_examples.md` (78 northern universities already documented) plus equivalent lists for central and southern Vietnam.
 
 ```json
-{
-  "id": "BKA",
-  "adapter": "bka",
-  "url": "https://hust.edu.vn/",
-  "homepage_url": "https://hust.edu.vn/",
-  "static_verified": false,
-  "discovery": {
-    "enabled": true,
-    "keywords": ["diem-chuan", "tuyen-sinh", "trung-tuyen"],
-    "max_depth": 2
-  }
-}
+[
+  { "id": "BKA", "name_vi": "Đại học Bách Khoa Hà Nội", "website_url": "https://hust.edu.vn/" },
+  { "id": "QHT", "name_vi": "Trường ĐH Khoa học Tự nhiên - ĐHQG Hà Nội", "website_url": "https://hus.edu.vn/" }
+]
 ```
 
-The `discovery` block is opt-in per university (default enabled). Universities where auto-discovery is known to fail (PDF-only, Google Drive links) can set `"enabled": false`.
+The file already has a working source: `uni_list_examples.md` contains 78 tab-separated rows with ministry code, name, and URL ready to parse.
+
+#### 5. `scripts/seed-universities.ts` (NEW)
+
+One-time script to seed the `universities` Supabase table from `uni_list.json`. Uses the same `db` connection and Drizzle ORM already in the project. Runs via `npx tsx scripts/seed-universities.ts`. Safe to re-run (upsert on conflict).
+
+Also generates the 400+ skeleton entries in `scrapers.json` (with `website_url` populated, `scrape_url` null, `adapter_type: "cheerio"` as default).
+
+#### 6. `scripts/apply-discovery.ts` (NEW)
+
+Merges `discovery-candidates.json` (output of `discover.ts`) back into `scrapers.json`. For each candidate above the confidence threshold, if `scrape_url` is not already set, writes the discovered URL.
+
+Design constraint: does not overwrite entries that already have `verified_at` set, to protect manually curated entries. Logs a diff for those.
+
+#### 7. `lib/api/scrape-status.ts` (NEW — optional within v3.0 scope)
+
+API route querying `scrape_runs` for a per-university health summary: last run timestamp, status, rows written. Powers a simple monitoring view or admin page.
 
 ---
 
-## Integration Point 2: Fake Test Websites
+## Data Flow Changes
 
-### Where They Live
-
-Fake websites are **test fixtures served by a local HTTP server** during `vitest` integration tests. They do NOT affect the production pipeline.
+### Flow 1: University List Expansion (one-time, manual)
 
 ```
-tests/
-├── fixtures/
-│   ├── fake-sites/
-│   │   ├── generic-html-table/       # Standard cheerio adapter case
-│   │   │   └── index.html
-│   │   ├── no-thead-headers/         # HTC-style: headers in first <tr>
-│   │   │   └── index.html
-│   │   ├── js-rendered-stub/         # Static HTML simulating post-JS content
-│   │   │   └── index.html
-│   │   ├── score-image/              # Page with <img> pointing to test JPEG
-│   │   │   ├── index.html
-│   │   │   └── sample_scores.jpg
-│   │   ├── encoding-windows1252/     # Windows-1252 encoded page
-│   │   │   └── index.html
-│   │   ├── broken-table/             # Missing score column header
-│   │   │   └── index.html
-│   │   └── renamed-headers/          # "điểm trúng tuyển" renamed to "Cutoff"
-│   │       └── index.html
-│   └── server.ts                     # Starts http-server on a random port
-│
-└── scraper/
-    └── adapters/
-        ├── generic-factory.integration.test.ts
-        └── crawler.integration.test.ts
+uni_list_examples.md + central/southern sources
+    → compile into uni_list.json (400+ entries)
+    → scripts/seed-universities.ts
+    → Supabase: universities table (400+ rows)
+    → scrapers.json (400+ entries, website_url set, scrape_url = null)
 ```
 
-### Server Setup Pattern
+### Flow 2: Auto-Discovery (weekly, automated)
 
-```typescript
-// tests/fixtures/server.ts
-import { createServer } from 'http';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
-
-export function startFixtureServer(port = 0): Promise<{ url: string; close: () => void }> {
-  return new Promise((resolve_) => {
-    const server = createServer((req, res) => {
-      const filePath = resolve(__dirname, 'fake-sites', req.url!.slice(1), 'index.html');
-      // serve file or 404
-    });
-    server.listen(port, () => {
-      const addr = server.address() as { port: number };
-      resolve_({ url: `http://localhost:${addr.port}`, close: () => server.close() });
-    });
-  });
-}
+```
+scrapers.json (website_url per entry)
+    → scripts/discover.ts
+        CheerioCrawler crawls homepage → keyword-scores pages
+        outputs discovery-candidates.json
+    → scripts/apply-discovery.ts
+        patches scrapers.json with scrape_url values
+    → commit/PR to repo
 ```
 
-### What This Enables
+### Flow 3: Scrape Run (daily, existing cadence + expanded scope)
 
-- Generic adapter factory tests can run against `http://localhost:PORT/generic-html-table` without mocking `fetchHTML`
-- Crawler tests can discover links within fake-site HTML without hitting real university websites
-- PaddleOCR integration test uses `tests/fixtures/fake-sites/score-image/sample_scores.jpg`
-
-### Relationship to Existing Adapter Tests
-
-Existing tests (`bvh.test.ts`, `dcn.test.ts`) mock `fetchHTML` at the module level — they stay unchanged. The new fixture-server tests are **additional** integration tests that complement the existing unit tests by testing the full HTTP fetch → parse path. No migration of existing tests needed.
-
----
-
-## Integration Point 3: Generic Adapter Factory
-
-### The Copy-Paste Problem (confirmed from code)
-
-Comparing `htc.ts`, `bvh.ts`, and `sph.ts`: they share 85%+ identical code. The variation is:
-1. The `university_id` string literal (`'HTC'`, `'BVH'`, `'SPH'`)
-2. The score column keyword match (e.g., BVH matches `'thpt'` first; HTC matches `'điểm trúng tuyển'` first)
-3. Whether to use a `defaultTohop` when no tohop column exists (HTC defaults to `'A00'`)
-
-### Factory Approach: Config-Driven, Not Inheritance
-
-Do not use class inheritance. Use a factory function that takes a config object and returns a `ScraperAdapter`.
-
-```typescript
-// lib/scraper/adapters/generic-cheerio-factory.ts
-
-export interface GenericCheerioConfig {
-  universityId: string;
-  // Column detection: keywords to match in header text
-  scoreKeywords: string[];          // e.g. ['điểm trúng tuyển', 'điểm chuẩn', 'thpt']
-  majorCodeKeywords: string[];      // e.g. ['mã ngành', 'ma nganh']
-  tohopKeywords?: string[];         // e.g. ['tổ hợp', 'khối'] — optional
-  defaultTohop?: string;            // e.g. 'A00' if no tohop column
-  // Row filtering
-  requireNumericMajorCode?: boolean; // default true — skip rows where major code !~ /^\d/
-  minCellCount?: number;            // default 3
-}
-
-export function createCheerioAdapter(config: GenericCheerioConfig): ScraperAdapter {
-  return {
-    id: config.universityId,
-    async scrape(url: string): Promise<RawRow[]> {
-      // ... shared cheerio logic using config ...
-    },
-  };
-}
+```
+scrapers.json (entries with scrape_url populated)
+    → lib/scraper/registry.ts
+        new gate: scrape_url present + adapter_type != "skip"
+    → lib/scraper/run.ts (shard by index)
+    → lib/scraper/runner.ts
+        scrape() → normalize() → batch upsert → scrape_runs row
+    → Supabase: cutoff_scores updated, scrape_runs logged
 ```
 
-### Where Adapters Move
+### Flow 4: Monitoring (read-only query)
 
-The 70+ copy-pasted adapters are refactored in two passes:
-
-**Pass 1 — New adapters use the factory.** Any new adapter created for the 72 dormant universities uses `createCheerioAdapter(config)` instead of copy-pasting. These are trivial one-liners:
-
-```typescript
-// lib/scraper/adapters/fbu.ts (after refactor)
-import { createCheerioAdapter } from './generic-cheerio-factory';
-export const fbuAdapter = createCheerioAdapter({
-  universityId: 'FBU',
-  scoreKeywords: ['điểm chuẩn', 'điểm trúng tuyển'],
-  majorCodeKeywords: ['mã ngành'],
-  tohopKeywords: ['tổ hợp'],
-});
 ```
-
-**Pass 2 — Existing verified adapters migrated.** `htc.ts`, `bvh.ts`, `sph.ts`, `tla.ts` are migrated to factory configs. The adapter module still exports `htcAdapter` by name (so the registry import `mod[entry.adapter + 'Adapter']` continues to work unchanged). The complex cases (`dcn.ts` with Playwright, `gha.ts` with PaddleOCR) are NOT migrated — they remain custom adapters.
-
-### Registry Compatibility: Zero Breaking Changes
-
-The registry uses:
-```typescript
-const mod = await import(`./adapters/${entry.adapter}`);
-const adapter = mod.default ?? mod[`${entry.adapter}Adapter`];
-```
-
-This continues to work after refactoring because each adapter file still exports `${id}Adapter`. The factory is an internal implementation detail — invisible to `loadRegistry()`.
-
-**No changes needed in:**
-- `scrapers.json`
-- `registry.ts`
-- `runner.ts`
-- Any existing test
-
-### Playwright and PaddleOCR Equivalents
-
-For JS-rendered pages, a `createPlaywrightAdapter(config)` factory follows the same pattern but launches a Playwright browser instead of calling `fetchHTML`. For OCR pages, the custom adapter pattern stays (image extraction is too variable to generalize well in v2).
-
----
-
-## Integration Point 4: Design Token Layer (Tailwind v4)
-
-### Current State
-
-`app/globals.css` contains only:
-```css
-@import "tailwindcss";
-```
-
-There are no design tokens. Components use hardcoded Tailwind class strings like `text-gray-900`, `bg-white`, `border-gray-200`.
-
-### Tailwind v4 CSS-First Token Layer
-
-Tailwind v4 uses CSS variables defined in the `@theme` block instead of `tailwind.config.js`. This is the correct integration point.
-
-```css
-/* app/globals.css — after v2 changes */
-@import "tailwindcss";
-
-@theme {
-  /* Brand colors */
-  --color-brand-50:  #eff6ff;
-  --color-brand-500: #3b82f6;
-  --color-brand-700: #1d4ed8;
-
-  /* Semantic color aliases */
-  --color-surface:        var(--color-white);
-  --color-surface-muted:  var(--color-gray-50);
-  --color-border:         var(--color-gray-200);
-  --color-text-primary:   var(--color-gray-900);
-  --color-text-secondary: var(--color-gray-600);
-  --color-text-muted:     var(--color-gray-400);
-
-  /* Tier colors (semantic) */
-  --color-tier-dream:     var(--color-purple-600);
-  --color-tier-practical: var(--color-brand-500);
-  --color-tier-safe:      var(--color-green-600);
-
-  /* Typography */
-  --font-sans: 'Be Vietnam Pro', ui-sans-serif, system-ui;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-
-  /* Spacing scale supplement */
-  --spacing-card: 1rem;
-}
-
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  @theme {
-    --color-surface:        var(--color-gray-900);
-    --color-surface-muted:  var(--color-gray-800);
-    --color-border:         var(--color-gray-700);
-    --color-text-primary:   var(--color-gray-100);
-    --color-text-secondary: var(--color-gray-400);
-    --color-text-muted:     var(--color-gray-500);
-  }
-}
-```
-
-With this in place, `--color-text-primary` becomes `text-text-primary` as a Tailwind utility class. Components then use `text-text-primary` instead of `text-gray-900`.
-
-### Migration Strategy for Existing Components
-
-Do NOT rename all classes in one pass — that is a large risky diff. The approach:
-
-1. Add the `@theme` block to `globals.css` (adds tokens without breaking anything)
-2. Fix the font bug first (`--font-sans` in `@theme` activates Be Vietnam Pro via `font-sans` class)
-3. Migrate `TierBadge.tsx` first — it already uses tier colors in one place, making it a clean reference component
-4. When touching a component for a feature change, migrate its raw color classes to semantic tokens at the same time
-5. New components in v2 (drag-reorder list, onboarding) write semantic token classes from the start
-
-### What Does NOT Change
-
-- No `tailwind.config.js` needed — Tailwind v4 is purely CSS-first
-- `@tailwindcss/postcss` in `devDependencies` stays (already present)
-- Existing classes like `border`, `rounded-lg`, `shadow-sm`, `space-y-3` are layout/structural — they do not need tokens and stay as-is
-
----
-
-## Integration Point 5: Batch DB Insertion in runner.ts
-
-### Current Problem (confirmed from code)
-
-`runner.ts` does two awaited inserts per scraped row:
-1. `db.insert(majors).values(...).onConflictDoNothing()` — ensures major FK exists
-2. `db.insert(cutoffScores).values(...).onConflictDoUpdate(...)` — writes the score
-
-For a university with 50 majors × 3 tổ hợp = 150 rows, this is 300 sequential round-trips to Supabase over the Supavisor connection pooler. This is the N+1 write problem.
-
-### Batch Insertion Pattern
-
-Drizzle ORM supports passing an array to `.values()`. The fix involves collecting all rows for a university, then inserting in one statement per table.
-
-**Key constraint:** Supabase Supavisor (transaction pool mode, `prepare: false`) does not support true multi-statement transactions across pool checkouts. However, a single `INSERT ... VALUES (row1), (row2), ...` is a single statement and works fine.
-
-```typescript
-// lib/scraper/runner.ts — modified inner loop
-
-// Collect phase
-const normalizedBatch: NormalizedRow[] = [];
-for (const raw of rawRows) {
-  const normalized = normalize(raw);
-  if (!normalized) {
-    rowsRejected++;
-    rejectionLog.push(JSON.stringify(raw));
-  } else {
-    normalizedBatch.push(normalized);
-  }
-}
-
-// Batch upsert phase — two round-trips total (down from 2N)
-
-// 1. Ensure all majors exist
-const uniqueMajorIds = [...new Set(normalizedBatch.map(r => r.major_id))];
-if (uniqueMajorIds.length > 0) {
-  await db.insert(majors)
-    .values(uniqueMajorIds.map(id => ({ id, name_vi: id })))
-    .onConflictDoNothing();
-}
-
-// 2. Batch upsert all cutoff scores
-if (normalizedBatch.length > 0) {
-  await db.insert(cutoffScores)
-    .values(normalizedBatch.map(n => ({
-      university_id: n.university_id,
-      major_id: n.major_id,
-      tohop_code: n.tohop_code,
-      year: n.year,
-      score: String(n.score),
-      admission_method: n.admission_method,
-      source_url: n.source_url,
-      scraped_at: n.scraped_at,
-    })))
-    .onConflictDoUpdate({
-      target: [
-        cutoffScores.university_id,
-        cutoffScores.major_id,
-        cutoffScores.tohop_code,
-        cutoffScores.year,
-        cutoffScores.admission_method,
-      ],
-      set: {
-        score: sql`excluded.score`,
-        source_url: sql`excluded.source_url`,
-        scraped_at: sql`excluded.scraped_at`,
-      },
-    });
-}
-rowsWritten = normalizedBatch.length;
-```
-
-### Impact on Tests
-
-`tests/scraper/runner.test.ts` mocks `db.insert` at the module level. The mock returns a chainable object with `values()`, `onConflictDoUpdate()`, `onConflictDoNothing()`. The existing mock handles both the single-insert and batch-insert call patterns because it captures `.values()` arguments regardless of whether an array or single object is passed. The test's `getScrapeRunInserts()` helper looks for objects with a `status` field — that part is unchanged.
-
-The `rows_written` count changes slightly: currently it increments per successful individual insert. After batching, it is set to `normalizedBatch.length` after the batch insert. The test assertion `expect(scrapeRuns[0].rows_written).toBe(3)` continues to pass.
-
-### Chunk Size for Large Universities
-
-A single INSERT with 500+ value tuples can approach Postgres parameter limits (65535 parameters). For safety, chunk at 200 rows:
-
-```typescript
-// lib/scraper/runner.ts — chunked batch insert
-const BATCH_SIZE = 200;
-for (let i = 0; i < normalizedBatch.length; i += BATCH_SIZE) {
-  const chunk = normalizedBatch.slice(i, i + BATCH_SIZE);
-  await db.insert(cutoffScores).values(chunk.map(...)).onConflictDoUpdate(...);
-}
+Supabase: scrape_runs table
+    → lib/api/scrape-status.ts
+        GROUP BY university_id, get latest status + rows_written
+    → Admin view showing pipeline health per university
 ```
 
 ---
 
-## Revised System Overview (v2.0)
+## Build Order and Dependencies
+
+Dependencies flow strictly. Each phase unlocks the next.
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│  GITHUB ACTIONS (scraping pipeline — modified)                  │
-│                                                                 │
-│  [NEW] crawler/discover.ts                                      │
-│    scrapers.json (homepage URLs)                                │
-│    → spider → classify → write discovered-urls.json            │
-│         ↓                                                       │
-│  run.ts (modified: reads discovered URLs if available)         │
-│    → loadRegistry() → merge discovered URLs                    │
-│    → runScraper() → [batch upsert — modified]                  │
-│         ↓                                                       │
-│  [NEW] PaddleOCR CI integration test (separate job)            │
-└────────────────────────────────┬────────────────────────────────┘
-                                 │ writes (batch, 2 round-trips/uni)
-                                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  SUPABASE POSTGRESQL (unchanged)                                │
-└────────────────────────────────┬────────────────────────────────┘
-                                 │
-                                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  VERCEL SERVERLESS API (unchanged)                              │
-└────────────────────────────────┬────────────────────────────────┘
-                                 │
-                                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  NEXT.JS 16 FRONTEND PWA (modified)                             │
-│                                                                 │
-│  globals.css: @theme block (design tokens, dark mode)           │
-│  [NEW] Drag-reorder NguyenVongList (dnd-kit or native)         │
-│  [NEW] Onboarding overlay                                       │
-│  components/ → semantic token classes                           │
-└─────────────────────────────────────────────────────────────────┘
+Phase 1: University Master List
+    Deliverables: uni_list.json, seed-universities.ts, scrapers.json expanded
+    Dependencies: none (pure data work + one script)
+    UNLOCKS → Phase 2 has something to discover against
+
+Phase 2: Registry Gate Fix
+    Deliverables: registry.ts gate change, scrapers.json schema migration
+    Dependencies: Phase 1 (scrapers.json must have website_url field)
+    UNLOCKS → Phase 3 (scraper can now run adapters as URLs populate)
+              Scrape runs immediately improve for the 4 already-verified adapters
+
+Phase 3: Discovery Integration
+    Deliverables: discover.yml workflow, apply-discovery.ts, first discovery run
+    Dependencies: Phase 1 (website_url in scrapers.json), Phase 2 (gate reads scrape_url)
+    UNLOCKS → scrapers.json gets real scrape_url values for many universities
+
+Phase 4: Shard Scaling
+    Deliverables: update shard count in scrape-*.yml
+    Dependencies: Phase 3 (need to know how many adapters now have scrape_url)
+    NOTE: Only needed when runnable adapter count exceeds ~100
+
+Phase 5: Monitoring
+    Deliverables: scrape-status API route, admin view
+    Dependencies: Phases 1-3 (need meaningful data in scrape_runs to monitor)
+    NOTE: scrape_runs table already captures all needed data; this is just a query layer
 ```
 
----
-
-## New File Locations
-
-| New File | Purpose | Touches Existing? |
-|----------|---------|-------------------|
-| `lib/scraper/crawler/discover.ts` | Homepage spider, link extraction | Reads `scrapers.json` |
-| `lib/scraper/crawler/classifier.ts` | Page type detection (html/JS/image/pdf) | No |
-| `lib/scraper/crawler/types.ts` | `DiscoveredPage` interface | No |
-| `lib/scraper/adapters/generic-cheerio-factory.ts` | Factory for static HTML adapters | No |
-| `lib/scraper/adapters/generic-playwright-factory.ts` | Factory for JS-rendered adapters | No |
-| `tests/fixtures/fake-sites/*/index.html` | HTML fixtures for integration tests | No |
-| `tests/fixtures/server.ts` | Local HTTP server for integration tests | No |
-| `tests/scraper/crawler/discover.integration.test.ts` | Crawler tests against fake sites | No |
-| `tests/scraper/adapters/generic-factory.integration.test.ts` | Factory tests against fake sites | No |
-
-## Modified Files
-
-| Modified File | What Changes | Risk |
-|--------------|-------------|------|
-| `lib/scraper/runner.ts` | Collect-then-batch upsert instead of per-row insert | LOW — existing tests pass with batch |
-| `lib/scraper/run.ts` | Optional pre-pass: run discovery, merge URLs | LOW — runs before existing logic |
-| `lib/scraper/registry.ts` | Merge discovered-urls.json if present | LOW — additive |
-| `app/globals.css` | Add `@theme` token block | LOW — additive only |
-| `lib/scraper/adapters/htc.ts` | Replace implementation with `createCheerioAdapter(...)` | LOW — same export name |
-| `lib/scraper/adapters/bvh.ts` | Replace implementation with `createCheerioAdapter(...)` | LOW — same export name |
-| `lib/scraper/adapters/sph.ts` | Replace implementation with `createCheerioAdapter(...)` | LOW — same export name |
-| `lib/scraper/adapters/tla.ts` | Replace implementation with `createCheerioAdapter(...)` | LOW — same export name |
-| `components/NguyenVongList.tsx` | Add drag-reorder, manual add/remove | MEDIUM — behavior change |
+**Critical path:** Phase 1 → Phase 2 → Phase 3. These three must ship in order. Phases 4 and 5 are independent of each other and can be done in either order after Phase 3.
 
 ---
 
-## Build Order for v2.0
+## Architectural Patterns
 
-Dependencies flow left to right. Build in this order within each phase.
+### Pattern 1: Static Registry with Discovery Patch
 
-**Phase 1 — Scraper Foundation (unblocks everything)**
-1. `generic-cheerio-factory.ts` + unit tests (no external deps)
-2. Migrate verified adapters (htc, bvh, sph, tla) to factory — proves factory works on known-good cases
-3. Batch insert in `runner.ts` — isolated change, existing tests cover it
-4. `generic-playwright-factory.ts` — follows same pattern as cheerio factory
+**What:** `scrapers.json` stays a static, version-controlled file. Discovery writes a patch file; a script applies it back into `scrapers.json`. The registry at scrape-run time reads only the static file — no live DB query, no live crawler.
 
-*Why first:* Factory and batch insert are purely internal refactors with no UI or DB dependency. They reduce surface area before adding new complexity.
+**When to use:** Always for this project. Scrape jobs are stateless GHA runners that start cold. A static file loads in milliseconds; a DB query at startup adds latency and a cold-start failure mode (Supabase free tier pauses after inactivity).
 
-**Phase 2 — Resilience Testing Infrastructure**
-1. `tests/fixtures/server.ts` — the test server
-2. HTML fixture files (one per edge case)
-3. Integration tests for generic factory against fake sites
-4. PaddleOCR CI job (separate GitHub Actions workflow step)
+**Trade-offs:** Discovery results require a commit before taking effect. This is acceptable — it adds auditability and prevents a bad discovery run from silently redirecting all scrapers.
 
-*Why second:* Fake site infrastructure gives a safety net before writing the crawler. Crawler tests need the fake sites to run against.
+### Pattern 2: scrape_url Presence as Gate (Graduated Trust)
 
-**Phase 3 — Auto-Discovery Crawler**
-1. `crawler/types.ts` (DiscoveredPage interface)
-2. `crawler/classifier.ts` (page type detection — pure function, unit testable)
-3. `crawler/discover.ts` (spider + link extraction)
-4. Integration tests against fake sites (built in Phase 2)
-5. Modify `run.ts` and `registry.ts` to merge discovered URLs
+**What:** Replace the `static_verified: true` hard gate with "has a target URL and is not explicitly skipped." Any entry with a `scrape_url` will be attempted. The `scrape_runs` audit table captures the outcome. Failures (zero_rows, error) are visible and fixable; they are not silent.
 
-*Why third:* Depends on fake sites for testing. Must come after factory work because discovered pages feed into adapters.
+**When to use:** This is the v3.0 gate model. The old boolean gate was appropriate when the project was small and required manual verification before any adapter ran. At 400+ universities, manual pre-verification of every URL is not feasible.
 
-**Phase 4 — Bug Fixes**
-1. Fix delta sign convention (ResultsList vs NguyenVongList)
-2. Fix trend color semantics
-3. Fix null score → NaN in engine
-4. Fix withTimeout timer leak
-5. Static fallback for /api/recommend
-6. Error handling UI
+**Trade-offs:** Some adapters will return `zero_rows` or `error` on first run because their `factory_config` keywords don't match the page's actual column headers. This is expected and fixable iteratively using `scrape_runs` data. Zero-rows is not a crash — it logs cleanly.
 
-*Why fourth:* These are isolated bug fixes. Doing them after scraper work avoids merge conflicts on files being changed for other reasons.
+### Pattern 3: Discovery as URL Resolver Only
 
-**Phase 5 — UI/UX Redesign**
-1. Design token `@theme` block in `globals.css` + fix font
-2. Migrate `TierBadge.tsx` (reference component)
-3. Error boundaries (`error.tsx`, `not-found.tsx`)
-4. Drag-reorder NguyenVongList
-5. Onboarding overlay
-6. Dark mode (activated via `@media prefers-color-scheme: dark` block in tokens)
-7. Remaining component migrations to semantic tokens
+**What:** The discovery crawler's sole job is to find the URL of the cutoff page. It does NOT extract score data. Score extraction happens in the main scrape run using the adapter's configured parser.
 
-*Why last:* No other phase depends on UI. UI changes are high-effort, low-breakage-risk for non-UI code. Doing tokens first (step 1) gives subsequent UI work a clean foundation.
+**When to use:** Always. Combining URL discovery with data extraction in a single pass would make each discovery crawl as expensive as a full scrape run, and would need to run daily instead of weekly.
+
+**Trade-offs:** Two-pass pipeline adds complexity. But discovery only needs to run weekly (URLs don't change often); the scrape runs daily. The cadence difference makes the separation natural.
 
 ---
 
-## Patterns to Follow
+## Anti-Patterns
 
-### Pattern 1: Factory Adapter (new in v2)
+### Anti-Pattern 1: Running Discovery Before Every Scrape Shard
 
-**What:** A `createCheerioAdapter(config)` function returns a `ScraperAdapter`. Config object specifies column-matching keywords and defaults. No class inheritance.
+**What people do:** Add a discovery step inside `scrape-low.yml` that runs before each shard's `run.ts` call.
 
-**When to use:** Any new static HTML adapter where the page has a standard table structure. Use a custom adapter only when the page requires non-table parsing (PaddleOCR, special DOM structure).
+**Why it's wrong:** Discovery crawls 400+ university homepages with up to 50 page requests each (Crawlee `maxRequestsPerCrawl: 50`). That's potentially 20,000 HTTP requests per discovery run. Running it before every shard (6 shards × daily) means 6 discovery runs per day — hammering university servers, burning GHA minutes, and defeating the point of sharding.
 
-**Trade-offs:** Pros — eliminates copy-paste, fixes in factory propagate to all universities. Cons — debugging requires understanding the shared code path; very unusual layouts may need escape hatches via `config.customParser`.
+**Do this instead:** Separate `discover.yml` workflow, weekly cadence. Scrape workflows read only from `scrapers.json` (no live crawling at scrape time).
 
-### Pattern 2: Discovery as Pre-Pass (new in v2)
+### Anti-Pattern 2: Storing Discovered URLs Only in the Database
 
-**What:** `discover.ts` runs before `run.ts`, writes `discovered-urls.json` as ephemeral output. `loadRegistry()` merges this into adapter configs. Discovery failures are non-fatal — fall back to the URL in `scrapers.json`.
+**What people do:** Write discovered URLs directly to a Supabase table. Have `registry.ts` query that table at startup to get scrape URLs.
 
-**When to use:** Always in production scrape runs. Skip with `SKIP_DISCOVERY=1` env var for fast local testing.
+**Why it's wrong:** Scrape jobs become dependent on DB availability at startup. Supabase free tier pauses after inactivity; cold-start can take 5-10 seconds or fail. Also loses the git-diffable audit trail of which URLs are in use.
 
-**Trade-offs:** Pros — eliminates manual URL maintenance. Cons — adds 1-3 minutes of HTTP crawl time per run; discovery may occasionally pick up wrong pages (mitigated by confidence score threshold).
+**Do this instead:** `apply-discovery.ts` writes discovered URLs back into `scrapers.json`. The static file is always available. Optionally also insert into a `discovery_candidates` DB table for historical audit, but the gate reads from the file.
 
-### Pattern 3: Collect-then-Batch Write (modifying v1 pattern)
+### Anti-Pattern 3: Expanding Shard Count Before Adapters Are Populated
 
-**What:** Normalize all rows for a university into an array first, then perform one batch `INSERT ... VALUES (...)` per table instead of one INSERT per row.
+**What people do:** Immediately change shard count from 6 to 20 "for 400 universities."
 
-**When to use:** Always. The N+1 write is never preferable for batch jobs.
+**Why it's wrong:** Each GHA shard spins up a fresh runner: checkout, npm ci, Playwright install, Python + PaddleOCR install, model warm-up — roughly 3-4 minutes of overhead per shard before any scraping happens. With only 10 adapters having `scrape_url` populated, 20 shards means most shards do 0-1 adapters with 4 minutes of wasted setup time.
 
-**Trade-offs:** Pros — reduces DB round-trips from 2N to 2 (or 2 * ceil(N/200) with chunking). Cons — if the batch INSERT fails, all rows for that university fail together (vs. partial success). This is acceptable — the scrape_runs log marks the university as errored, and the next run retries all rows.
+**Do this instead:** Keep 6 shards until `scrape_url`-populated entries exceed ~100. At that point, run time will approach 30 minutes per shard and increasing to 10-12 shards becomes worthwhile.
 
----
+### Anti-Pattern 4: Treating factory_config Tuning as a Pre-Launch Blocker
 
-## Anti-Patterns to Avoid (v2-specific)
+**What people do:** Refuse to ship until every one of the 400 university adapters has been manually verified and `factory_config` keywords confirmed against the actual page.
 
-### Anti-Pattern 1: Crawler Inside Vercel API
+**Why it's wrong:** Manual verification of 400 university pages is months of work. The `scrape_runs` audit table already captures which adapters return `zero_rows` or `error`. The correct approach is: ship with best-effort configs, let the pipeline run, read the `scrape_runs` data to find failures, fix iteratively.
 
-**What:** Triggering the homepage crawler from an API route (e.g., `/api/discover`) to avoid modifying GitHub Actions.
-
-**Why bad:** Vercel functions have a maximum execution duration of 60 seconds (Pro) or 10 seconds (Hobby). Crawling a single university homepage (follow homepage → find cutoff page → classify) takes 3-10 seconds per university. 78 universities = way over limit.
-
-**Instead:** Crawler runs in GitHub Actions only, same as the scraper.
-
-### Anti-Pattern 2: Storing Discovered URLs in the Database
-
-**What:** Saving `DiscoveredPage` records to Supabase so the frontend can show "last scraped from URL X."
-
-**Why bad:** Turns a batch pipeline artifact into a long-lived DB concern. Discovered URLs change every July; stale DB entries would confuse rather than inform. The `source_url` column in `cutoff_scores` already captures the URL that was actually used.
-
-**Instead:** `discovered-urls.json` is ephemeral. Only the scraped data (with `source_url`) persists to the DB.
-
-### Anti-Pattern 3: Factory with Class Inheritance
-
-**What:** A base class `BaseCheerioAdapter` with subclasses per university that override methods.
-
-**Why bad:** TypeScript class inheritance for data-driven variation is awkward. Subclasses must be imported explicitly (defeats the dynamic registry import pattern). The factory function approach is simpler, testable, and works within the existing `mod[entry.adapter + 'Adapter']` registry lookup.
-
-**Instead:** `createCheerioAdapter(config)` returns a plain object conforming to `ScraperAdapter`. No classes.
-
-### Anti-Pattern 4: Tailwind v4 Config File for Tokens
-
-**What:** Creating `tailwind.config.ts` with a `theme.extend.colors` block to add design tokens.
-
-**Why bad:** Tailwind v4 is CSS-first. Using `tailwind.config.ts` for theme customization is the v3 pattern. In v4, the `@theme` block in CSS is the canonical approach; mixing both causes undefined behavior.
-
-**Instead:** All tokens in `@theme` inside `app/globals.css`. No `tailwind.config.ts` for tokens.
+**Do this instead:** Ship with discovery populating URLs and factory_config using broad keyword defaults. Use `scrape_runs` as the feedback loop for tuning.
 
 ---
 
-## Integration Points Summary
+## Integration Points
 
-| External Service | Integration Pattern | v2 Changes? |
-|-----------------|---------------------|-------------|
-| Supabase (read) | Drizzle ORM via pooler (port 6543) | None |
-| Supabase (write) | Service role key, batch upsert | Batch size increases, still same Drizzle API |
-| GitHub Actions | Cron + matrix shards | New discovery pre-step; new OCR CI job |
-| Vercel | Next.js build + serverless functions | None (scraper stays out of Vercel) |
+### External Services
 
-| Internal Boundary | Communication | v2 Notes |
-|------------------|---------------|----------|
-| Crawler → Runner | `discovered-urls.json` flat file | New in v2 |
-| Factory → Registry | Named export `${id}Adapter` | Unchanged contract |
-| Runner → DB | Drizzle ORM batch insert | Changed from per-row |
-| Tokens → Components | Tailwind CSS variable utilities | New in v2; components migrate gradually |
-| Fake sites → Tests | Local HTTP server (random port) | Test-only; no prod impact |
+| Service | Integration Pattern | Notes |
+|---------|---------------------|-------|
+| Supabase | Drizzle ORM via pooler (port 6543, `prepare: false`) | Keep-alive cron every 5 days prevents free-tier pause. Unchanged. |
+| GitHub Actions | Cron + matrix sharding + new discover.yml | Static `scrapers.json` keeps jobs fast to start (no DB at startup) |
+| University websites | CheerioCrawler (discovery), then Cheerio/Playwright/PaddleOCR (scraping) | Rate-limit: `sameDomainDelaySecs: 2`, `maxConcurrency: 1` in discover.ts |
+
+### Internal Boundaries
+
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| `discover.ts` → `scrapers.json` | `apply-discovery.ts` file write (JSON patch) | Not a live DB query — static file stays the single source of truth |
+| `registry.ts` → `scrapers.json` | `readFileSync` at job startup | Synchronous, no network call — fast cold start |
+| `runner.ts` → Supabase | Drizzle batch upsert in transaction | CHUNK_SIZE=500 already set; unchanged |
+| `scrape_runs` → monitoring | SQL query via API route | `scrape_runs` captures status, rows_written, error_log per university per run |
+
+---
+
+## Scaling Considerations
+
+| Adapters with scrape_url | Architecture Adjustment |
+|--------------------------|-------------------------|
+| 4 (current) | 6 shards — wasteful but fine; each shard does ~1 adapter |
+| 30-100 | 6 shards appropriate; pipeline starts producing real data |
+| 100-200 | Increase shards to 8-10; watch per-shard runtime |
+| 200-400 | 12 shards; optionally split cheerio-only vs playwright+OCR workflows (setup cost differs by ~3 minutes) |
+| 400+ | Consider a "fast" workflow (cheerio only, no Python startup) separate from "slow" (playwright + OCR); reduces wasted setup time |
+
+### First Bottleneck: URL Population
+
+The pipeline cannot scale until `scrape_url` is populated for more adapters. The first discovery run against 400 homepages will take 30-60 minutes (50 pages × 400 universities at 2 seconds per page, single concurrency per `sameDomainDelaySecs: 2`). Run as a `workflow_dispatch` manually first to batch-populate initial URLs before relying on weekly cron.
+
+### Second Bottleneck: factory_config Keyword Gaps
+
+Universities with `scrape_url` but wrong `factory_config` keywords return `zero_rows`. The `scrape_runs` table surfaces these: `WHERE status = 'zero_rows'` ordered by `run_at`. Fixing each requires reading the page and confirming column header text, then updating `factory_config` in `scrapers.json`. Iterative; no architectural change needed.
 
 ---
 
 ## Sources
 
-- Existing codebase read directly: `lib/scraper/runner.ts`, `registry.ts`, `types.ts`, `normalizer.ts`, `run.ts`, `fetch.ts`, all adapters in `lib/scraper/adapters/`, `lib/db/schema.ts`, `lib/db/index.ts`, `app/globals.css`, `components/NguyenVongList.tsx`, `components/ResultsList.tsx`, `lib/recommend/engine.ts`, `tests/scraper/runner.test.ts`, `tests/scraper/adapters/bvh.test.ts`, `tests/scraper/adapters/adapter-contract.test.ts`, `.github/workflows/scrape-low.yml`, `scrapers.json`, `package.json`
-- Memory files: `project_v2_auto_discovery.md`, `project_v2_scraper_resilience.md`, `project_scraper_limitations.md`
-- Project context: `.planning/PROJECT.md`
-- Tailwind v4 CSS-first configuration: `@theme` block is the documented v4 approach (HIGH confidence — confirmed by existing `@import "tailwindcss"` in globals.css indicating v4 is already in use)
-- Drizzle ORM batch insert: `.values(array)` API is documented and supported in drizzle-orm 0.45.x (HIGH confidence)
-- Supabase Supavisor parameter limits: single INSERT statement with array values works in transaction pool mode (HIGH confidence — `prepare: false` is already set correctly in `lib/db/index.ts`)
+- Direct inspection of `lib/scraper/registry.ts`, `runner.ts`, `run.ts`, `factory.ts`, `types.ts`, `normalizer.ts`
+- Direct inspection of `scripts/discover.ts`, `lib/scraper/discovery/` (candidate.ts, constants.ts, keyword-scorer.ts)
+- Direct inspection of `scrapers.json` — 78 entries confirmed: 4 with `static_verified: true`, 74 false, 2 with `scraping_method: "manual"`, 1 `"deferred"`, 1 `"playwright"`
+- Direct inspection of `.github/workflows/scrape-low.yml`, `scrape-peak.yml` — shard matrix confirmed as `[0,1,2,3,4,5]`
+- Direct inspection of `lib/db/schema.ts` — scrape_runs table already has status, rows_written, error_log, github_run_id
+- `uni_list_examples.md` — 78 northern Vietnamese universities with mã trường and homepage URLs
+- `.planning/PROJECT.md` — v3.0 goals and current state confirmed
 
 ---
 
-*Architecture research for: UniSelect v2.0 — auto-discovery, resilience testing, adapter factory, design tokens, batch writes*
-*Researched: 2026-03-18*
+*Architecture research for: UniSelect v3.0 — complete data pipeline, 400+ university coverage*
+*Researched: 2026-03-19*

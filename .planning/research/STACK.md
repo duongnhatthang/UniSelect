@@ -1,314 +1,291 @@
 # Stack Research
 
-**Domain:** Vietnamese university admissions PWA — v2.0 additions only
-**Researched:** 2026-03-18
-**Confidence:** MEDIUM-HIGH (versions verified via WebSearch against npm registry; React 19 compatibility issues verified via GitHub issues)
+**Domain:** Vietnamese university admissions PWA — v3.0 data pipeline additions only
+**Researched:** 2026-03-19
+**Confidence:** MEDIUM-HIGH (versions verified via npm registry; GitHub Actions limits verified via official docs)
 
-> This file documents ONLY the new libraries needed for v2.0 features.
-> Existing stack (Next.js 16, Supabase, Drizzle ORM, Serwist, next-intl, nuqs,
-> Playwright, PaddleOCR, Cheerio, Tailwind v4, vitest) is unchanged.
+> This file documents ONLY the new libraries and patterns needed for v3.0 features.
+> The existing stack (Next.js 16, Supabase, Drizzle ORM, Serwist, next-intl, nuqs,
+> next-themes, MSW, Crawlee 3.16, Playwright, PaddleOCR, Cheerio, Tailwind v4, vitest,
+> motion, sirv, @faker-js/faker) is unchanged and NOT re-researched.
+
+---
+
+## What v3.0 Needs (Problem Statement)
+
+The scraper pipeline exists but is effectively hollow:
+- Registry gate (`static_verified: true`) passes only 4/78 adapters — nearly zero data produced
+- University master list caps at 78; Vietnam has 400+ institutions
+- Auto-discovery crawler (`scripts/discover.ts`) exists but has no GitHub Actions workflow trigger
+- No observable monitoring — impossible to tell which universities have data vs. never scraped
+
+The v3.0 stack additions address four distinct gaps:
+
+| Gap | Stack Answer |
+|-----|--------------|
+| Comprehensive university list sourcing | Curated seed JSON (no new library needed; process described below) |
+| Bulk adapter verification at scale | `p-limit` for concurrency control; existing `verify-adapters.ts` extended |
+| Auto-discovery in CI | New GitHub Actions workflow wrapping existing Crawlee crawler |
+| Scrape status monitoring dashboard | Internal Next.js route + Drizzle query against existing `scrape_runs` table |
 
 ---
 
 ## Recommended Stack — New Additions
 
-### Feature 1: Auto-Discovery Crawler
+### Feature 1: Concurrency Control for Bulk Adapter Verification
 
-**Goal:** Crawl university homepages using BFS link-following to find newly published cutoff score pages without manual URL maintenance.
+**Goal:** When verifying 400+ university URLs in `verify-adapters.ts`, fire requests concurrently without hammering individual servers or exhausting GitHub Actions runner memory.
+
+**Current problem:** `verify-adapters.ts` runs 9 hardcoded candidates sequentially. With 400+ entries it will either timeout (sequential) or OOM/get rate-limited (fully concurrent).
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| `crawlee` (`@crawlee/cheerio`) | ^3.13.7 | BFS link-discovery crawler with built-in request queue | Wraps Cheerio with `enqueueLinks()` supporting URL glob/regex filtering, depth control, and automatic deduplication. Avoids writing a manual BFS queue. Runs in Node.js with zero browser binary dependency — identical environment to existing GitHub Actions scraper jobs. The `CheerioCrawler` strategy is sufficient because Vietnamese university homepage navigation menus are mostly static HTML; Playwright-based discovery is only needed if a homepage itself requires JS rendering (rare). |
+| `p-limit` | ^6.2.0 | Cap concurrent fetch requests to N simultaneous | Tiny (no dependencies), ESM-native, TypeScript types included. Adds one wrapper to the existing `for...of` loop: `const limit = pLimit(10); await Promise.all(candidates.map(c => limit(() => verifyCandidate(c))))`. Crawlee already handles its own concurrency internally via `maxConcurrency`; p-limit is only needed for the bare-fetch scripts that bypass Crawlee. |
 
 **Installation:**
 ```bash
-npm install crawlee
+npm install -D p-limit
 ```
 
-**Why not raw Cheerio + custom BFS:** You already use Cheerio for parsing. Crawlee adds the request queue, retry logic, politeness delays, and `enqueueLinks` URL filtering on top — exactly the scaffolding a BFS crawler needs. Rolling this yourself costs 2-3x implementation time with worse edge case coverage.
-
-**Why not Playwright crawler (crawlee's `PlaywrightCrawler`):** Discovery only needs to follow navigation links on static homepages. Playwright adds a 300-600 MB browser binary — already ruled out for GitHub Actions unless specifically needed. Use `CheerioCrawler` for discovery; fall back to `PlaywrightCrawler` only for homepages verified to require JS rendering.
-
-**Why not Crawl4AI / Firecrawl:** Both are Python-first (Crawl4AI) or hosted SaaS (Firecrawl). The scraper pipeline is Node.js/TypeScript running in GitHub Actions. Crawlee is TypeScript-native, same runtime, same toolchain.
-
-**Integration note:** Run the discovery crawler as a separate GitHub Actions job — not inside the API routes. Output is a list of candidate URLs written to Supabase (`url_candidates` table or similar), which the main scraper runner picks up. Keep discovery and data extraction as separate responsibilities.
-
-**URL filtering pattern for cutoff pages:**
+**Usage pattern in verify-adapters.ts:**
 ```typescript
-await enqueueLinks({
-  globs: ['**/diem-chuan**', '**/tuyen-sinh**', '**/thong-bao**'],
-  // Exclude navigation anchors, login pages, external links
-  exclude: ['**/login**', '**/admin**'],
-  strategy: 'same-hostname',
-});
+import pLimit from 'p-limit';
+
+const limit = pLimit(10); // 10 concurrent verification requests
+
+await Promise.all(
+  CANDIDATES.map(candidate =>
+    limit(() => verifyCandidate(candidate))
+  )
+);
+```
+
+**Why not p-queue:** p-queue adds priority lanes, pause/resume, and event emitters — none of which are needed for a batch verification script. p-limit is 300 bytes vs. p-queue's larger footprint. Same author (sindresorhus).
+
+**Why not Crawlee for verification:** `verify-adapters.ts` only needs to check HTTP status and presence of keywords in HTML — a single fetch per URL, not a crawl. Crawlee's request queue and retry logic add overhead for what is a simple probe.
+
+**Why not raw `Promise.all`:** 400 simultaneous requests will trigger rate limiting from Vietnamese university servers and likely OOM the runner. p-limit gives explicit control.
+
+**Concurrency recommendation:** 10 concurrent requests for the full 400-university scan. Each university is a different domain, so 10 concurrent is polite. GitHub Actions ubuntu-latest runners have 7 GB RAM — at ~50 KB average HTML page, 10 concurrent is negligible.
+
+---
+
+### Feature 2: Comprehensive University Seed Data
+
+**Goal:** Expand the universities table from 78 to 400+ institutions with official mã trường codes.
+
+**Finding:** There is no official MOET API for the complete university list. The `uni_list_examples.md` file already contains 78 institutions scraped from the official MOET registry. The complete list requires curation from the same source.
+
+**No new library is needed.** The approach is:
+
+1. **Source:** Vietnam's Ministry of Education publishes the official university registry (danh mục cơ sở đào tạo) at https://thisinh.thitotnghiepthpt.edu.vn — the same portal used by students to register. This page contains a dropdown/searchable list of all accredited institutions with their official mã trường codes.
+
+2. **Method:** A one-time Crawlee-based scrape of the MOET portal (the existing `CheerioCrawler` pattern) to extract the complete university list. Output is a seed JSON file (`data/universities.json`) committed to the repository.
+
+3. **Integration:** The existing Drizzle migration system seeds the `universities` table from this JSON file. No runtime dependency on the MOET portal after initial seed — the data only changes when MOET accredits/removes institutions (~annually).
+
+**Why not a third-party API:** The `university-domains-list` API (Hipo) does not include Vietnamese mã trường codes. The `humansofvothisau/university.api` project crawls MOET itself without a static dataset. The Wikipedia list of Vietnamese universities lacks mã trường codes. The only authoritative source with official codes is MOET directly.
+
+**Seed data shape (matches existing schema):**
+```typescript
+// data/universities.json
+[
+  {
+    "id": "BKA",          // Official mã trường from MOET
+    "name_vi": "Đại học Bách khoa Hà Nội",
+    "name_en": "Hanoi University of Science and Technology",
+    "website_url": "https://hust.edu.vn/"
+  },
+  // ... 400+ entries
+]
+```
+
+**Drizzle seed script pattern (extends existing `lib/db` pattern):**
+```typescript
+// scripts/seed-universities.ts
+import universities from '../data/universities.json';
+import { db } from '../lib/db';
+import { universities as universitiesTable } from '../lib/db/schema';
+
+await db.insert(universitiesTable)
+  .values(universities)
+  .onConflictDoNothing();
 ```
 
 ---
 
-### Feature 2: Scraper Resilience Testing (Fake Local HTTP Server)
+### Feature 3: Auto-Discovery Integrated into GitHub Actions
 
-**Goal:** Serve static fake HTML files during vitest test runs so scraper adapters can make real HTTP requests to controlled fixtures without hitting live university websites.
+**Goal:** The existing `scripts/discover.ts` (Crawlee-based crawler) must run automatically in CI, not just manually.
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `sirv` | ^3.0.2 | Lightweight static file server for Node.js | Used as a local HTTP server in vitest `globalSetup`. Start before tests, stop after. Serves HTML fixture files from `tests/fixtures/` so Cheerio and Playwright adapters make real `fetch()` calls to `http://localhost:PORT/...` — no mocking required. Simpler than Express for static serving. |
+**No new library is needed.** The gap is purely a missing GitHub Actions workflow file.
 
-**Installation:**
-```bash
-npm install -D sirv
+**New workflow: `.github/workflows/discover.yml`**
+
+Key design decisions for the workflow:
+
+- **Trigger:** Weekly schedule (`cron: '0 3 * * 0'`) + `workflow_dispatch`. Weekly is sufficient — university websites don't restructure daily.
+- **Output:** Discovery results written to Supabase (`discovery_candidates` table, see Architecture) rather than a local file — persistent across runs and queryable.
+- **Scope:** Run against ALL universities in `scrapers.json` whose `static_verified: false` — the ones that haven't been verified yet.
+- **No sharding needed:** Discovery is lighter than scraping (no PaddleOCR, no Playwright for the crawler itself). 400 universities at `maxConcurrency: 1` and `maxRequestsPerCrawl: 50` per university is sequential-ish. Runtime estimate: 400 × ~30s average = ~3.3 hours. This needs sharding to fit in GitHub Actions' 6-hour job limit.
+
+**Discovery sharding:** Split the `scrapers.json` entries into 4 shards, each running as a parallel matrix job. Each shard covers ~100 universities. At ~30s per university, each shard finishes in ~50 minutes — well within the 6-hour limit.
+
+```yaml
+# .github/workflows/discover.yml (key section)
+strategy:
+  matrix:
+    shard: [0, 1, 2, 3]
+  fail-fast: false
 ```
 
-**Why not MSW (Mock Service Worker):** MSW intercepts `fetch()`/`XMLHttpRequest` at the Node.js module level using `@mswjs/interceptors`. It does NOT start an actual HTTP server. The scraper adapter runner calls `fetch(url)` where `url` is the real university URL. For testing, you want to redirect that URL to a local file — which requires either URL substitution at the test boundary or an actual HTTP server. A real server (sirv) is architecturally cleaner: adapters run unmodified, and tests simply pass `http://localhost:PORT/bvh.html` as the URL argument instead of the live URL.
-
-**Why not `http-server` or `serve` CLI:** Both are CLI tools, not importable Node.js modules. `sirv` exports a handler function that integrates directly into a `node:http` server — ideal for `globalSetup`/`teardown` in vitest.
-
-**vitest globalSetup pattern:**
-```typescript
-// tests/setup/static-server.ts
-import { createServer } from 'node:http';
-import sirv from 'sirv';
-
-let server: ReturnType<typeof createServer>;
-
-export async function setup() {
-  const handler = sirv('tests/fixtures', { dev: true });
-  server = createServer(handler);
-  await new Promise<void>(resolve => server.listen(0, resolve));
-  const port = (server.address() as { port: number }).port;
-  process.env.FIXTURE_SERVER_PORT = String(port);
-}
-
-export async function teardown() {
-  await new Promise<void>(resolve => server.close(() => resolve()));
-}
-```
-
-Then in `vitest.config.mts`:
-```typescript
-globalSetup: ['tests/setup/static-server.ts']
-```
-
-Adapters under test receive `http://localhost:${process.env.FIXTURE_SERVER_PORT}/bvh.html` as the URL — no code change to the adapter itself.
-
-**Fixture file structure:**
-```
-tests/fixtures/
-  bvh/
-    normal.html        # Standard table layout
-    no-data.html       # Page exists but no cutoff table
-    malformed.html     # Missing columns, bad encoding
-    changed-layout.html # Simulates post-redesign layout change
-  htc/
-    ...
-```
+**Environment variables needed:**
+- `DATABASE_URL` — already in GitHub Secrets (used by scraper)
+- `SHARD_INDEX` and `SHARD_TOTAL` — same pattern as existing scrape workflow
 
 ---
 
-### Feature 3: Drag-and-Drop Reorder for Nguyện Vọng List
+### Feature 4: Scrape Status Monitoring Dashboard
 
-**Goal:** Users can drag items up/down to manually reorder their 15-choice nguyện vọng list.
+**Goal:** An internal page showing per-university scrape health: last run status, rows written, error logs, coverage gaps.
 
-**React 19 compatibility situation (as of March 2026):**
-- `@dnd-kit/core` 6.3.1 — last published ~1 year ago, maintenance concerns, React 19 not explicitly supported (peerDeps: `>=16.8.0` which technically includes 19 via semver)
-- `@hello-pangea/dnd` 18.0.1 — explicitly excludes React 19 in peerDeps (`^16 || ^17 || ^18`)
-- `@atlaskit/pragmatic-drag-and-drop` 1.7.7 — peerDeps also caps at React 18; React 19 issue open with no timeline
-- `motion` (formerly framer-motion) 12.37.0 — React 19 **fully supported** as of v12.27.5 (December 2025); includes `Reorder` component for drag-to-reorder lists
+**No new library is needed.** The `scrape_runs` table already captures everything needed. The gap is a UI to surface it.
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `motion` | ^12.37.0 | Drag-to-reorder list with animation | Only major drag-reorder library with confirmed React 19 support. The `Reorder.Group` + `Reorder.Item` API directly matches the use case: a vertical sortable list of 15 items. Built-in spring animations improve perceived quality. Already likely used or considered for UI polish; adding it for reorder gets animation "for free". |
+**Implementation:** A protected internal route at `/admin/scrape-status` using Next.js App Router Server Components.
 
-**Installation:**
-```bash
-npm install motion
+**Data access pattern — use Drizzle directly (already installed):**
+
+```typescript
+// app/admin/scrape-status/page.tsx (Server Component)
+import { db } from '@/lib/db';
+import { scrapeRuns, universities } from '@/lib/db/schema';
+import { sql, desc, eq } from 'drizzle-orm';
+
+// Latest run per university
+const latestRuns = await db
+  .select({
+    university_id: scrapeRuns.university_id,
+    status: scrapeRuns.status,
+    rows_written: scrapeRuns.rows_written,
+    run_at: scrapeRuns.run_at,
+    error_log: scrapeRuns.error_log,
+  })
+  .from(scrapeRuns)
+  .where(
+    eq(
+      scrapeRuns.id,
+      db.select({ id: sql`max(${scrapeRuns.id})` })
+        .from(scrapeRuns)
+        .where(eq(scrapeRuns.university_id, scrapeRuns.university_id))
+    )
+  )
+  .orderBy(desc(scrapeRuns.run_at));
 ```
 
-**Usage pattern:**
-```tsx
-import { Reorder } from 'motion/react';
+A simpler approach using a Postgres `DISTINCT ON` view avoids the correlated subquery:
 
-function NguyenVongList({ items, onChange }) {
-  return (
-    <Reorder.Group axis="y" values={items} onReorder={onChange}>
-      {items.map(item => (
-        <Reorder.Item key={item.id} value={item}>
-          {/* card content */}
-        </Reorder.Item>
-      ))}
-    </Reorder.Group>
-  );
-}
+```sql
+-- Run once via Drizzle migration or Supabase SQL editor
+CREATE VIEW latest_scrape_runs AS
+SELECT DISTINCT ON (university_id)
+  university_id, status, rows_written, rows_rejected, error_log, run_at, github_run_id
+FROM scrape_runs
+ORDER BY university_id, run_at DESC;
 ```
 
-**Why not `@dnd-kit/core`:** Last release was ~1 year ago (6.3.1). Open GitHub issues about future maintenance and React 19 compatibility. The new `@dnd-kit/react` 0.3.2 API has documented bugs where `onDragEnd` source/target are always identical (GitHub issue #1664, open). Not production-safe for a reorder use case.
+Then query the view via Supabase JS client or Drizzle raw SQL.
 
-**Why not `@hello-pangea/dnd`:** Hard peerDep on React `^16 || ^17 || ^18` — explicitly rejects React 19. Project already runs React 19.2.3.
+**Route protection:** A simple middleware-based password check using `ADMIN_SECRET` env var. No auth library needed — the admin page is internal tooling, not user-facing.
 
-**Why not native HTML5 drag events:** The HTML5 DnD API has well-known inconsistencies across browsers (especially touch/mobile). Vietnamese students predominantly use Android phones. Native DnD has no touch support without additional libraries — a critical gap.
+```typescript
+// middleware.ts (extend existing if present, or create)
+import { NextRequest, NextResponse } from 'next/server';
 
-**Caveat:** Motion's `Reorder` component is **incompatible with Next.js page-level scrolling and routing** (documented known issue). This is acceptable for the nguyện vọng list which lives within a single page section, not across routes. Test explicitly on mobile (touch) before shipping.
-
----
-
-### Feature 4: Design Token System with Dark Mode (Tailwind v4)
-
-**Goal:** Establish a brand color palette with semantic tokens, plus dark mode toggling without page flash.
-
-**No new libraries needed for tokens.** Tailwind v4's `@theme` directive IS the design token system. Define tokens in `globals.css`:
-
-```css
-@import "tailwindcss";
-
-@theme {
-  /* Brand palette */
-  --color-brand-primary: hsl(221 83% 53%);
-  --color-brand-accent:  hsl(142 71% 45%);
-
-  /* Semantic tokens (light defaults) */
-  --color-surface:         hsl(0 0% 100%);
-  --color-surface-raised:  hsl(220 14% 96%);
-  --color-on-surface:      hsl(222 47% 11%);
-  --color-on-surface-muted: hsl(215 16% 47%);
-  --color-border:          hsl(220 13% 91%);
-
-  /* Typography */
-  --font-sans: 'Be Vietnam Pro', ui-sans-serif, system-ui;
-}
-
-/* Dark mode overrides — CSS-only, no JS config */
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-
-@layer base {
-  [data-theme=dark] {
-    --color-surface:          hsl(222 47% 11%);
-    --color-surface-raised:   hsl(217 33% 17%);
-    --color-on-surface:       hsl(210 40% 98%);
-    --color-on-surface-muted: hsl(215 20% 65%);
-    --color-border:           hsl(217 33% 25%);
+export function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    const token = request.cookies.get('admin_token')?.value;
+    if (token !== process.env.ADMIN_SECRET) {
+      return NextResponse.redirect(new URL('/admin/login', request.url));
+    }
   }
 }
 ```
 
-Utilities like `bg-surface`, `text-on-surface`, `border-border` are generated automatically from `@theme` variables. No CSS-in-JS, no config file.
+**Why not a full auth library (NextAuth/Clerk):** The monitoring page is developer-only tooling. A single shared secret is sufficient and avoids adding OAuth/session storage dependencies. No user accounts exist in this system.
 
-**For the toggle (flash-free):** One small library is needed.
+**Why not a separate Grafana/Metabase dashboard:** Free-tier infrastructure constraint. Supabase's built-in table editor can view raw data but can't show computed summaries. The internal Next.js page renders from the same DB the app already uses — zero additional infrastructure.
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `next-themes` | ^0.4.6 | Theme provider for flash-free dark mode toggle | Injects a blocking inline script before page hydration to read `localStorage` and set `data-theme` on `<html>` before React renders — eliminating the white flash on dark-mode users. Uses `attribute="data-theme"` to match the Tailwind `@custom-variant` selector. Alternative is a manual `<script>` in `layout.tsx` — achievable but more fragile to maintain. |
-
-**Installation:**
-```bash
-npm install next-themes
-```
-
-**Integration with Tailwind v4 `@custom-variant`:**
-```tsx
-// app/layout.tsx
-import { ThemeProvider } from 'next-themes';
-
-export default function RootLayout({ children }) {
-  return (
-    <html suppressHydrationWarning>
-      <body>
-        <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
-  );
-}
-```
-
-The `attribute="data-theme"` on `ThemeProvider` aligns with the `@custom-variant dark` selector in globals.css. `suppressHydrationWarning` is required because the theme class is set server-unknown.
-
-**Why not OS-preference only (no `next-themes`):** Tailwind v4 defaults to `prefers-color-scheme` via media query — no library needed for system-only mode. But students will want a manual toggle persisted across sessions. `next-themes` adds `localStorage` persistence + flash prevention in ~2KB.
-
-**Why not a manual `<script>` in `layout.tsx`:** Doable, but `next-themes` encodes 4 years of edge cases (hydration, multiple tabs, system preference sync). Not worth reinventing.
+**Why not Supabase Realtime for live updates:** The `scrape_runs` table is written to by GitHub Actions jobs (not the web app). Realtime subscriptions add websocket overhead. A simple "reload" button with Server Component re-fetch is sufficient — scrape jobs run at most once daily.
 
 ---
 
-### Feature 5: Recommendation Engine Tests with Synthetic Data
+## Registry Gate Fix (No New Library)
 
-**Goal:** Test edge cases in the recommendation engine (NaN scores, null scores, boundary conditions, tier assignment) using controlled fake data fixtures.
+The critical fix is removing the `static_verified: true` filter from `lib/scraper/registry.ts` and replacing it with a graduated verification approach:
 
-**No new test runner needed** — vitest is already installed and running 349 tests. The addition is a data generation helper.
+**Current behavior:** `if (!entry.static_verified) continue;` — silently skips 96% of adapters.
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `@faker-js/faker` | ^10.3.0 | Generate synthetic university/major/cutoff data for tests | Produces realistic Vietnamese-range scores (10.0–30.0), random university IDs, random tổ hợp codes. Seeded (`faker.seed(42)`) for deterministic snapshots. Eliminates hand-written fixture duplication across 20+ edge case tests. v10 requires Node.js 20+ — check GitHub Actions runner. |
+**v3.0 behavior:** Run all adapters with `factory_config` present. Emit `zero_rows` status to `scrape_runs` when an adapter returns nothing (already implemented in `runner.ts`). This produces observable failure records instead of silent skips.
 
-**Installation:**
-```bash
-npm install -D @faker-js/faker
-```
+The `static_verified` field becomes a quality tier indicator rather than a run gate:
+- `static_verified: true` — confirmed working, expected to produce data
+- `static_verified: false` (with `factory_config`) — run but log `unverified` status
+- `scraping_method: "deferred"` — skip (genuinely not ready)
+- `scraping_method: "manual"` — skip (requires PDF parsing)
 
-**Factory pattern (recommended over raw faker calls in tests):**
-```typescript
-// tests/factories/cutoff.ts
-import { faker } from '@faker-js/faker';
-import type { CutoffDataRow } from '../../lib/db/schema';
+This requires no new library — only a change to the registry filtering logic.
 
-faker.seed(42); // deterministic across CI runs
+---
 
-export function makeCutoffRow(overrides: Partial<CutoffDataRow> = {}): CutoffDataRow {
-  return {
-    university_id: faker.helpers.arrayElement(['BKA', 'BVH', 'DCN', 'GHA', 'HTC']),
-    major_code: faker.string.numeric(7),
-    tohop: faker.helpers.arrayElement(['A00', 'A01', 'B00', 'C00', 'D01']),
-    year: faker.helpers.arrayElement([2022, 2023, 2024]),
-    score: faker.number.float({ min: 15.0, max: 29.5, fractionDigits: 2 }),
-    scraped_at: faker.date.recent().toISOString(),
-    ...overrides,
-  };
-}
+## GitHub Actions Shard Scaling
 
-export function makeCutoffRows(count: number, overrides?: Partial<CutoffDataRow>) {
-  return Array.from({ length: count }, () => makeCutoffRow(overrides));
-}
-```
+**Current:** 6 shards × 78 universities = 13 adapters per shard
+**v3.0 target:** 400 universities
 
-**Edge case tests this enables:**
-```typescript
-// Null score propagation (known bug)
-makeCutoffRow({ score: null })
+**Option A (recommended): Increase shards to 20**
+- 20 shards × 20 universities = 20 adapters per shard
+- Estimated runtime per shard: ~15 min (Playwright/PaddleOCR adapters take ~2 min each)
+- GitHub Actions limit: max 256 matrix jobs per workflow run — 20 is well within limit
+- Free tier for public repos: unlimited minutes — confirmed by GitHub docs (March 2026)
+- 20 concurrent jobs is the free plan concurrent job limit — exactly at the boundary
 
-// Boundary: student score exactly equals cutoff
-makeCutoffRow({ score: 24.5 })  // student inputs 24.5
+**Option B: Keep 6 shards, accept longer runtime**
+- 6 shards × 67 universities = 67 adapters per shard
+- Estimated runtime: ~45-90 min per shard for PaddleOCR-heavy shards
+- Simpler, guaranteed within free tier concurrent job limit
 
-// Tiering: ensure 5+5+5 split with varied score gaps
-makeCutoffRows(15, {}) // mixed scores, verify dream/practical/safe counts
-```
+**Recommendation:** Start with 10 shards for the initial 400-university rollout. 10 shards × 40 universities stays safely within the 20 concurrent job limit (leaving room for other concurrent workflows), and runtime per shard (~20-30 min) is comfortable.
 
-**Why not hand-written fixtures:** 20+ edge cases mean 20+ manually maintained objects. When `CutoffDataRow` type changes (e.g., the `scraped_at: Date vs string` tech debt fix), factory functions update in one place.
-
-**Why not `fishery` + `@faker-js/faker`:** Fishery adds a factory class pattern useful for complex relational objects with associations. `CutoffDataRow` is flat; plain factory functions are sufficient and have zero extra dependency.
+No new library needed — update the `strategy.matrix.shard` array in `.github/workflows/scrape-low.yml` and `scrape-peak.yml`.
 
 ---
 
 ## Summary: What Gets Added
 
-| Package | Version | Category | New? |
-|---------|---------|----------|------|
-| `crawlee` | ^3.13.7 | Prod dep | YES — auto-discovery crawler |
-| `sirv` | ^3.0.2 | Dev dep | YES — fake HTTP server for scraper tests |
-| `motion` | ^12.37.0 | Prod dep | YES — drag-to-reorder nguyện vọng list |
-| `next-themes` | ^0.4.6 | Prod dep | YES — flash-free dark mode toggle |
-| `@faker-js/faker` | ^10.3.0 | Dev dep | YES — synthetic test data factory |
+| Item | Type | New? | Notes |
+|------|------|------|-------|
+| `p-limit` ^6.2.0 | Dev dep (npm) | YES | Concurrency control for bulk verification |
+| `data/universities.json` | Data file | YES | 400+ university seed data |
+| `scripts/seed-universities.ts` | Script | YES | One-time DB seeder |
+| `.github/workflows/discover.yml` | Workflow | YES | Auto-discovery CI trigger |
+| `app/admin/scrape-status/page.tsx` | Route | YES | Monitoring dashboard (Server Component) |
+| `middleware.ts` (admin protection) | Config | YES | Simple secret-based route guard |
+| Postgres view `latest_scrape_runs` | DB migration | YES | Summary view for dashboard query |
+| Shard count increase (6 → 10) | Workflow config | YES | Scale scrape matrix for 400 unis |
+| Registry gate removal | Code change | YES | Allow unverified adapters to run + log |
 
-**Tailwind v4 `@theme` design tokens:** Zero new dependencies. Pure CSS using existing Tailwind v4.
+**Nothing else is needed.** All scraping tools (Cheerio, Playwright, PaddleOCR, Crawlee) are already installed and working.
 
 ---
 
 ## Installation
 
 ```bash
-# Production dependencies
-npm install crawlee motion next-themes
-
-# Dev dependencies
-npm install -D sirv @faker-js/faker
+# Dev dependency only — used in verify-adapters.ts
+npm install -D p-limit
 ```
+
+Everything else is configuration, data files, or code changes — no additional `npm install` required.
 
 ---
 
@@ -316,11 +293,12 @@ npm install -D sirv @faker-js/faker
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| `crawlee` | Raw Cheerio + custom BFS | If crawlee's request queue/retry logic is overkill for a one-shot discovery scan (not the case here — retries are valuable for flaky Vietnamese hosting) |
-| `sirv` + vitest `globalSetup` | MSW (`msw/node`) | If testing components that call APIs (use MSW for those); for scraper adapters that make raw HTTP fetches, a real server is more architecturally honest |
-| `motion` Reorder | `@dnd-kit/core` + `@dnd-kit/sortable` | If React 18 or earlier; dnd-kit is well-documented and widely used — but currently last-release ~1 year ago with React 19 compatibility unresolved |
-| `next-themes` | Manual `<script>` in layout.tsx | For projects that never need a user-facing toggle (system preference only); saves 2KB |
-| `@faker-js/faker` | Hand-written fixture objects | For very small test suites (<5 fixtures) where the factory abstraction adds more complexity than it saves |
+| `p-limit` for verification concurrency | Crawlee for verification | If verification needs retry logic, redirect following, or robots.txt compliance — not needed for simple HTTP probes |
+| Internal Next.js admin route | Separate Metabase/Grafana | If team needs rich analytics, multiple charts, or non-developer users — overkill for a charity project's CI health dashboard |
+| Postgres view for latest runs | Drizzle correlated subquery | If view creation via migration is undesirable — correlated subquery works but is slower at 400+ universities |
+| Simple secret middleware | NextAuth credentials | If multiple admin users with individual accounts needed — unnecessary for a single-developer internal tool |
+| JSON seed file committed to repo | Runtime MOET scrape on startup | If MOET updates codes mid-year (they don't) — static JSON is more reliable than depending on MOET portal availability |
+| 10 shards for 400 universities | 20 shards | If hitting the 20 concurrent job limit with other workflows — 10 shards is safer headroom |
 
 ---
 
@@ -328,12 +306,12 @@ npm install -D sirv @faker-js/faker
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `@hello-pangea/dnd` | peerDeps explicitly cap at React 18; project uses React 19.2.3 | `motion` Reorder |
-| `@atlaskit/pragmatic-drag-and-drop` | React 19 not supported; issue open with no ETA (Jan 2025) | `motion` Reorder |
-| `@dnd-kit/react` (new API, v0.3.2) | Critical bug: `onDragEnd` source/target always identical (issue #1664, open); unstable API | `motion` Reorder or legacy `@dnd-kit/core` if React 18 |
-| `playwright webServer` for fixture serving | Playwright's `webServer` config is for E2E browser tests, not vitest unit tests | `sirv` in vitest `globalSetup` |
-| LLM-based URL classification for auto-discovery | Cost prohibitive (PROJECT.md out-of-scope constraint) | Crawlee + keyword glob patterns on `enqueueLinks` |
-| `fishery` factory library | Adds a class-based factory abstraction that is overkill for flat `CutoffDataRow` objects | Plain factory functions with `@faker-js/faker` |
+| Third-party university list APIs (Hipo, FreeAPIHub) | Don't include Vietnamese mã trường codes; not authoritative for Vietnamese institutions | Curate directly from MOET portal |
+| BullMQ / Redis-backed job queue | Free-tier constraint: no Redis. GitHub Actions IS the job queue — schedule and matrix strategy provide parallelism | GitHub Actions matrix sharding |
+| Prometheus + Grafana | Infrastructure complexity and cost for a single-developer charity project | Internal Next.js Server Component page querying existing Supabase tables |
+| PM2 | Designed for long-running servers; scraper runs are finite GitHub Actions jobs | GitHub Actions workflow + scrape_runs audit table |
+| `p-queue` | Overkill feature set (priority, pause/resume) for a simple batch probe script | `p-limit` |
+| LLM-based scrape classification | Explicitly out of scope per PROJECT.md; cost prohibitive | Existing keyword-scoring in `lib/scraper/discovery/keyword-scorer.ts` |
 
 ---
 
@@ -341,52 +319,43 @@ npm install -D sirv @faker-js/faker
 
 | Package | Requires | Notes |
 |---------|----------|-------|
-| `crawlee` ^3.13.7 | Node.js ≥16 | GitHub Actions default Node (20) is fine |
-| `@faker-js/faker` ^10.3.0 | Node.js ≥20 | v10 raised minimum; verify GitHub Actions runner uses Node 20 |
-| `motion` ^12.37.0 | React ≥18.2 | React 19 fully supported since v12.27.5 (Dec 2025) |
-| `next-themes` ^0.4.6 | Next.js ≥13 | No known Next.js 16 incompatibility |
-| `sirv` ^3.0.2 | Node.js ≥14 | Dev-only; no runtime constraints |
+| `p-limit` ^6.2.0 | Node.js ≥18 | GitHub Actions runner uses Node 24 — fine. ESM-only: use `import` not `require`. |
+| Crawlee @3.16.0 | Node.js ≥16 | Already installed and working |
+| `@faker-js/faker` ^10.3.0 | Node.js ≥20 | Already installed from v2.0 |
+
+**ESM note for p-limit:** p-limit v6+ is ESM-only. `verify-adapters.ts` runs via `tsx` which handles ESM imports. If any script uses `require()` instead of `import`, it will fail — check all scripts that use p-limit use `import` syntax.
 
 ---
 
 ## Stack Patterns by Variant
 
-**For auto-discovery — homepage requires JS rendering (rare):**
-- Use `PlaywrightCrawler` from crawlee instead of `CheerioCrawler`
-- Same `enqueueLinks` API, just browser-rendered
-- Only activate when a specific university's homepage is known JS-rendered
+**If a university's homepage requires JavaScript rendering for navigation:**
+- Switch that university's entry in `scrapers.json` from `CheerioCrawler`-based discovery to `PlaywrightCrawler`
+- Crawlee supports both with the same `enqueueLinks` API
+- Add a `discovery_method: "playwright"` field to `scrapers.json` entry
 
-**For dark mode — system preference only, no toggle:**
-- Skip `next-themes`
-- Tailwind v4 defaults to `@media (prefers-color-scheme: dark)` with zero config
-- Only add `next-themes` when a user-facing toggle + `localStorage` persistence is needed
+**If the MOET portal's university list is behind JS rendering:**
+- Use Playwright (already installed) to scrape the dropdown/list
+- This is a one-time operation, not part of the regular scraping cron
 
-**For scraper fixture tests — Playwright-based scrapers:**
-- `sirv` serves the same HTML fixtures
-- The Playwright scraper's `page.goto(url)` hits `http://localhost:PORT/fixture.html`
-- No fixture format change needed; same static HTML works for Cheerio and Playwright scrapers
+**If the admin monitoring page needs to be publicly visible (not protected):**
+- Remove the middleware password check
+- The `scrape_runs` data contains no PII — it's pipeline metadata, safe to expose
+- Visibility would allow external contributors to see which universities need adapters
 
 ---
 
 ## Sources
 
-- Crawlee npm: WebSearch confirmed version 3.13.7 (March 2026) — MEDIUM confidence
-- Crawlee `enqueueLinks` docs: https://crawlee.dev/js/docs/examples/crawl-some-links — HIGH confidence
-- sirv npm: WebSearch confirmed version 3.0.2 (September 2025) — MEDIUM confidence
-- sirv + vitest globalSetup pattern: https://eshlox.net/setting-up-a-static-server-for-vitest-tests — MEDIUM confidence
-- MSW comparison: https://mswjs.io/docs/comparison/ — HIGH confidence (does not spawn HTTP servers)
-- motion (framer-motion) npm: WebSearch confirmed version 12.37.0, React 19 supported since 12.27.5 — MEDIUM-HIGH confidence
-- motion Reorder docs: https://motion.dev/docs/react-reorder — HIGH confidence
-- `@dnd-kit/core` 6.3.1 last release ~1 year ago: WebSearch confirmed — MEDIUM confidence
-- `@hello-pangea/dnd` React 19 exclusion: GitHub discussion #810 + peerDeps — HIGH confidence
-- `@atlaskit/pragmatic-drag-and-drop` React 19 issue: GitHub issue #181 (Jan 2025, open) — HIGH confidence
-- `@dnd-kit/react` onDragEnd bug: GitHub issue #1664 (open) — HIGH confidence
-- next-themes 0.4.6: WebSearch confirmed — MEDIUM confidence
-- next-themes + Tailwind v4 data-attribute pattern: https://iifx.dev/en/articles/456423217 — MEDIUM confidence
-- Tailwind v4 @theme + @custom-variant: https://tailwindcss.com/docs/theme + https://tailwindcss.com/docs/dark-mode — HIGH confidence
-- @faker-js/faker 10.3.0: WebSearch confirmed — MEDIUM confidence
-- @faker-js/faker Node.js 20 minimum requirement: https://fakerjs.dev/guide/ — HIGH confidence
+- p-limit npm current version 7.3.0 (general use) / 6.2.0 minimum ESM: https://www.npmjs.com/package/p-limit — MEDIUM confidence (version confirmed via WebSearch; pinning to ^6 for Node 18+ ESM compatibility)
+- GitHub Actions public repo unlimited minutes: https://github.blog/changelog/2025-12-16-coming-soon-simpler-pricing-and-a-better-experience-for-github-actions/ — HIGH confidence
+- GitHub Actions matrix max 256 jobs, 20 concurrent free plan: https://docs.github.com/en/actions/reference/limits — HIGH confidence (verified via WebFetch)
+- MOET official university portal (university list source): https://thisinh.thitotnghiepthpt.edu.vn — MEDIUM confidence (no JSON API; web scrape required)
+- humansofvothisau/university.api — crawls MOET, no static dataset: https://github.com/humansofvothisau/university.api — MEDIUM confidence
+- Crawlee @crawlee/cheerio 3.16.0 (latest): https://www.npmjs.com/package/@crawlee/cheerio — HIGH confidence
+- Next.js middleware for route protection: https://nextjs.org/docs/app/building-your-application/routing/middleware — HIGH confidence
+- Supabase Postgres views: https://supabase.com/blog/postgresql-views — HIGH confidence
 
 ---
-*Stack research for: UniSelect v2.0 new feature additions*
-*Researched: 2026-03-18*
+*Stack research for: UniSelect v3.0 complete data pipeline*
+*Researched: 2026-03-19*
