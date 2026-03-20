@@ -11,6 +11,13 @@ interface AdapterConfig {
   url: string;
 }
 
+export interface RunSummary {
+  attempted: number;
+  succeeded: number;
+  failed: number;
+  zero_rows: number;
+}
+
 const CHUNK_SIZE = 500;
 
 function chunks<T>(arr: T[], size: number): T[][] {
@@ -21,8 +28,11 @@ function chunks<T>(arr: T[], size: number): T[][] {
   return result;
 }
 
-export async function runScraper(configs: AdapterConfig[], githubRunId?: string): Promise<void> {
+export async function runScraper(configs: AdapterConfig[], githubRunId?: string): Promise<RunSummary> {
+  const summary: RunSummary = { attempted: 0, succeeded: 0, failed: 0, zero_rows: 0 };
+
   for (const config of configs) {
+    summary.attempted++;
     let rowsWritten = 0;
     let rowsRejected = 0;
     const rejectionLog: string[] = [];
@@ -39,6 +49,7 @@ export async function runScraper(configs: AdapterConfig[], githubRunId?: string)
           error_log: `Adapter returned 0 rows — possible JS rendering or layout change`,
           github_run_id: githubRunId ?? null,
         });
+        summary.zero_rows++;
         continue; // skip to next adapter
       }
 
@@ -104,6 +115,7 @@ export async function runScraper(configs: AdapterConfig[], githubRunId?: string)
         error_log: rejectionLog.length > 0 ? JSON.stringify(rejectionLog) : null,
         github_run_id: githubRunId ?? null,
       });
+      summary.succeeded++;
     } catch (err) {
       await db.insert(scrapeRuns).values({
         university_id: config.id,
@@ -113,7 +125,10 @@ export async function runScraper(configs: AdapterConfig[], githubRunId?: string)
         error_log: String(err),
         github_run_id: githubRunId ?? null,
       });
+      summary.failed++;
       // continue to next adapter — fail-open
     }
   }
+
+  return summary;
 }

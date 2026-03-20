@@ -20,8 +20,12 @@ async function main() {
   const shard = registry.filter((_, i) => i % shardTotal === shardIndex);
 
   const githubRunId = process.env.GITHUB_RUN_ID ?? undefined;
-  await runScraper(shard, githubRunId);
-  console.log('[scraper] Scrape run complete.');
+  const summary = await runScraper(shard, githubRunId);
+  console.log(
+    `[scraper] Summary -- shard ${shardIndex}/${shardTotal}: ` +
+    `${summary.attempted} attempted, ${summary.succeeded} succeeded, ` +
+    `${summary.failed} failed, ${summary.zero_rows} zero-rows`
+  );
 }
 
 main().catch((err) => {
