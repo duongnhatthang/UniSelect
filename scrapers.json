@@ -2,17 +2,18 @@
   {
     "id": "MINISTRY",
     "adapter": "ministry",
-    "url": "https://thisinh.thitotnghiepthpt.edu.vn/",
-    "note": "Ministry portal — URL changes between admission cycles, requires yearly manual verification. See CONTEXT.md blocker.",
-    "static_verified": false,
-    "scraping_method": "deferred"
+    "website_url": "https://thisinh.thitotnghiepthpt.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "skip",
+    "note": "Ministry portal — URL changes between admission cycles, requires yearly manual verification. See CONTEXT.md blocker."
   },
   {
     "id": "BKA",
     "adapter": "bka",
-    "url": "https://hust.edu.vn/",
+    "website_url": "https://hust.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["diem chuan", "Diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -22,10 +23,10 @@
   {
     "id": "KHA",
     "adapter": "kha",
-    "url": "https://www.neu.edu.vn/",
+    "website_url": "https://www.neu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "skip",
     "note": "Scores published as PDF download — requires PDF parsing. Not viable for cheerio scraping.",
-    "static_verified": false,
-    "scraping_method": "manual",
     "factory_config": {
       "scoreKeywords": ["diem chuan", "Diem chuan"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh"],
@@ -35,10 +36,10 @@
   {
     "id": "NTH",
     "adapter": "nth",
-    "url": "https://ftu.edu.vn/",
+    "website_url": "https://ftu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "skip",
     "note": "Scores published via Google Drive link — not viable for direct scraping.",
-    "static_verified": false,
-    "scraping_method": "manual",
     "factory_config": {
       "scoreKeywords": ["diem chuan", "Diem chuan"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh"],
@@ -48,23 +49,26 @@
   {
     "id": "GHA",
     "adapter": "gha",
-    "url": "https://tuyensinh.utc.edu.vn/?q=tin-tuyen-sinh/diem-trung-tuyen-dai-hoc-he-chinh-quy-nam-2025",
-    "note": "PaddleOCR adapter (JPEG images). Requires Python + paddleocr in CI. Reference pattern for image pages.",
-    "static_verified": true
+    "website_url": "https://utc.edu.vn/",
+    "scrape_url": "https://tuyensinh.utc.edu.vn/?q=tin-tuyen-sinh/diem-trung-tuyen-dai-hoc-he-chinh-quy-nam-2025",
+    "adapter_type": "paddleocr",
+    "note": "PaddleOCR adapter (JPEG images). Requires Python + paddleocr in CI. Reference pattern for image pages."
   },
   {
     "id": "DCN",
     "adapter": "dcn",
-    "url": "https://tuyensinh.haui.edu.vn/diem-chuan-trung-tuyen-dai-hoc",
-    "note": "Playwright adapter (JS-rendered). SSL cert may need verification. Reference pattern for JS pages.",
-    "static_verified": true
+    "website_url": "https://haui.edu.vn/",
+    "scrape_url": "https://tuyensinh.haui.edu.vn/diem-chuan-trung-tuyen-dai-hoc",
+    "adapter_type": "playwright",
+    "note": "Playwright adapter (JS-rendered). SSL cert may need verification. Reference pattern for JS pages."
   },
   {
     "id": "BVH",
     "adapter": "bvh",
-    "url": "https://tuyensinh.ptit.edu.vn/gioi-thieu/xem-diem-cac-nam-truoc/diem-trung-tuyen-2024/",
+    "website_url": "https://portal.ptit.edu.vn/",
+    "scrape_url": "https://tuyensinh.ptit.edu.vn/gioi-thieu/xem-diem-cac-nam-truoc/diem-trung-tuyen-2024/",
+    "adapter_type": "cheerio",
     "note": "Verified 2026-03-18: static HTML table with THPT (100) score column. URL is year-specific -- update annually.",
-    "static_verified": true,
     "factory_config": {
       "scoreKeywords": ["thpt", "diem chuan", "diem trung tuyen"],
       "majorKeywords": ["ma nganh", "ma xet tuyen", "nganh"],
@@ -74,9 +78,10 @@
   {
     "id": "CCM",
     "adapter": "ccm",
-    "url": "http://hict.edu.vn/",
+    "website_url": "http://hict.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -86,9 +91,10 @@
   {
     "id": "CMC",
     "adapter": "cmc",
-    "url": "https://cmc-u.edu.vn/",
+    "website_url": "https://cmc-u.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -98,9 +104,10 @@
   {
     "id": "DCQ",
     "adapter": "dcq",
-    "url": "https://utm.edu.vn/",
+    "website_url": "https://utm.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -110,9 +117,10 @@
   {
     "id": "DDD",
     "adapter": "ddd",
-    "url": "https://hdiu.edu.vn/",
+    "website_url": "https://hdiu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -122,9 +130,10 @@
   {
     "id": "DDL",
     "adapter": "ddl",
-    "url": "https://epu.edu.vn/",
+    "website_url": "https://epu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -134,9 +143,10 @@
   {
     "id": "DDN",
     "adapter": "ddn",
-    "url": "https://dainam.edu.vn/",
+    "website_url": "https://dainam.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -146,9 +156,10 @@
   {
     "id": "DKH",
     "adapter": "dkh",
-    "url": "https://hup.edu.vn/",
+    "website_url": "https://hup.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -158,9 +169,10 @@
   {
     "id": "DKK",
     "adapter": "dkk",
-    "url": "https://uneti.edu.vn/",
+    "website_url": "https://uneti.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -170,9 +182,10 @@
   {
     "id": "DKS",
     "adapter": "dks",
-    "url": "https://hpu.vn/",
+    "website_url": "https://hpu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -182,9 +195,10 @@
   {
     "id": "DLX",
     "adapter": "dlx",
-    "url": "http://ulsa.edu.vn/",
+    "website_url": "http://ulsa.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -194,9 +208,10 @@
   {
     "id": "DMT",
     "adapter": "dmt",
-    "url": "https://hunre.edu.vn/",
+    "website_url": "https://hunre.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -206,9 +221,10 @@
   {
     "id": "DNV",
     "adapter": "dnv",
-    "url": "https://huha.edu.vn/",
+    "website_url": "https://huha.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -218,9 +234,10 @@
   {
     "id": "DPD",
     "adapter": "dpd",
-    "url": "https://phuongdong.edu.vn/",
+    "website_url": "https://phuongdong.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -230,9 +247,10 @@
   {
     "id": "DQK",
     "adapter": "dqk",
-    "url": "https://hubt.edu.vn/",
+    "website_url": "https://hubt.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -242,9 +260,10 @@
   {
     "id": "DTL",
     "adapter": "dtl",
-    "url": "https://thanglong.edu.vn/node/1",
+    "website_url": "https://thanglong.edu.vn/node/1",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -254,9 +273,10 @@
   {
     "id": "FBU",
     "adapter": "fbu",
-    "url": "https://fbu.edu.vn/gioi-thieu/",
+    "website_url": "https://fbu.edu.vn/gioi-thieu/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -266,9 +286,10 @@
   {
     "id": "FPT",
     "adapter": "fpt",
-    "url": "https://hanoi.fpt.edu.vn/",
+    "website_url": "https://hanoi.fpt.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -278,9 +299,10 @@
   {
     "id": "GNT",
     "adapter": "gnt",
-    "url": "http://www.spnttw.edu.vn/",
+    "website_url": "http://www.spnttw.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -290,9 +312,10 @@
   {
     "id": "GTA",
     "adapter": "gta",
-    "url": "https://utt.edu.vn/",
+    "website_url": "https://utt.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -302,9 +325,10 @@
   {
     "id": "HBU",
     "adapter": "hbu",
-    "url": "https://daihochoabinh.edu.vn/",
+    "website_url": "https://daihochoabinh.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -314,9 +338,10 @@
   {
     "id": "HCH",
     "adapter": "hch",
-    "url": "https://www1.napa.vn/",
+    "website_url": "https://www1.napa.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -326,9 +351,10 @@
   {
     "id": "HCP",
     "adapter": "hcp",
-    "url": "https://apd.edu.vn/",
+    "website_url": "https://apd.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -338,9 +364,10 @@
   {
     "id": "HNM",
     "adapter": "hnm",
-    "url": "https://hnmu.edu.vn/",
+    "website_url": "https://hnmu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -350,9 +377,10 @@
   {
     "id": "HPN",
     "adapter": "hpn",
-    "url": "https://hvpnvn.edu.vn/",
+    "website_url": "https://hvpnvn.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -362,9 +390,10 @@
   {
     "id": "HQT",
     "adapter": "hqt",
-    "url": "https://www.dav.edu.vn/",
+    "website_url": "https://www.dav.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -374,9 +403,10 @@
   {
     "id": "HTA",
     "adapter": "hta",
-    "url": "http://hocvientoaan.edu.vn/",
+    "website_url": "http://hocvientoaan.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -386,9 +416,10 @@
   {
     "id": "HTC",
     "adapter": "htc",
-    "url": "https://tuyensinh.hvtc.edu.vn/tabid/1699/catid/916/news/38174/TB-vv-Ket-qua-trung-tuyen-he-dai-hoc-chinh-quy-nam-2025/Default.aspx",
+    "website_url": "https://hvtc.edu.vn/",
+    "scrape_url": "https://tuyensinh.hvtc.edu.vn/tabid/1699/catid/916/news/38174/TB-vv-Ket-qua-trung-tuyen-he-dai-hoc-chinh-quy-nam-2025/Default.aspx",
+    "adapter_type": "cheerio",
     "note": "Verified 2026-03-18: static HTML table with TT/Mã ngành/Tên ngành/Điểm trúng tuyển columns",
-    "static_verified": true,
     "factory_config": {
       "scoreKeywords": ["điểm trúng tuyển", "diem trung tuyen", "điểm chuẩn", "diem chuan"],
       "majorKeywords": ["mã ngành", "ma nganh", "mã xét tuyển", "ma xet tuyen"],
@@ -398,9 +429,10 @@
   {
     "id": "HTN",
     "adapter": "htn",
-    "url": "https://vya.edu.vn/",
+    "website_url": "https://vya.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -410,9 +442,10 @@
   {
     "id": "HVD",
     "adapter": "hvd",
-    "url": "https://hvdt.edu.vn/",
+    "website_url": "https://hvdt.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -422,9 +455,10 @@
   {
     "id": "HVM",
     "adapter": "hvm",
-    "url": "https://www.vnad.edu.vn/",
+    "website_url": "https://www.vnad.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -434,9 +468,10 @@
   {
     "id": "HVN",
     "adapter": "hvn",
-    "url": "https://tuyensinh.vnua.edu.vn/",
+    "website_url": "https://tuyensinh.vnua.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -446,9 +481,10 @@
   {
     "id": "HVQ",
     "adapter": "hvq",
-    "url": "https://www.naem.edu.vn/vi",
+    "website_url": "https://www.naem.edu.vn/vi",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -458,9 +494,10 @@
   {
     "id": "HYD",
     "adapter": "hyd",
-    "url": "http://vutm.edu.vn/",
+    "website_url": "http://vutm.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -470,9 +507,10 @@
   {
     "id": "KCN",
     "adapter": "kcn",
-    "url": "https://usth.edu.vn/",
+    "website_url": "https://usth.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -482,9 +520,10 @@
   {
     "id": "KMA",
     "adapter": "kma",
-    "url": "https://actvn.edu.vn/",
+    "website_url": "https://actvn.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -494,9 +533,10 @@
   {
     "id": "KTA",
     "adapter": "kta",
-    "url": "https://hau.edu.vn/",
+    "website_url": "https://hau.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -506,9 +546,10 @@
   {
     "id": "LDA",
     "adapter": "lda",
-    "url": "http://dhcd.edu.vn/",
+    "website_url": "http://dhcd.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -518,9 +559,10 @@
   {
     "id": "LNH",
     "adapter": "lnh",
-    "url": "https://vnuf.edu.vn/",
+    "website_url": "https://vnuf.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -530,9 +572,10 @@
   {
     "id": "LPH",
     "adapter": "lph",
-    "url": "https://hlu.edu.vn/",
+    "website_url": "https://hlu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -542,9 +585,10 @@
   {
     "id": "MDA",
     "adapter": "mda",
-    "url": "http://humg.edu.vn/",
+    "website_url": "http://humg.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -554,9 +598,10 @@
   {
     "id": "MHN",
     "adapter": "mhn",
-    "url": "https://hou.edu.vn/",
+    "website_url": "https://hou.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -566,9 +611,10 @@
   {
     "id": "MTC",
     "adapter": "mtc",
-    "url": "https://uad.edu.vn/",
+    "website_url": "https://uad.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -578,9 +624,10 @@
   {
     "id": "MTH",
     "adapter": "mth",
-    "url": "https://mythuatvietnam.edu.vn/",
+    "website_url": "https://mythuatvietnam.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -590,9 +637,10 @@
   {
     "id": "NHF",
     "adapter": "nhf",
-    "url": "https://www.hanu.vn/",
+    "website_url": "https://www.hanu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -602,9 +650,10 @@
   {
     "id": "NHH",
     "adapter": "nhh",
-    "url": "https://hvnh.edu.vn/",
+    "website_url": "https://hvnh.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -614,9 +663,10 @@
   {
     "id": "NTU",
     "adapter": "ntu",
-    "url": "https://daihocnguyentrai.edu.vn/",
+    "website_url": "https://daihocnguyentrai.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -626,9 +676,10 @@
   {
     "id": "NVH",
     "adapter": "nvh",
-    "url": "https://vnam.edu.vn/",
+    "website_url": "https://vnam.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -638,9 +689,10 @@
   {
     "id": "PKA",
     "adapter": "pka",
-    "url": "https://phenikaa-uni.edu.vn/vi",
+    "website_url": "https://phenikaa-uni.edu.vn/vi",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -650,9 +702,10 @@
   {
     "id": "QH",
     "adapter": "qh",
-    "url": "https://www.vnu.edu.vn/home/",
+    "website_url": "https://www.vnu.edu.vn/home/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -662,9 +715,10 @@
   {
     "id": "QHE",
     "adapter": "qhe",
-    "url": "https://ueb.edu.vn/",
+    "website_url": "https://ueb.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -674,9 +728,10 @@
   {
     "id": "QHF",
     "adapter": "qhf",
-    "url": "https://ulis.vnu.edu.vn/",
+    "website_url": "https://ulis.vnu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -686,9 +741,10 @@
   {
     "id": "QHI",
     "adapter": "qhi",
-    "url": "https://uet.vnu.edu.vn/",
+    "website_url": "https://uet.vnu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -698,9 +754,10 @@
   {
     "id": "QHJ",
     "adapter": "qhj",
-    "url": "https://vju.ac.vn/",
+    "website_url": "https://vju.ac.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -710,9 +767,10 @@
   {
     "id": "QHL",
     "adapter": "qhl",
-    "url": "https://law.vnu.edu.vn/",
+    "website_url": "https://law.vnu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -722,9 +780,10 @@
   {
     "id": "QHQ",
     "adapter": "qhq",
-    "url": "https://tuyensinh.vnuis.edu.vn/",
+    "website_url": "https://tuyensinh.vnuis.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -734,9 +793,10 @@
   {
     "id": "QHS",
     "adapter": "qhs",
-    "url": "https://education.vnu.edu.vn/",
+    "website_url": "https://education.vnu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -746,9 +806,10 @@
   {
     "id": "QHT",
     "adapter": "qht",
-    "url": "https://hus.edu.vn/",
+    "website_url": "https://hus.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -758,9 +819,10 @@
   {
     "id": "QHX",
     "adapter": "qhx",
-    "url": "https://ussh.vnu.edu.vn/",
+    "website_url": "https://ussh.vnu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -770,9 +832,10 @@
   {
     "id": "QHY",
     "adapter": "qhy",
-    "url": "https://ump.vnu.edu.vn/",
+    "website_url": "https://ump.vnu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -782,9 +845,10 @@
   {
     "id": "SKD",
     "adapter": "skd",
-    "url": "https://skda.edu.vn/",
+    "website_url": "https://skda.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -794,10 +858,10 @@
   {
     "id": "SPH",
     "adapter": "sph",
-    "url": "https://tuyensinh.hnue.edu.vn/thong-bao/545",
+    "website_url": "https://tuyensinh.hnue.edu.vn/thong-bao/545",
+    "scrape_url": null,
+    "adapter_type": "playwright",
     "note": "URL updated 2026-03-18: old path 404. New page is JS-rendered (Next.js SSR) — needs Playwright adapter. Cutoff data confirmed present (40+ rows).",
-    "static_verified": false,
-    "scraping_method": "playwright",
     "factory_config": {
       "scoreKeywords": ["điểm chuẩn", "diem chuan", "điểm trúng tuyển", "diem trung tuyen"],
       "majorKeywords": ["mã ngành", "ma nganh", "mã xét tuyển", "ma xet tuyen"],
@@ -807,9 +871,10 @@
   {
     "id": "TDD",
     "adapter": "tdd",
-    "url": "https://thanhdo.edu.vn/",
+    "website_url": "https://thanhdo.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -819,9 +884,10 @@
   {
     "id": "TDH",
     "adapter": "tdh",
-    "url": "https://hupes.edu.vn/",
+    "website_url": "https://hupes.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -831,9 +897,10 @@
   {
     "id": "TGC",
     "adapter": "tgc",
-    "url": "https://daotaoajc.edu.vn/",
+    "website_url": "https://daotaoajc.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -843,9 +910,10 @@
   {
     "id": "TLA",
     "adapter": "tla",
-    "url": "https://ts.tlu.edu.vn/",
+    "website_url": "https://ts.tlu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL updated 2026-03-18: old subdomain redirects 301 to tlu.edu.vn. Admissions at ts.tlu.edu.vn returned 502. Needs manual re-verification.",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["điểm chuẩn", "diem chuan", "điểm trúng tuyển", "diem trung tuyen"],
       "majorKeywords": ["mã ngành", "ma nganh", "mã xét tuyển", "ma xet tuyen"],
@@ -855,9 +923,10 @@
   {
     "id": "TMA",
     "adapter": "tma",
-    "url": "https://tmu.edu.vn/",
+    "website_url": "https://tmu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -867,9 +936,10 @@
   {
     "id": "VHD",
     "adapter": "vhd",
-    "url": "https://viu.edu.vn/",
+    "website_url": "https://viu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -879,9 +949,10 @@
   {
     "id": "VHH",
     "adapter": "vhh",
-    "url": "https://huc.edu.vn/",
+    "website_url": "https://huc.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -891,9 +962,10 @@
   {
     "id": "XDA",
     "adapter": "xda",
-    "url": "https://huce.edu.vn/",
+    "website_url": "https://huce.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -903,9 +975,10 @@
   {
     "id": "YHB",
     "adapter": "yhb",
-    "url": "https://hmu.edu.vn/",
+    "website_url": "https://hmu.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
@@ -915,9 +988,10 @@
   {
     "id": "YTC",
     "adapter": "ytc",
-    "url": "https://huph.edu.vn/",
+    "website_url": "https://huph.edu.vn/",
+    "scrape_url": null,
+    "adapter_type": "pending",
     "note": "URL path to cutoff page must be verified manually",
-    "static_verified": false,
     "factory_config": {
       "scoreKeywords": ["Diem chuan", "diem chuan", "Điểm chuẩn"],
       "majorKeywords": ["Ma nganh", "Nganh", "ma nganh", "nganh", "Ngành"],
