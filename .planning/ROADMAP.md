@@ -42,7 +42,7 @@ Full details: `.planning/milestones/v2.0-phases/`
 
 ### 🚧 v3.0 Complete Data Pipeline (In Progress)
 
-**Milestone Goal:** Make the scraper pipeline actually produce data — expand university coverage from 78 to 400+, fix the registry gate that silently skips 95% of adapters, integrate auto-discovery into CI, and ensure all cutoff scores are stored in Supabase with monitoring.
+**Milestone Goal:** Make the scraper pipeline actually produce data — expand university coverage from 78 to 250+ (MOET recognizes ~243 degree-granting universities), fix the registry gate that silently skips 95% of adapters, integrate auto-discovery into CI, and ensure all cutoff scores are stored in Supabase with monitoring.
 
 - [ ] **Phase 15: University Master List + Registry Gate Fix** — Seed 400+ MOET-authoritative universities, rewrite registry gate so adapters with known cutoff URLs actually run
 - [ ] **Phase 16: Auto-Discovery CI Integration** — Wire discover.ts into GitHub Actions with weekly cron, produce human-reviewable candidate list, apply-discovery script patches scrapers.json
@@ -52,12 +52,12 @@ Full details: `.planning/milestones/v2.0-phases/`
 ## Phase Details
 
 ### Phase 15: University Master List + Registry Gate Fix
-**Goal**: The scraper pipeline runs against all universities that have a verified cutoff page URL — the registry gate no longer silently skips 95% of adapters, and the Supabase universities table holds 400+ MOET-authoritative institutions
+**Goal**: The scraper pipeline runs against all universities that have a verified cutoff page URL — the registry gate no longer silently skips 95% of adapters, and the Supabase universities table holds 250+ MOET-authoritative institutions
 **Depends on**: Phase 14 (v2.0 complete)
 **Requirements**: UNIC-01, UNIC-02, UNIC-03, SCRP-09, SCRP-10
 **Success Criteria** (what must be TRUE):
-  1. `data/uni_list.json` exists in the repository with 400+ entries, each containing mã trường, Vietnamese name, and homepage URL sourced from MOET
-  2. Running `scripts/seed-universities.ts` populates the Supabase `universities` table with 400+ rows — observable via Supabase table editor or a direct SQL count query
+  1. `data/uni_list.json` exists in the repository with 250+ entries, each containing mã trường, Vietnamese name, and homepage URL from MOET-authoritative data (~243 degree-granting universities nationally)
+  2. Running `scripts/seed-universities.ts` populates the Supabase `universities` table with 250+ rows — observable via Supabase table editor or a direct SQL count query
   3. `scrapers.json` no longer contains a `static_verified` field — entries have `website_url` (homepage) and `scrape_url` (cutoff page, null for unverified entries)
   4. The daily scrape cron runs adapters for all entries where `scrape_url` is present and `adapter_type` is not `skip` — confirmed by scrape_runs rows appearing for those universities
   5. At least 4 previously-verified adapters produce real cutoff score rows in Supabase after the registry gate fix

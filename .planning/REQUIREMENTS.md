@@ -9,7 +9,7 @@ Requirements for v3.0 release. Priority: Data Pipeline > Monitoring > Scale.
 
 ### University Coverage
 
-- [ ] **UNIC-01**: System seeds 400+ Vietnamese universities/colleges from authoritative MOET source (not just 78 Northern institutions)
+- [ ] **UNIC-01**: System seeds 250+ Vietnamese universities and colleges from MOET-authoritative sources (up from 78; MOET recognizes ~243 degree-granting universities nationally)
 - [ ] **UNIC-02**: Each university record includes ministry code (ma truong), Vietnamese name, and homepage URL
 - [ ] **UNIC-03**: University master list is version-controlled as a committed data file (not dependent on external API)
 
