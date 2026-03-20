@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Complete Data Pipeline
 status: unknown
-stopped_at: Completed 17-01-PLAN.md
-last_updated: "2026-03-20T08:23:02.659Z"
+stopped_at: Completed 18-01-PLAN.md
+last_updated: "2026-03-20T08:40:31.843Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Give every Vietnamese student the data and strategy to order their nguyện vọng list correctly — because getting the ranking wrong means being locked out of better options permanently.
-**Current focus:** Phase 17 — Scrape Monitoring + DB Health
+**Current focus:** Phase 18 — tổ Hợp Coverage + Infrastructure Scale
 
 ## Current Position
 
-Phase: 17 (Scrape Monitoring + DB Health) — EXECUTING
+Phase: 18 (tổ Hợp Coverage + Infrastructure Scale) — EXECUTING
 Plan: 1 of 2
 
 ## Performance Metrics
@@ -54,6 +54,8 @@ Key v3.0 decisions:
 - [Phase 17]: No auth guard on scrape-status endpoint per FUTURE-07 — admin UI/auth deferred to v4+
 - [Phase 17-scrape-monitoring-db-health]: flagged counts as succeeded in RunSummary; zero_rows is separate counter not failed
 - [Phase 17-scrape-monitoring-db-health]: keepalive.mjs uses RETURNING id for pruned row count; stays pure ESM with only postgres import
+- [Phase 18-01]: wideTable is opt-in via CheerioAdapterConfig boolean — default false preserves existing narrow-table behavior
+- [Phase 18-01]: To hop column detection uses /^[A-D]\d{2}$/ regex — no scoreKeywords match required for wide-table tables; empty cells silently skipped
 
 ### Pending Todos
 
@@ -67,6 +69,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T08:19:45.711Z
-Stopped at: Completed 17-01-PLAN.md
+Last session: 2026-03-20T08:40:31.840Z
+Stopped at: Completed 18-01-PLAN.md
 Resume file: None

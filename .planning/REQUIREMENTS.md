@@ -17,8 +17,8 @@ Requirements for v3.0 release. Priority: Data Pipeline > Monitoring > Scale.
 
 - [x] **SCRP-09**: Registry gate no longer silently skips adapters — replaces `static_verified` boolean with `scrape_url` presence check so any adapter with a known cutoff page URL runs
 - [x] **SCRP-10**: Scraper produces real cutoff score data in Supabase for universities with verified cutoff page URLs
-- [ ] **SCRP-11**: Adapters capture all tổ hợp combinations published on each university's cutoff page (not just A00 default)
-- [ ] **SCRP-12**: Factory adapter handles wide-table format (one column per tổ hợp) in addition to existing row-per-combination format
+- [x] **SCRP-11**: Adapters capture all tổ hợp combinations published on each university's cutoff page (not just A00 default)
+- [x] **SCRP-12**: Factory adapter handles wide-table format (one column per tổ hợp) in addition to existing row-per-combination format
 
 ### Auto-Discovery Integration
 
@@ -86,8 +86,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MON-01 | Phase 17 | Complete |
 | MON-02 | Phase 17 | Complete |
 | MON-03 | Phase 17 | Complete |
-| SCRP-11 | Phase 18 | Pending |
-| SCRP-12 | Phase 18 | Pending |
+| SCRP-11 | Phase 18 | Complete |
+| SCRP-12 | Phase 18 | Complete |
 | INFR-04 | Phase 18 | Pending |
 | INFR-05 | Phase 18 | Pending |
 

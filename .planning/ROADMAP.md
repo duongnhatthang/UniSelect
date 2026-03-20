@@ -102,7 +102,7 @@ Plans:
   2. A university that publishes a wide-table cutoff page has all its tổ hợp combinations stored as separate rows in Supabase after a scrape run
   3. The scrape workflow matrix uses enough shards that no shard exceeds 300 minutes of runtime during a simulated July peak run (4x/day × 400 universities)
   4. Playwright adapters and PaddleOCR adapters run in dedicated shard(s) — a Cheerio-only shard never waits for Playwright browser launch or OCR model download
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 18-01-PLAN.md — Wide-table to hop parsing in factory adapter (SCRP-11, SCRP-12)
 - [ ] 18-02-PLAN.md — Shard scaling + adapter type isolation in workflows (INFR-04, INFR-05)
@@ -133,7 +133,7 @@ Note: Phase 17 and Phase 18 both depend on Phase 16 completing. They can proceed
 | 15. University Master List + Registry Gate Fix | v3.0 | 2/2 | Complete | 2026-03-20 |
 | 16. Auto-Discovery CI Integration | v3.0 | 2/2 | Complete | 2026-03-20 |
 | 17. Scrape Monitoring + DB Health | v3.0 | 2/2 | Complete | 2026-03-20 |
-| 18. tổ Hợp Coverage + Infrastructure Scale | v3.0 | 0/2 | Not started | - |
+| 18. tổ Hợp Coverage + Infrastructure Scale | 1/2 | In Progress|  | - |
 
 ---
 *Last updated: 2026-03-20 — Phase 18 planned (2 plans, Wave 1)*
