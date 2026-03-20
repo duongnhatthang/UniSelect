@@ -10,7 +10,7 @@ async function main() {
 
   if (registry.length === 0) {
     console.warn(
-      '[scraper] No adapters with static_verified=true. Set static_verified to true in scrapers.json after manual page audit.'
+      '[scraper] No adapters with scrape_url configured. Run discovery to find cutoff page URLs.'
     );
     process.exit(0);
   }

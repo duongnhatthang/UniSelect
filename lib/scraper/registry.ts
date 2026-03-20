@@ -7,10 +7,11 @@ import type { CheerioAdapterConfig } from './factory';
 interface RegistryEntry {
   id: string;
   adapter: string;
-  url: string;
-  static_verified: boolean;
+  website_url: string;
+  scrape_url: string | null;
+  adapter_type?: 'cheerio' | 'playwright' | 'paddleocr' | 'skip' | 'pending';
   note?: string;
-  factory_config?: Omit<CheerioAdapterConfig, 'id'>;  // id comes from entry.id
+  factory_config?: Omit<CheerioAdapterConfig, 'id'>;
 }
 
 interface ResolvedEntry {
@@ -25,10 +26,10 @@ export async function loadRegistry(): Promise<ResolvedEntry[]> {
   const resolved: ResolvedEntry[] = [];
 
   for (const entry of entries) {
-    if (!entry.static_verified) {
-      console.warn(
-        `[registry] Skipping ${entry.id} — static_verified is false. Manually verify the page is static HTML before enabling.`
-      );
+    if (!entry.scrape_url || entry.adapter_type === 'skip') {
+      if (!entry.scrape_url) {
+        console.log(`[registry] ${entry.id} — no scrape_url yet, discovery pending`);
+      }
       continue;
     }
 
@@ -43,7 +44,7 @@ export async function loadRegistry(): Promise<ResolvedEntry[]> {
       adapter = mod.default ?? mod[`${entry.adapter}Adapter`];
     }
 
-    resolved.push({ id: entry.id, adapter, url: entry.url });
+    resolved.push({ id: entry.id, adapter, url: entry.scrape_url });
   }
 
   return resolved;
