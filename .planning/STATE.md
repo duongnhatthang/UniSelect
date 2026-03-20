@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Complete Data Pipeline
 status: unknown
-stopped_at: Completed 18-01-PLAN.md
-last_updated: "2026-03-20T08:40:31.843Z"
+stopped_at: Completed 18-02-PLAN.md
+last_updated: "2026-03-20T08:41:44.693Z"
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -56,6 +56,9 @@ Key v3.0 decisions:
 - [Phase 17-scrape-monitoring-db-health]: keepalive.mjs uses RETURNING id for pruned row count; stays pure ESM with only postgres import
 - [Phase 18-01]: wideTable is opt-in via CheerioAdapterConfig boolean — default false preserves existing narrow-table behavior
 - [Phase 18-01]: To hop column detection uses /^[A-D]\d{2}$/ regex — no scoreKeywords match required for wide-table tables; empty cells silently skipped
+- [Phase 18-02]: filterAndShard exported as pure function to avoid mocking main() dynamic imports in tests
+- [Phase 18-02]: GHA matrix.include with per-job shard_total avoids unsupported YAML ternary expressions in env vars
+- [Phase 18-02]: adapterType defaults to 'cheerio' in loadRegistry for backward compat with existing scrapers.json entries
 
 ### Pending Todos
 
@@ -69,6 +72,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T08:40:31.840Z
-Stopped at: Completed 18-01-PLAN.md
+Last session: 2026-03-20T08:41:44.691Z
+Stopped at: Completed 18-02-PLAN.md
 Resume file: None

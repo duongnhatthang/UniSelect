@@ -34,8 +34,8 @@ Requirements for v3.0 release. Priority: Data Pipeline > Monitoring > Scale.
 
 ### Infrastructure Scale
 
-- [ ] **INFR-04**: Shard count scales from 6 to handle 400+ universities within GHA per-job timeout limits
-- [ ] **INFR-05**: Playwright and OCR adapters are isolated to dedicated shards to prevent timeout cascade
+- [x] **INFR-04**: Shard count scales from 6 to handle 400+ universities within GHA per-job timeout limits
+- [x] **INFR-05**: Playwright and OCR adapters are isolated to dedicated shards to prevent timeout cascade
 
 ## Previous Milestones (Archived)
 
@@ -88,8 +88,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MON-03 | Phase 17 | Complete |
 | SCRP-11 | Phase 18 | Complete |
 | SCRP-12 | Phase 18 | Complete |
-| INFR-04 | Phase 18 | Pending |
-| INFR-05 | Phase 18 | Pending |
+| INFR-04 | Phase 18 | Complete |
+| INFR-05 | Phase 18 | Complete |
 
 **Coverage:**
 - v3.0 requirements: 15 total
