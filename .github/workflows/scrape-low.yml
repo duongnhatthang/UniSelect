@@ -13,7 +13,34 @@ jobs:
       PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK: 'True'
     strategy:
       matrix:
-        shard: [0, 1, 2, 3, 4, 5]
+        include:
+          # 20 cheerio shards
+          - { shard: 0,  shard_type: cheerio,    shard_total: 20 }
+          - { shard: 1,  shard_type: cheerio,    shard_total: 20 }
+          - { shard: 2,  shard_type: cheerio,    shard_total: 20 }
+          - { shard: 3,  shard_type: cheerio,    shard_total: 20 }
+          - { shard: 4,  shard_type: cheerio,    shard_total: 20 }
+          - { shard: 5,  shard_type: cheerio,    shard_total: 20 }
+          - { shard: 6,  shard_type: cheerio,    shard_total: 20 }
+          - { shard: 7,  shard_type: cheerio,    shard_total: 20 }
+          - { shard: 8,  shard_type: cheerio,    shard_total: 20 }
+          - { shard: 9,  shard_type: cheerio,    shard_total: 20 }
+          - { shard: 10, shard_type: cheerio,    shard_total: 20 }
+          - { shard: 11, shard_type: cheerio,    shard_total: 20 }
+          - { shard: 12, shard_type: cheerio,    shard_total: 20 }
+          - { shard: 13, shard_type: cheerio,    shard_total: 20 }
+          - { shard: 14, shard_type: cheerio,    shard_total: 20 }
+          - { shard: 15, shard_type: cheerio,    shard_total: 20 }
+          - { shard: 16, shard_type: cheerio,    shard_total: 20 }
+          - { shard: 17, shard_type: cheerio,    shard_total: 20 }
+          - { shard: 18, shard_type: cheerio,    shard_total: 20 }
+          - { shard: 19, shard_type: cheerio,    shard_total: 20 }
+          # 2 playwright shards
+          - { shard: 0,  shard_type: playwright, shard_total: 2 }
+          - { shard: 1,  shard_type: playwright, shard_total: 2 }
+          # 2 paddleocr shards
+          - { shard: 0,  shard_type: paddleocr,  shard_total: 2 }
+          - { shard: 1,  shard_type: paddleocr,  shard_total: 2 }
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -24,6 +51,7 @@ jobs:
       - run: npm ci
       - name: Cache Playwright browsers
         id: playwright-cache
+        if: matrix.shard_type == 'playwright'
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
@@ -31,16 +59,18 @@ jobs:
           restore-keys: |
             playwright-${{ runner.os }}-
       - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        if: matrix.shard_type == 'playwright' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install chromium --with-deps
       - name: Install Playwright OS dependencies
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        if: matrix.shard_type == 'playwright' && steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
       - uses: actions/setup-python@v5
+        if: matrix.shard_type == 'paddleocr'
         with:
           python-version: '3.11'
           cache: 'pip'
       - name: Cache PaddleOCR models (~/.paddlex)
+        if: matrix.shard_type == 'paddleocr'
         uses: actions/cache@v4
         with:
           path: ~/.paddlex
@@ -48,14 +78,17 @@ jobs:
           restore-keys: |
             paddleocr-models-${{ runner.os }}-
       - name: Install PaddleOCR
+        if: matrix.shard_type == 'paddleocr'
         run: pip install -r requirements.txt
       - name: Warm up PaddleOCR models
+        if: matrix.shard_type == 'paddleocr'
         run: python3 -c "from paddleocr import PaddleOCR; PaddleOCR(lang='vi', use_gpu=False, show_log=False)"
-      - name: Run scraper shard ${{ matrix.shard }}/6
+      - name: Run scraper shard ${{ matrix.shard }}/${{ matrix.shard_total }} (${{ matrix.shard_type }})
         run: npx tsx lib/scraper/run.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GITHUB_RUN_ID: ${{ github.run_id }}
           SHARD_INDEX: ${{ matrix.shard }}
-          SHARD_TOTAL: 6
+          SHARD_TOTAL: ${{ matrix.shard_total }}
+          SHARD_TYPE: ${{ matrix.shard_type }}
