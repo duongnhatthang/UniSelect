@@ -1,0 +1,28 @@
+name: Auto-discovery crawler
+
+on:
+  schedule:
+    - cron: '0 2 * * 0'   # Weekly — Sundays at 02:00 UTC
+  workflow_dispatch:
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    # NOTE: A full run against 70+ universities may take 30-60 min
+    # (maxConcurrency: 1, sameDomainDelaySecs: 2). GHA 6-hour timeout is sufficient.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci
+      - name: Run auto-discovery crawler
+        run: npx tsx scripts/discover.ts
+      - name: Upload discovery candidates
+        uses: actions/upload-artifact@v4
+        with:
+          name: discovery-candidates
+          path: discovery-candidates.json
+          if-no-files-found: warn
+          retention-days: 30

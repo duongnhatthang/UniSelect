@@ -145,8 +145,9 @@ class FetchHttpClient implements BaseHttpClient {
 
 interface ScraperEntry {
   id: string;
-  url: string;
-  static_verified: boolean;
+  website_url: string;
+  scrape_url: string | null;
+  adapter_type: string;
 }
 
 interface StartUrl {
@@ -263,15 +264,20 @@ function buildStartUrlsFromScrapers(): StartUrl[] {
   const startUrls: StartUrl[] = [];
 
   for (const entry of entries) {
+    // Skip entries we already have a cutoff URL for
+    if (entry.scrape_url !== null) continue;
+    // Skip entries explicitly excluded
+    if (entry.adapter_type === 'skip') continue;
+
     try {
-      const parsed = new URL(entry.url);
+      const parsed = new URL(entry.website_url);
       const homepage = `${parsed.protocol}//${parsed.hostname}/`;
       if (!seen.has(homepage)) {
         seen.add(homepage);
         startUrls.push({ url: homepage, universityId: entry.id });
       }
     } catch {
-      console.warn(`[discover] Skipping invalid URL for ${entry.id}: ${entry.url}`);
+      console.warn(`[discover] Skipping invalid URL for ${entry.id}: ${entry.website_url}`);
     }
   }
 
