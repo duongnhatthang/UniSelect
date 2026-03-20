@@ -42,12 +42,14 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 
 ### Active
 
-<!-- v3.0 scope — to be defined -->
-- [ ] Expand verified adapter coverage beyond 6 universities
-- [ ] Pagination for long university result lists
-- [ ] Drag-to-reorder for nguyện vọng list (optional, up/down buttons are primary)
-- [ ] Score range clarity (lower bound discussion: 0 vs realistic minimum)
-- [ ] TierBadge + StalenessIndicator dark mode color migration
+<!-- v3.0 scope -->
+- [ ] Comprehensive Vietnamese university/college list (400+ institutions, not just 78)
+- [ ] Working scraper pipeline that produces real cutoff data for all universities
+- [ ] Auto-discovery crawler integrated into GitHub Actions (not standalone)
+- [ ] Scrape status logging/dashboard to track pipeline health per university
+- [ ] All tổ hợp combinations scraped (not just A00 defaults)
+- [ ] Registry gate fix: scraper must not silently skip 95% of universities
+- [ ] Scrape results visible in Supabase with audit trail
 
 ### Out of Scope
 
@@ -62,6 +64,17 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 - Share card generation (visual screenshot for Zalo/Facebook) — defer to v3+
 - Score scenario comparison mode ("what if I scored 24 vs 25") — defer to v3+
 
+## Current Milestone: v3.0 Complete Data Pipeline
+
+**Goal:** Make the scraper pipeline actually produce data — expand university coverage from 78 to 400+, fix the registry gate that silently skips 95% of adapters, integrate auto-discovery into CI, and ensure all cutoff scores are stored in Supabase with monitoring.
+
+**Target features:**
+- Comprehensive Vietnamese university/college master list (400+ institutions)
+- Working end-to-end scraper that produces real data in Supabase
+- Auto-discovery integrated into GitHub Actions workflow
+- Scrape status logging so progress is observable
+- All tổ hợp combinations captured per university
+
 ## Current State
 
 **Shipped:** v2.0 (2026-03-19)
@@ -71,12 +84,17 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 **Tests:** 517 passing (vitest)
 **Infrastructure:** Vercel (frontend/API), Supabase (DB), GitHub Actions (scraping cron + CI + PaddleOCR smoke + keepalive)
 
+### Critical Problem (v3.0 Focus)
+- **Scraper is hollow:** Registry filters `static_verified: true` — only 5/99 adapters run. The daily cron is green but produces almost no data.
+- **Only 78 universities seeded** — Vietnam has 400+ universities and colleges
+- **Auto-discovery crawler exists** (`scripts/discover.ts`) but has NO GitHub Actions workflow — never runs automatically
+- **Most adapter URLs** point to homepages, not actual cutoff score pages
+- **No scrape monitoring** — impossible to tell which universities have data and which don't
+
 ### Remaining Tech Debt
-- 72/78 adapters still dormant (static_verified: false) — auto-discovery crawler built but coverage expansion needed
-- Ministry portal adapter is a stub — URL changes yearly
-- SPH/TLA URLs broke after Phase 7 verification — need re-audit
 - TierBadge and StalenessIndicator use hardcoded colors without dark mode variants
 - `scoreMargin` i18n key defined but unreferenced (tooltip removed per user feedback)
+- Ministry portal adapter is a stub — URL changes yearly
 
 ## Context
 
@@ -119,4 +137,4 @@ Give every Vietnamese student the data and strategy to order their nguyện vọ
 | Score range 0-30 | User feedback: 10-30 was too restrictive | ✓ Good |
 
 ---
-*Last updated: 2026-03-19 after v2.0 milestone complete*
+*Last updated: 2026-03-19 after v3.0 milestone started*
