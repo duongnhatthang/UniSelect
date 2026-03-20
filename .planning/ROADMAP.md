@@ -77,8 +77,8 @@ Plans:
   4. After a manual `workflow_dispatch` run against all 400+ university homepages, at least some entries in `scrapers.json` have a non-null `scrape_url` populated from discovery output
 **Plans:** 2/2 plans complete
 Plans:
-- [ ] 16-01-PLAN.md — discover.ts schema migration + discover.yml workflow (DISC-01, DISC-02)
-- [ ] 16-02-PLAN.md — apply-discovery.ts script + guard tests (DISC-03)
+- [x] 16-01-PLAN.md — discover.ts schema migration + discover.yml workflow (DISC-01, DISC-02)
+- [x] 16-02-PLAN.md — apply-discovery.ts script + guard tests (DISC-03)
 
 ### Phase 17: Scrape Monitoring + DB Health
 **Goal**: Pipeline health is observable — maintainers can query per-university scrape status, the scrape_runs table will not exhaust Supabase's 500 MB free tier, and each GHA scrape run logs a human-readable summary
@@ -88,7 +88,10 @@ Plans:
   1. Querying `/admin/scrape-status` (or an equivalent API endpoint) returns per-university last scrape time, rows written, and error status — without requiring a Supabase dashboard login
   2. The `scrape_runs` table has a pruning mechanism that deletes rows older than 90 days — confirmed by the keepalive workflow log showing a pruning step
   3. Each GitHub Actions scrape shard prints a summary line at job end showing total universities attempted, succeeded, failed, and zero-rows — visible in the workflow run log
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 17-01-PLAN.md — RunSummary return type + GHA summary log + scrape_runs pruning (MON-02, MON-03)
+- [ ] 17-02-PLAN.md — Scrape status API endpoint + tests (MON-01)
 
 ### Phase 18: tổ Hợp Coverage + Infrastructure Scale
 **Goal**: The scraper captures all tổ hợp combinations from universities that publish wide-table format cutoff pages, and the GitHub Actions shard count is high enough that 400+ universities complete within per-job timeout limits with Playwright and OCR adapters safely isolated
@@ -125,9 +128,9 @@ Note: Phase 17 and Phase 18 both depend on Phase 16 completing. They can proceed
 | 13. Infrastructure Hardening | v2.0 | 2/2 | Complete | 2026-03-19 |
 | 14. UI/UX Redesign | v2.0 | 4/4 | Complete | 2026-03-19 |
 | 15. University Master List + Registry Gate Fix | v3.0 | 2/2 | Complete | 2026-03-20 |
-| 16. Auto-Discovery CI Integration | 2/2 | Complete    | 2026-03-20 | - |
-| 17. Scrape Monitoring + DB Health | v3.0 | 0/? | Not started | - |
+| 16. Auto-Discovery CI Integration | v3.0 | 2/2 | Complete | 2026-03-20 |
+| 17. Scrape Monitoring + DB Health | v3.0 | 0/2 | Not started | - |
 | 18. tổ Hợp Coverage + Infrastructure Scale | v3.0 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-03-20 — Phase 16 planned (2 plans, Wave 1)*
+*Last updated: 2026-03-20 — Phase 17 planned (2 plans, Wave 1)*
