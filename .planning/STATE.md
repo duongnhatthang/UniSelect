@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Complete Data Pipeline
 status: unknown
-stopped_at: Completed 16-02-PLAN.md
-last_updated: "2026-03-20T08:01:37.065Z"
+stopped_at: Completed 17-02-PLAN.md
+last_updated: "2026-03-20T08:19:02.294Z"
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 3
+  total_plans: 6
+  completed_plans: 6
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Give every Vietnamese student the data and strategy to order their nguyện vọng list correctly — because getting the ranking wrong means being locked out of better options permanently.
-**Current focus:** Phase 16 — Auto-Discovery CI Integration
+**Current focus:** Phase 17 — Scrape Monitoring + DB Health
 
 ## Current Position
 
-Phase: 16 (Auto-Discovery CI Integration) — COMPLETE
-Plan: 2 of 2
+Phase: 17 (Scrape Monitoring + DB Health) — EXECUTING
+Plan: 1 of 2
 
 ## Performance Metrics
 
@@ -49,6 +49,9 @@ Key v3.0 decisions:
 - [Phase 16]: Skip entries with non-null scrape_url in buildStartUrlsFromScrapers to avoid re-crawling already-discovered universities
 - [Phase 16]: discover.yml uses if-no-files-found: warn not error — crawler may legitimately find zero candidates
 - [Phase 16]: apply-discovery.ts exports pure applyDiscovery() with FS-free core for testability; adapter_type set to 'cheerio' on patch so registry gate runs the scraper
+- [Phase 17]: Cache-Control: no-store on scrape-status endpoint — scrape health must always be fresh
+- [Phase 17]: has_error boolean not raw error_log in GET /api/admin/scrape-status — avoids exposing internal rejection details
+- [Phase 17]: No auth guard on scrape-status endpoint per FUTURE-07 — admin UI/auth deferred to v4+
 
 ### Pending Todos
 
@@ -62,6 +65,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T07:57:30.000Z
-Stopped at: Completed 16-02-PLAN.md
+Last session: 2026-03-20T08:18:54.834Z
+Stopped at: Completed 17-02-PLAN.md
 Resume file: None

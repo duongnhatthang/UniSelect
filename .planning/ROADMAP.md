@@ -46,7 +46,7 @@ Full details: `.planning/milestones/v2.0-phases/`
 
 - [x] **Phase 15: University Master List + Registry Gate Fix** — Seed 400+ MOET-authoritative universities, rewrite registry gate so adapters with known cutoff URLs actually run (completed 2026-03-20)
 - [x] **Phase 16: Auto-Discovery CI Integration** — Wire discover.ts into GitHub Actions with weekly cron, produce human-reviewable candidate list, apply-discovery script patches scrapers.json (completed 2026-03-20)
-- [ ] **Phase 17: Scrape Monitoring + DB Health** — Per-university status queryable, scrape_runs pruned to stay within 500 MB free tier, CI summary logged per run
+- [x] **Phase 17: Scrape Monitoring + DB Health** — Per-university status queryable, scrape_runs pruned to stay within 500 MB free tier, CI summary logged per run (completed 2026-03-20)
 - [ ] **Phase 18: tổ Hợp Coverage + Infrastructure Scale** — Factory handles wide-table format, shard count scales to cover 400+ universities, Playwright/OCR adapters isolated to dedicated shards
 
 ## Phase Details
@@ -88,7 +88,7 @@ Plans:
   1. Querying `/admin/scrape-status` (or an equivalent API endpoint) returns per-university last scrape time, rows written, and error status — without requiring a Supabase dashboard login
   2. The `scrape_runs` table has a pruning mechanism that deletes rows older than 90 days — confirmed by the keepalive workflow log showing a pruning step
   3. Each GitHub Actions scrape shard prints a summary line at job end showing total universities attempted, succeeded, failed, and zero-rows — visible in the workflow run log
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 17-01-PLAN.md — RunSummary return type + GHA summary log + scrape_runs pruning (MON-02, MON-03)
 - [ ] 17-02-PLAN.md — Scrape status API endpoint + tests (MON-01)
@@ -129,7 +129,7 @@ Note: Phase 17 and Phase 18 both depend on Phase 16 completing. They can proceed
 | 14. UI/UX Redesign | v2.0 | 4/4 | Complete | 2026-03-19 |
 | 15. University Master List + Registry Gate Fix | v3.0 | 2/2 | Complete | 2026-03-20 |
 | 16. Auto-Discovery CI Integration | v3.0 | 2/2 | Complete | 2026-03-20 |
-| 17. Scrape Monitoring + DB Health | v3.0 | 0/2 | Not started | - |
+| 17. Scrape Monitoring + DB Health | 2/2 | Complete   | 2026-03-20 | - |
 | 18. tổ Hợp Coverage + Infrastructure Scale | v3.0 | 0/? | Not started | - |
 
 ---
