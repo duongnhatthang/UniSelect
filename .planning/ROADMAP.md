@@ -44,7 +44,7 @@ Full details: `.planning/milestones/v2.0-phases/`
 
 **Milestone Goal:** Make the scraper pipeline actually produce data — expand university coverage from 78 to 250+ (MOET recognizes ~243 degree-granting universities), fix the registry gate that silently skips 95% of adapters, integrate auto-discovery into CI, and ensure all cutoff scores are stored in Supabase with monitoring.
 
-- [ ] **Phase 15: University Master List + Registry Gate Fix** — Seed 400+ MOET-authoritative universities, rewrite registry gate so adapters with known cutoff URLs actually run
+- [x] **Phase 15: University Master List + Registry Gate Fix** — Seed 400+ MOET-authoritative universities, rewrite registry gate so adapters with known cutoff URLs actually run (completed 2026-03-20)
 - [ ] **Phase 16: Auto-Discovery CI Integration** — Wire discover.ts into GitHub Actions with weekly cron, produce human-reviewable candidate list, apply-discovery script patches scrapers.json
 - [ ] **Phase 17: Scrape Monitoring + DB Health** — Per-university status queryable, scrape_runs pruned to stay within 500 MB free tier, CI summary logged per run
 - [ ] **Phase 18: tổ Hợp Coverage + Infrastructure Scale** — Factory handles wide-table format, shard count scales to cover 400+ universities, Playwright/OCR adapters isolated to dedicated shards
@@ -61,7 +61,7 @@ Full details: `.planning/milestones/v2.0-phases/`
   3. `scrapers.json` no longer contains a `static_verified` field — entries have `website_url` (homepage) and `scrape_url` (cutoff page, null for unverified entries)
   4. The daily scrape cron runs adapters for all entries where `scrape_url` is present and `adapter_type` is not `skip` — confirmed by scrape_runs rows appearing for those universities
   5. At least 4 previously-verified adapters produce real cutoff score rows in Supabase after the registry gate fix
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 15-01-PLAN.md — Registry gate fix + scrapers.json schema migration (SCRP-09, SCRP-10)
 - [ ] 15-02-PLAN.md — University master list data + seed script (UNIC-01, UNIC-02, UNIC-03)
@@ -121,7 +121,7 @@ Note: Phase 17 and Phase 18 both depend on Phase 16 completing. They can proceed
 | 12. Testing & CI | v2.0 | 2/2 | Complete | 2026-03-19 |
 | 13. Infrastructure Hardening | v2.0 | 2/2 | Complete | 2026-03-19 |
 | 14. UI/UX Redesign | v2.0 | 4/4 | Complete | 2026-03-19 |
-| 15. University Master List + Registry Gate Fix | v3.0 | 0/2 | Planned | - |
+| 15. University Master List + Registry Gate Fix | 2/2 | Complete   | 2026-03-20 | - |
 | 16. Auto-Discovery CI Integration | v3.0 | 0/? | Not started | - |
 | 17. Scrape Monitoring + DB Health | v3.0 | 0/? | Not started | - |
 | 18. tổ Hợp Coverage + Infrastructure Scale | v3.0 | 0/? | Not started | - |

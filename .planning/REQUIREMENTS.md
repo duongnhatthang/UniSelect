@@ -9,14 +9,14 @@ Requirements for v3.0 release. Priority: Data Pipeline > Monitoring > Scale.
 
 ### University Coverage
 
-- [ ] **UNIC-01**: System seeds 250+ Vietnamese universities and colleges from MOET-authoritative sources (up from 78; MOET recognizes ~243 degree-granting universities nationally)
-- [ ] **UNIC-02**: Each university record includes ministry code (ma truong), Vietnamese name, and homepage URL
-- [ ] **UNIC-03**: University master list is version-controlled as a committed data file (not dependent on external API)
+- [x] **UNIC-01**: System seeds 250+ Vietnamese universities and colleges from MOET-authoritative sources (up from 78; MOET recognizes ~243 degree-granting universities nationally)
+- [x] **UNIC-02**: Each university record includes ministry code (ma truong), Vietnamese name, and homepage URL
+- [x] **UNIC-03**: University master list is version-controlled as a committed data file (not dependent on external API)
 
 ### Registry & Scraper Fix
 
-- [ ] **SCRP-09**: Registry gate no longer silently skips adapters — replaces `static_verified` boolean with `scrape_url` presence check so any adapter with a known cutoff page URL runs
-- [ ] **SCRP-10**: Scraper produces real cutoff score data in Supabase for universities with verified cutoff page URLs
+- [x] **SCRP-09**: Registry gate no longer silently skips adapters — replaces `static_verified` boolean with `scrape_url` presence check so any adapter with a known cutoff page URL runs
+- [x] **SCRP-10**: Scraper produces real cutoff score data in Supabase for universities with verified cutoff page URLs
 - [ ] **SCRP-11**: Adapters capture all tổ hợp combinations published on each university's cutoff page (not just A00 default)
 - [ ] **SCRP-12**: Factory adapter handles wide-table format (one column per tổ hợp) in addition to existing row-per-combination format
 
@@ -75,11 +75,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UNIC-01 | Phase 15 | Pending |
-| UNIC-02 | Phase 15 | Pending |
-| UNIC-03 | Phase 15 | Pending |
-| SCRP-09 | Phase 15 | Pending |
-| SCRP-10 | Phase 15 | Pending |
+| UNIC-01 | Phase 15 | Complete |
+| UNIC-02 | Phase 15 | Complete |
+| UNIC-03 | Phase 15 | Complete |
+| SCRP-09 | Phase 15 | Complete |
+| SCRP-10 | Phase 15 | Complete |
 | DISC-01 | Phase 16 | Pending |
 | DISC-02 | Phase 16 | Pending |
 | DISC-03 | Phase 16 | Pending |
