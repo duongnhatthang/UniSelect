@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Complete Data Pipeline
 status: unknown
-stopped_at: Completed 16-01-PLAN.md
-last_updated: "2026-03-20T07:57:10.302Z"
+stopped_at: Completed 16-02-PLAN.md
+last_updated: "2026-03-20T07:57:30.000Z"
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 
 ## Current Position
 
-Phase: 16 (Auto-Discovery CI Integration) — EXECUTING
-Plan: 1 of 2
+Phase: 16 (Auto-Discovery CI Integration) — COMPLETE
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Key v3.0 decisions:
 - [Phase 15]: data/uni_list.json sorted by id alphabetically for grep-ability and future maintenance
 - [Phase 16]: Skip entries with non-null scrape_url in buildStartUrlsFromScrapers to avoid re-crawling already-discovered universities
 - [Phase 16]: discover.yml uses if-no-files-found: warn not error — crawler may legitimately find zero candidates
+- [Phase 16]: apply-discovery.ts exports pure applyDiscovery() with FS-free core for testability; adapter_type set to 'cheerio' on patch so registry gate runs the scraper
 
 ### Pending Todos
 
@@ -61,6 +62,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T07:57:10.299Z
-Stopped at: Completed 16-01-PLAN.md
+Last session: 2026-03-20T07:57:30.000Z
+Stopped at: Completed 16-02-PLAN.md
 Resume file: None

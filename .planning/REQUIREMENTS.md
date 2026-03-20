@@ -24,7 +24,7 @@ Requirements for v3.0 release. Priority: Data Pipeline > Monitoring > Scale.
 
 - [x] **DISC-01**: Auto-discovery crawler runs as a GitHub Actions workflow (weekly cron + manual dispatch), not just a standalone script
 - [x] **DISC-02**: Discovery output produces a ranked candidate list that can be reviewed and applied to update scrapers.json
-- [ ] **DISC-03**: An apply-discovery script patches scrapers.json with verified cutoff page URLs from discovery output (human-gated, not automatic)
+- [x] **DISC-03**: An apply-discovery script patches scrapers.json with verified cutoff page URLs from discovery output (human-gated, not automatic)
 
 ### Scrape Monitoring
 
@@ -82,7 +82,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCRP-10 | Phase 15 | Complete |
 | DISC-01 | Phase 16 | Complete |
 | DISC-02 | Phase 16 | Complete |
-| DISC-03 | Phase 16 | Pending |
+| DISC-03 | Phase 16 | Complete |
 | MON-01 | Phase 17 | Pending |
 | MON-02 | Phase 17 | Pending |
 | MON-03 | Phase 17 | Pending |
