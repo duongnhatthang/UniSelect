@@ -8,6 +8,7 @@ export interface CheerioAdapterConfig {
   majorKeywords: string[];    // e.g. ['mã ngành', 'ma nganh', 'mã xét tuyển']
   tohopKeywords?: string[];   // e.g. ['tổ hợp', 'to hop'] — omit for single-tohop
   defaultTohop?: string;      // e.g. 'A00' — used when tohopKeywords is omitted or tohop column not found
+  wideTable?: boolean;        // true = one column per to hop code (A00, A01, D01…); each non-empty cell → one RawRow
 }
 
 export function createCheerioAdapter(config: CheerioAdapterConfig): ScraperAdapter {
@@ -51,6 +52,40 @@ export function createCheerioAdapter(config: CheerioAdapterConfig): ScraperAdapt
               config.tohopKeywords!.some((kw) => h.includes(kw))
             )
           : -1;
+
+        if (config.wideTable) {
+          // Detect to hop columns: headers matching /^[A-D]\d{2}$/i
+          const tohopCols: Array<{ idx: number; code: string }> = [];
+          headers.forEach((h, idx) => {
+            const cleaned = h.trim().toUpperCase();
+            if (/^[A-D]\d{2}$/.test(cleaned)) {
+              tohopCols.push({ idx, code: cleaned });
+            }
+          });
+
+          if (tohopCols.length === 0) return; // wideTable: no [A-D]\d{2} headers found, skip this table
+
+          allRows.slice(1).each((_, tr) => {
+            const cells = $(tr).find('td').map((_, td) => $(td).text().trim()).get();
+            if (cells.length < 3) return;
+            const majorCode = codeIdx !== -1 ? cells[codeIdx] : '';
+            if (!majorCode || !/^\d/.test(majorCode)) return;
+
+            for (const col of tohopCols) {
+              const scoreRaw = cells[col.idx] ?? '';
+              if (!scoreRaw || !/\d/.test(scoreRaw)) continue; // empty = not offered
+              rows.push({
+                university_id: config.id,
+                major_raw: majorCode,
+                tohop_raw: col.code,
+                year,
+                score_raw: scoreRaw,
+                source_url: url,
+              });
+            }
+          });
+          return; // wide-table path handled, don't fall through to narrow path
+        }
 
         if (scoreIdx === -1) return;
 
