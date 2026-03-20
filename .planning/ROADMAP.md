@@ -61,7 +61,10 @@ Full details: `.planning/milestones/v2.0-phases/`
   3. `scrapers.json` no longer contains a `static_verified` field — entries have `website_url` (homepage) and `scrape_url` (cutoff page, null for unverified entries)
   4. The daily scrape cron runs adapters for all entries where `scrape_url` is present and `adapter_type` is not `skip` — confirmed by scrape_runs rows appearing for those universities
   5. At least 4 previously-verified adapters produce real cutoff score rows in Supabase after the registry gate fix
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 15-01-PLAN.md — Registry gate fix + scrapers.json schema migration (SCRP-09, SCRP-10)
+- [ ] 15-02-PLAN.md — University master list data + seed script (UNIC-01, UNIC-02, UNIC-03)
 
 ### Phase 16: Auto-Discovery CI Integration
 **Goal**: The auto-discovery crawler runs automatically every week via GitHub Actions, producing a reviewed candidate list of cutoff page URLs that can be applied to scrapers.json through a human-gated script
@@ -118,10 +121,10 @@ Note: Phase 17 and Phase 18 both depend on Phase 16 completing. They can proceed
 | 12. Testing & CI | v2.0 | 2/2 | Complete | 2026-03-19 |
 | 13. Infrastructure Hardening | v2.0 | 2/2 | Complete | 2026-03-19 |
 | 14. UI/UX Redesign | v2.0 | 4/4 | Complete | 2026-03-19 |
-| 15. University Master List + Registry Gate Fix | v3.0 | 0/? | Not started | - |
+| 15. University Master List + Registry Gate Fix | v3.0 | 0/2 | Planned | - |
 | 16. Auto-Discovery CI Integration | v3.0 | 0/? | Not started | - |
 | 17. Scrape Monitoring + DB Health | v3.0 | 0/? | Not started | - |
 | 18. tổ Hợp Coverage + Infrastructure Scale | v3.0 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-03-19 — v3.0 roadmap created (4 phases, 15 requirements mapped)*
+*Last updated: 2026-03-20 — Phase 15 planned (2 plans, Wave 1)*
