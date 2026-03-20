@@ -90,8 +90,8 @@ Plans:
   3. Each GitHub Actions scrape shard prints a summary line at job end showing total universities attempted, succeeded, failed, and zero-rows — visible in the workflow run log
 **Plans:** 2/2 plans complete
 Plans:
-- [ ] 17-01-PLAN.md — RunSummary return type + GHA summary log + scrape_runs pruning (MON-02, MON-03)
-- [ ] 17-02-PLAN.md — Scrape status API endpoint + tests (MON-01)
+- [x] 17-01-PLAN.md — RunSummary return type + GHA summary log + scrape_runs pruning (MON-02, MON-03)
+- [x] 17-02-PLAN.md — Scrape status API endpoint + tests (MON-01)
 
 ### Phase 18: tổ Hợp Coverage + Infrastructure Scale
 **Goal**: The scraper captures all tổ hợp combinations from universities that publish wide-table format cutoff pages, and the GitHub Actions shard count is high enough that 400+ universities complete within per-job timeout limits with Playwright and OCR adapters safely isolated
@@ -102,7 +102,10 @@ Plans:
   2. A university that publishes a wide-table cutoff page has all its tổ hợp combinations stored as separate rows in Supabase after a scrape run
   3. The scrape workflow matrix uses enough shards that no shard exceeds 300 minutes of runtime during a simulated July peak run (4x/day × 400 universities)
   4. Playwright adapters and PaddleOCR adapters run in dedicated shard(s) — a Cheerio-only shard never waits for Playwright browser launch or OCR model download
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 18-01-PLAN.md — Wide-table to hop parsing in factory adapter (SCRP-11, SCRP-12)
+- [ ] 18-02-PLAN.md — Shard scaling + adapter type isolation in workflows (INFR-04, INFR-05)
 
 ## Progress
 
@@ -129,8 +132,8 @@ Note: Phase 17 and Phase 18 both depend on Phase 16 completing. They can proceed
 | 14. UI/UX Redesign | v2.0 | 4/4 | Complete | 2026-03-19 |
 | 15. University Master List + Registry Gate Fix | v3.0 | 2/2 | Complete | 2026-03-20 |
 | 16. Auto-Discovery CI Integration | v3.0 | 2/2 | Complete | 2026-03-20 |
-| 17. Scrape Monitoring + DB Health | 2/2 | Complete    | 2026-03-20 | - |
-| 18. tổ Hợp Coverage + Infrastructure Scale | v3.0 | 0/? | Not started | - |
+| 17. Scrape Monitoring + DB Health | v3.0 | 2/2 | Complete | 2026-03-20 |
+| 18. tổ Hợp Coverage + Infrastructure Scale | v3.0 | 0/2 | Not started | - |
 
 ---
-*Last updated: 2026-03-20 — Phase 17 planned (2 plans, Wave 1)*
+*Last updated: 2026-03-20 — Phase 18 planned (2 plans, Wave 1)*
