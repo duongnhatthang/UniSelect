@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import type { AnyNode } from 'domhandler';
 import { fetchHTML } from './fetch';
 import type { RawRow, ScraperAdapter } from './types';
 
@@ -34,7 +35,7 @@ function isTohopCode(s: string): boolean {
  */
 function inferColumnsFromData(
   $: cheerio.CheerioAPI,
-  allRows: cheerio.Cheerio<cheerio.Element>,
+  allRows: cheerio.Cheerio<AnyNode>,
   startRow: number,
 ): { codeIdx: number; scoreIdx: number; tohopIdx: number } {
   const sampleSize = Math.min(5, allRows.length - startRow);

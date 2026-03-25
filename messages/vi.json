@@ -58,7 +58,17 @@
     "listFull": "Danh sách đã đầy (15/15)",
     "alreadyInList": "Đã có trong nguyện vọng",
     "scoreMargin": "Điểm bạn {direction} {delta} so với điểm chuẩn",
-    "emptyStateBeforeSubmission": "Nhập điểm thi ở phía trên để xem danh sách trường đại học phù hợp"
+    "emptyStateBeforeSubmission": "Nhập điểm thi ở phía trên để xem danh sách trường đại học phù hợp",
+    "verified": "Đã xác minh",
+    "userSubmitted": "Người dùng đóng góp",
+    "userSubmittedTooltip": "Dữ liệu do người dùng đóng góp, chưa được xác minh",
+    "submitScore": "Đóng góp điểm chuẩn",
+    "submitScoreDesc": "Giúp cộng đồng bằng cách chia sẻ điểm chuẩn bạn biết",
+    "submitSuccess": "Cảm ơn! Dữ liệu đã được ghi nhận.",
+    "submitError": "Không thể gửi. Vui lòng thử lại.",
+    "submitSourceHint": "Link bài viết có điểm chuẩn",
+    "submitScoreLabel": "Điểm chuẩn (10-30)",
+    "submit": "Gửi"
   },
   "ErrorPage": {
     "title": "Đã có lỗi xảy ra",

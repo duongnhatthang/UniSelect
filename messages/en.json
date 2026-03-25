@@ -58,7 +58,17 @@
     "listFull": "List is full (15/15)",
     "alreadyInList": "Already in list",
     "scoreMargin": "Your score is {delta} {direction} cutoff",
-    "emptyStateBeforeSubmission": "Enter your score above to see matching universities"
+    "emptyStateBeforeSubmission": "Enter your score above to see matching universities",
+    "verified": "Verified",
+    "userSubmitted": "User submitted",
+    "userSubmittedTooltip": "Data contributed by users, not yet verified",
+    "submitScore": "Contribute score data",
+    "submitScoreDesc": "Help the community by sharing cutoff scores you know",
+    "submitSuccess": "Thank you! Your submission has been recorded.",
+    "submitError": "Failed to submit. Please try again.",
+    "submitSourceHint": "Link to the article with cutoff scores",
+    "submitScoreLabel": "Cutoff score (10-30)",
+    "submit": "Submit"
   },
   "ErrorPage": {
     "title": "Something went wrong",

@@ -48,7 +48,7 @@ function isTohopCode(s: string): boolean {
  */
 function inferColumnsFromData(
   $: cheerio.CheerioAPI,
-  allRows: cheerio.Cheerio<cheerio.Element>,
+  allRows: cheerio.Cheerio<import('domhandler').AnyNode>,
   startRow: number,
 ): { codeIdx: number; scoreIdx: number; tohopIdx: number } {
   const sampleSize = Math.min(5, allRows.length - startRow);
