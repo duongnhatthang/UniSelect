@@ -51,14 +51,20 @@ describe('normalize', () => {
     expect(result).toBeNull();
   });
 
-  it('rejects invalid tohop pattern (Z99 → null)', () => {
-    const result = normalize({ ...baseRow, tohop_raw: 'Z99' });
+  it('rejects non-letter-digit tohop pattern (99A → null)', () => {
+    const result = normalize({ ...baseRow, tohop_raw: '99A' });
     expect(result).toBeNull();
   });
 
-  it('rejects tohop with too many digits (A001 → null)', () => {
-    const result = normalize({ ...baseRow, tohop_raw: 'A001' });
+  it('rejects tohop with too many digits (A0001 → null)', () => {
+    const result = normalize({ ...baseRow, tohop_raw: 'A0001' });
     expect(result).toBeNull();
+  });
+
+  it('accepts extended tohop codes (X01, H02, M03)', () => {
+    expect(normalize({ ...baseRow, tohop_raw: 'X01' })).not.toBeNull();
+    expect(normalize({ ...baseRow, tohop_raw: 'H02' })).not.toBeNull();
+    expect(normalize({ ...baseRow, tohop_raw: 'M03' })).not.toBeNull();
   });
 
   it('rejects empty major code ("" → null)', () => {

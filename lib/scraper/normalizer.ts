@@ -9,7 +9,7 @@ export function normalize(raw: RawRow): NormalizedRow | null {
   // Step 2: Hard validation — reject if fails
   const score = parseFloat(scoreStr);
   if (isNaN(score) || score < 10.0 || score > 30.0) return null;
-  if (!/^[A-D]\d{2}$/.test(tohop)) return null;
+  if (!/^[A-Z]\d{2,3}$/.test(tohop)) return null;
   if (!majorCode) return null;
 
   return {
