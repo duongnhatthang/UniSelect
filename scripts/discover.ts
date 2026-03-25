@@ -14,6 +14,7 @@ import os from 'os';
 import type { DiscoveryCandidate } from '../lib/scraper/discovery/candidate';
 import { scorePageForCutoffs } from '../lib/scraper/discovery/keyword-scorer';
 import { SCORE_THRESHOLD } from '../lib/scraper/discovery/constants';
+import { scorePageByGroundTruth, loadGroundTruth } from '../lib/scraper/discovery/ground-truth';
 
 /**
  * A lightweight HTTP client that uses native Node.js `fetch` instead of `got-scraping`.
@@ -189,12 +190,21 @@ export async function runDiscover(
       sameDomainDelaySecs: 2,
       respectRobotsTxtFile: { userAgent: 'UniSelectBot/1.0' },
       maxConcurrency: 1,
-      maxRequestsPerCrawl: 50,
+      maxRequestsPerCrawl: 200,
       ...(httpClient ? { httpClient } : {}),
 
       async requestHandler({ $, request, enqueueLinks }) {
+        const uniId = request.userData.universityId as string;
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { score, reasons } = scorePageForCutoffs(request.url, $ as any);
+        const keyword = scorePageForCutoffs(request.url, $ as any);
+
+        // Ground-truth scoring: check if page contains known score-major pairs
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const groundTruth = scorePageByGroundTruth(uniId, $ as any);
+
+        const score = keyword.score + groundTruth.score;
+        const reasons = [...keyword.reasons, ...groundTruth.reasons];
 
         if (score > 0) {
           const existing = candidates.get(request.url);
@@ -202,7 +212,7 @@ export async function runDiscover(
           if (!existing || score > existing.score) {
             candidates.set(request.url, {
               url: request.url,
-              universityId: request.userData.universityId as string,
+              universityId: uniId,
               score,
               reasons,
             });
@@ -219,6 +229,11 @@ export async function runDiscover(
             '**/thong-bao*',
             '**/tin-tuyen-sinh*',
             '**/ket-qua-trung-tuyen*',
+            '**/dao-tao*',
+            '**/tin-tuc*',
+            '**/nam-*',
+            '**/2024*',
+            '**/2025*',
           ],
           exclude: [
             '**/*.pdf',
@@ -287,6 +302,9 @@ function buildStartUrlsFromScrapers(): StartUrl[] {
 // Main block — only runs when executed directly (not imported by tests)
 if (process.argv[1]?.endsWith('discover.ts') || process.argv[1]?.endsWith('discover.js')) {
   (async () => {
+    // Preload ground-truth data if available
+    loadGroundTruth();
+
     const startUrls = buildStartUrlsFromScrapers();
     console.log(`[discover] Starting discovery for ${startUrls.length} universities...`);
 
