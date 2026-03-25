@@ -88,26 +88,36 @@ async function main() {
     }
   }
 
-  // 3. Identify stale universities (only among configured scrapers)
+  // 3. Separate "never scraped" from "was working but went stale"
   const cutoffTime = Date.now() - STALENESS_MS;
-  const stale: Array<{ id: string; lastOk: Date | null }> = [];
+  const neverScraped: string[] = [];
+  const stale: Array<{ id: string; lastOk: Date }> = [];
 
   for (const id of idsToCheck) {
     const lastOk = lastOkMap.get(id) ?? null;
-    if (lastOk === null || lastOk.getTime() < cutoffTime) {
+    if (lastOk === null) {
+      neverScraped.push(id);
+    } else if (lastOk.getTime() < cutoffTime) {
       stale.push({ id, lastOk });
     }
   }
 
   // 4. Print results
   console.log(
-    `Checked ${idsToCheck.length} configured scrapers. ${stale.length} are stale (window: ${STALENESS_DAYS} days).`
+    `Checked ${idsToCheck.length} configured scrapers. ${stale.length} stale, ${neverScraped.length} never scraped.`
   );
 
+  // Never-scraped is informational only — these may be newly configured
+  if (neverScraped.length > 0) {
+    for (const id of neverScraped) {
+      console.log(`  [NEVER SCRAPED] ${id} — no successful run yet`);
+    }
+  }
+
+  // Only FAIL if a previously-working scraper has gone stale
   if (stale.length > 0) {
     for (const { id, lastOk } of stale) {
-      const lastOkStr = lastOk ? lastOk.toISOString() : 'never';
-      console.log(`  [STALE] ${id} — last ok run: ${lastOkStr}`);
+      console.log(`  [STALE] ${id} — last ok run: ${lastOk.toISOString()}`);
     }
     process.exit(1);
   }
