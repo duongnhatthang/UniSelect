@@ -82,6 +82,7 @@ async function generateScoresByTohop(): Promise<void> {
       score: cutoffScores.score,
       scraped_at: cutoffScores.scraped_at,
       source_url: cutoffScores.source_url,
+      source_type: cutoffScores.source_type,
     })
     .from(cutoffScores)
     .where(sql`${cutoffScores.year} >= ${minYear}`)

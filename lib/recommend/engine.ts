@@ -113,6 +113,7 @@ export function recommend(input: RecommendInput, rows: CutoffDataRow[]): Recomme
       suggested_top_15: false, // will be set in Step 3
       scraped_at: representative.scraped_at ?? null,
       source_url: representative.source_url ?? null,
+      source_type: representative.source_type ?? 'aggregator',
     });
   }
 

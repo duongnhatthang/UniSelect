@@ -86,6 +86,7 @@ export async function runScraper(configs: AdapterConfig[], githubRunId?: string)
                 score: String(r.score),
                 admission_method: r.admission_method,
                 source_url: r.source_url,
+                source_type: r.source_type,
                 scraped_at: r.scraped_at,
               })))
               .onConflictDoUpdate({
@@ -99,6 +100,7 @@ export async function runScraper(configs: AdapterConfig[], githubRunId?: string)
                 set: {
                   score: sql`excluded.score`,
                   source_url: sql`excluded.source_url`,
+                  source_type: sql`excluded.source_type`,
                   scraped_at: sql`excluded.scraped_at`,
                 },
               });
