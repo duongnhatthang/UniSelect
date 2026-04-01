@@ -25,7 +25,7 @@ import { db } from '../lib/db';
 import { scrapeRuns, universities } from '../lib/db/schema';
 import { max, inArray } from 'drizzle-orm';
 
-const STALENESS_DAYS = parseInt(process.env.STALENESS_DAYS ?? '10', 10);
+const STALENESS_DAYS = parseInt(process.env.STALENESS_DAYS ?? '8', 10);
 
 export interface ScraperEntry {
   id: string;
