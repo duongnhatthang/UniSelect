@@ -6,8 +6,9 @@ These secrets must be configured in **Settings → Secrets and variables → Act
 
 | Secret | Used by | Description |
 |--------|---------|-------------|
-| `DATABASE_URL` | scrape-peak, scrape-low, staleness-alert, supabase-keepalive | Supabase PostgreSQL connection string (pooler, port 6543). Format: `postgresql://postgres.[ref]:[password]@[host]:6543/postgres` |
+| `DATABASE_URL` | scrape-peak, scrape-low, staleness-alert, supabase-keepalive, vietnamnet-year-check | Supabase PostgreSQL connection string (pooler, port 6543). Format: `postgresql://postgres.[ref]:[password]@[host]:6543/postgres` |
 | `SUPABASE_SERVICE_ROLE_KEY` | scrape-peak, scrape-low | Supabase service role key for admin DB access during scraping |
+| `GITHUB_TOKEN` | vietnamnet-year-check | Auto-provided by GitHub Actions. Used to create issues when new year data is detected. No manual setup needed. |
 | `NEXT_PUBLIC_SUPABASE_URL` | ci | Supabase project URL (optional — falls back to placeholder for CI builds) |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ci | Supabase anonymous key (optional — falls back to placeholder for CI builds) |
 

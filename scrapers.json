@@ -1920,9 +1920,9 @@
     "id": "DHD",
     "adapter": "dhd",
     "website_url": "https://hvu.edu.vn/",
-    "scrape_url": "https://tuyensinh.hvu.edu.vn/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -2070,9 +2070,9 @@
     "id": "DKH",
     "adapter": "dkh",
     "website_url": "https://hup.edu.vn/",
-    "scrape_url": "https://tuyensinh.hup.edu.vn/noidung/1241/Chi-tieu-va-diem-chuan-nam-2025",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 30)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "Diem chuan",
@@ -2214,9 +2214,9 @@
     "id": "DLH",
     "adapter": "dlh",
     "website_url": "https://hmtu.edu.vn/",
-    "scrape_url": "https://tuyensinh.hmtu.edu.vn/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -2596,9 +2596,9 @@
     "id": "DQK",
     "adapter": "dqk",
     "website_url": "https://hubt.edu.vn/",
-    "scrape_url": "https://hubt.edu.vn/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "Diem chuan",
@@ -2894,9 +2894,9 @@
     "id": "DTD2",
     "adapter": "dtd2",
     "website_url": "https://www.dthu.edu.vn/",
-    "scrape_url": "https://tuyensinh.dthu.edu.vn/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -2924,9 +2924,9 @@
     "id": "DTD3",
     "adapter": "dtd3",
     "website_url": "https://www.dthu.edu.vn/",
-    "scrape_url": "https://tuyensinh.dthu.edu.vn/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -3642,9 +3642,9 @@
     "id": "HBU",
     "adapter": "hbu",
     "website_url": "https://daihochoabinh.edu.vn/",
-    "scrape_url": "https://tuyensinh.daihochoabinh.edu.vn/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "Diem chuan",
@@ -3700,9 +3700,9 @@
     "id": "HCA",
     "adapter": "hca",
     "website_url": "https://vhu.edu.vn/",
-    "scrape_url": "https://vhu.edu.vn/vi/tin-tuyen-sinh/truong-dai-hoc-van-hien-cong-bo-diem-trung-tuyen-dai-hoc-nam-2025",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -3996,9 +3996,9 @@
     "id": "HIN",
     "adapter": "hin",
     "website_url": "https://hvu.edu.vn/",
-    "scrape_url": "https://tuyensinh.hvu.edu.vn/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -4264,9 +4264,9 @@
     "id": "HPN",
     "adapter": "hpn",
     "website_url": "https://hvpnvn.edu.vn/",
-    "scrape_url": "https://hvpnvn.edu.vn/cat-tin-tuc/su-kien/cong-bo-diem-chuan-trung-tuyen-nam-2025-cua-hoc-vien-phu-nu-viet-nam-on-dinh-mat-bang-nhieu-nganh-but-pha-manh/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "Diem chuan",
@@ -4401,9 +4401,9 @@
     "id": "HTN",
     "adapter": "htn",
     "website_url": "https://vya.edu.vn/",
-    "scrape_url": "https://tuyensinh.vya.edu.vn/vya-cong-bo-diem-trung-tuyen-he-dai-hoc-chinh-quy-nam-2024",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "Diem chuan",
@@ -4489,9 +4489,9 @@
     "id": "HUH1",
     "adapter": "huh1",
     "website_url": "https://husc.edu.vn/",
-    "scrape_url": "https://tuyensinh.husc.edu.vn/thongbao.php?id=62",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -5047,9 +5047,9 @@
     "id": "KDU",
     "adapter": "kdu",
     "website_url": "https://hubt.edu.vn/",
-    "scrape_url": "https://hubt.edu.vn/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -5958,9 +5958,9 @@
     "id": "MHS",
     "adapter": "mhs",
     "website_url": "https://www.ou.edu.vn/",
-    "scrape_url": "https://tuyensinh.ou.edu.vn/diem-chuan-xet-tuyen-dai-hoc-chinh-quy-dot-2-nam-2025",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -6314,9 +6314,9 @@
     "id": "NHB",
     "adapter": "nhb",
     "website_url": "https://ntu.edu.vn/",
-    "scrape_url": "https://tuyensinh.ntu.edu.vn/diem-trung-tuyen-cac-nam",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -6490,9 +6490,9 @@
     "id": "NLK",
     "adapter": "nlk",
     "website_url": "https://ttn.edu.vn/",
-    "scrape_url": "https://tuyensinh.ttn.edu.vn/2025/09/16/tbdiemchuandot3nam2025/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -6785,9 +6785,9 @@
     "id": "NTR",
     "adapter": "ntr",
     "website_url": "https://www.ntu.edu.vn/",
-    "scrape_url": "https://tuyensinh.ntu.edu.vn/diem-trung-tuyen-cac-nam",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -7405,9 +7405,9 @@
     "id": "QHF",
     "adapter": "qhf",
     "website_url": "https://ulis.vnu.edu.vn/",
-    "scrape_url": "https://ulis.vnu.edu.vn/diem-chuan-tuyen-sinh-dai-hoc-chinh-quy-nam-2019-vao-truong-dai-hoc-ngoai-ngu-dhqghn/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "Diem chuan",
@@ -7433,9 +7433,9 @@
     "id": "QHI",
     "adapter": "qhi",
     "website_url": "https://uet.vnu.edu.vn/",
-    "scrape_url": "https://uet.vnu.edu.vn/tuyen-sinh",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "Diem chuan",
@@ -7687,9 +7687,9 @@
     "id": "QNI",
     "adapter": "qni",
     "website_url": "https://www.qnu.edu.vn/",
-    "scrape_url": "https://tuyensinh.qnu.edu.vn/vi/diem-chuan-cac-nam/diem-chuan-trung-tuyen-dai-hoc-he-chinh-quy-nam-2025",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -8345,9 +8345,9 @@
     "id": "SPH",
     "adapter": "sph",
     "website_url": "https://tuyensinh.hnue.edu.vn/thong-bao/545",
-    "scrape_url": "https://tuyensinh.hnue.edu.vn/thong-bao/545",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 30)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -8819,9 +8819,9 @@
     "id": "TGA",
     "adapter": "tga",
     "website_url": "https://hvtc.edu.vn/",
-    "scrape_url": "https://tuyensinh.hvtc.edu.vn/tabid/1699/catid/916/news/38174/tb-vv-ket-qua-trung-tuyen-he-dai-hoc-chinh-quy-nam-2025/Default.aspx",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -9173,9 +9173,9 @@
     "id": "TNA",
     "adapter": "tna",
     "website_url": "https://www.ttn.edu.vn/",
-    "scrape_url": "https://tuyensinh.ttn.edu.vn/2025/09/16/tbdiemchuandot3nam2025/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -9233,9 +9233,9 @@
     "id": "TTH",
     "adapter": "tth",
     "website_url": "https://www.ttn.edu.vn/",
-    "scrape_url": "https://tuyensinh.ttn.edu.vn/2025/09/16/tbdiemchuandot3nam2025/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -9263,9 +9263,9 @@
     "id": "TTN",
     "adapter": "ttn",
     "website_url": "https://www.ttn.edu.vn/",
-    "scrape_url": "https://tuyensinh.ttn.edu.vn/2025/09/16/tbdiemchuandot3nam2025/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 30)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -9529,9 +9529,9 @@
     "id": "VHU",
     "adapter": "vhu",
     "website_url": "https://vhu.edu.vn/",
-    "scrape_url": "https://vhu.edu.vn/vi/tin-tuyen-sinh/truong-dai-hoc-van-hien-cong-bo-diem-trung-tuyen-dai-hoc-nam-2025",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -9679,9 +9679,9 @@
     "id": "VNC",
     "adapter": "vnc",
     "website_url": "https://vinuni.edu.vn/",
-    "scrape_url": "https://vinuni.edu.vn/vi/tam-ly-hoc-thi-khoi-nao-diem-chuan-nganh-tam-ly-hoc-nam-2024/",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "điểm chuẩn",
@@ -10095,9 +10095,9 @@
     "id": "YTC",
     "adapter": "ytc",
     "website_url": "https://huph.edu.vn/",
-    "scrape_url": "https://tuyensinh.huph.edu.vn/post/nguong-bao-dam-chat-luong-dau-vao-quy-doi-tuong-duong-nguong-dau-vao-va-diem-trung-tuyen-giua-cac-phuong-thuc-xet-tuyen-dai-hoc-chinh-quy-nam-2025",
-    "adapter_type": "cheerio",
-    "note": "auto-discovered (score 20)",
+    "scrape_url": null,
+    "adapter_type": "pending",
+    "note": "Auto-discovered but not verified — reverted to pending",
     "factory_config": {
       "scoreKeywords": [
         "Diem chuan",

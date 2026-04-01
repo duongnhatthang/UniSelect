@@ -19,4 +19,4 @@ jobs:
         run: npx tsx scripts/check-staleness.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          STALENESS_DAYS: '3'   # Tighter window — alert if any university missed for 3+ days
+          STALENESS_DAYS: '10'  # Scraper runs weekly — 10-day window allows for occasional misses

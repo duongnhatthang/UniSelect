@@ -25,22 +25,19 @@ import { db } from '../lib/db';
 import { scrapeRuns, universities } from '../lib/db/schema';
 import { max, inArray } from 'drizzle-orm';
 
-const STALENESS_DAYS = parseInt(process.env.STALENESS_DAYS ?? '7', 10);
-const STALENESS_MS = STALENESS_DAYS * 24 * 60 * 60 * 1000;
+const STALENESS_DAYS = parseInt(process.env.STALENESS_DAYS ?? '10', 10);
 
-interface ScraperEntry {
+export interface ScraperEntry {
   id: string;
   scrape_url: string | null;
   adapter_type: string;
 }
 
 /**
- * Load scrapers.json and return IDs of universities with active scrapers
+ * Return IDs of universities with active scrapers
  * (non-null scrape_url and adapter_type not in skip/pending).
  */
-function getConfiguredScraperIds(): Set<string> {
-  const configPath = resolve(process.cwd(), 'scrapers.json');
-  const entries: ScraperEntry[] = JSON.parse(readFileSync(configPath, 'utf-8'));
+export function getConfiguredScraperIds(entries: ScraperEntry[]): Set<string> {
   const ids = new Set<string>();
   for (const entry of entries) {
     if (entry.scrape_url !== null && entry.adapter_type !== 'skip' && entry.adapter_type !== 'pending') {
@@ -50,9 +47,36 @@ function getConfiguredScraperIds(): Set<string> {
   return ids;
 }
 
+/**
+ * Classify configured scrapers into "never scraped" and "stale" categories.
+ */
+export function classifyStaleness(
+  idsToCheck: string[],
+  lastOkMap: Map<string, Date | null>,
+  stalenessDays: number,
+): { neverScraped: string[]; stale: Array<{ id: string; lastOk: Date }> } {
+  const stalenessMs = stalenessDays * 24 * 60 * 60 * 1000;
+  const cutoffTime = Date.now() - stalenessMs;
+  const neverScraped: string[] = [];
+  const stale: Array<{ id: string; lastOk: Date }> = [];
+
+  for (const id of idsToCheck) {
+    const lastOk = lastOkMap.get(id) ?? null;
+    if (lastOk === null) {
+      neverScraped.push(id);
+    } else if (lastOk.getTime() < cutoffTime) {
+      stale.push({ id, lastOk });
+    }
+  }
+
+  return { neverScraped, stale };
+}
+
 async function main() {
   // 1. Get configured scraper IDs (only check these for staleness)
-  const configuredIds = getConfiguredScraperIds();
+  const configPath = resolve(process.cwd(), 'scrapers.json');
+  const scraperEntries: ScraperEntry[] = JSON.parse(readFileSync(configPath, 'utf-8'));
+  const configuredIds = getConfiguredScraperIds(scraperEntries);
 
   // Fetch all university IDs for coverage metric
   const allUniversities = await db
@@ -89,18 +113,7 @@ async function main() {
   }
 
   // 3. Separate "never scraped" from "was working but went stale"
-  const cutoffTime = Date.now() - STALENESS_MS;
-  const neverScraped: string[] = [];
-  const stale: Array<{ id: string; lastOk: Date }> = [];
-
-  for (const id of idsToCheck) {
-    const lastOk = lastOkMap.get(id) ?? null;
-    if (lastOk === null) {
-      neverScraped.push(id);
-    } else if (lastOk.getTime() < cutoffTime) {
-      stale.push({ id, lastOk });
-    }
-  }
+  const { neverScraped, stale } = classifyStaleness(idsToCheck, lastOkMap, STALENESS_DAYS);
 
   // 4. Print results
   console.log(
@@ -125,7 +138,10 @@ async function main() {
   process.exit(0);
 }
 
-main().catch((err) => {
-  console.error('Fatal error in check-staleness:', err);
-  process.exit(1);
-});
+// Only run when executed directly (not imported by tests)
+if (process.argv[1]?.includes('check-staleness')) {
+  main().catch((err) => {
+    console.error('Fatal error in check-staleness:', err);
+    process.exit(1);
+  });
+}
