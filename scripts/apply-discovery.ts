@@ -64,6 +64,7 @@ export function applyDiscovery(
       ...entry,
       scrape_url: candidate.url,
       adapter_type: 'cheerio',
+      note: `auto-discovered (score ${candidate.score})`,
     };
   });
 

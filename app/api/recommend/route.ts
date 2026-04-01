@@ -51,6 +51,7 @@ export async function GET(req: NextRequest) {
           score: cutoffScores.score,
           scraped_at: cutoffScores.scraped_at,
           source_url: cutoffScores.source_url,
+          source_type: cutoffScores.source_type,
         })
         .from(cutoffScores)
         .innerJoin(universities, eq(cutoffScores.university_id, universities.id))

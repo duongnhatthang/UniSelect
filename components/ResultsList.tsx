@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import type { RecommendResult } from '../lib/recommend/types';
 import { TierBadge } from './TierBadge';
+import { SourceBadge } from './SourceBadge';
 import { StalenessIndicator } from './StalenessIndicator';
 import { computeDelta } from '../lib/recommend/delta';
 import type { NvItem } from './NguyenVongList';
@@ -79,7 +80,10 @@ export function ResultsList({ results, loading, userScore, hasSubmitted, onAddTo
                   {result.university_name_vi}
                 </p>
                 <p className="text-on-surface-muted text-sm truncate">{result.major_name_vi}</p>
-                <p className="text-xs text-on-surface-muted mt-1">{result.tohop_code}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs text-on-surface-muted">{result.tohop_code}</span>
+                  <SourceBadge sourceType={result.source_type} />
+                </div>
                 <div className="mt-1">
                   <StalenessIndicator
                     scrapedAt={result.scraped_at}

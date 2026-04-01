@@ -15,6 +15,7 @@ export interface CutoffDataRow {
   score: string;  // STRING from Postgres numeric — must parseFloat before arithmetic
   scraped_at: Date | null;
   source_url: string | null;
+  source_type: string | null; // 'aggregator' | 'user_submitted' | 'scraper'
 }
 
 export interface RecommendResult {
@@ -31,4 +32,5 @@ export interface RecommendResult {
   suggested_top_15: boolean;
   scraped_at: Date | null;
   source_url: string | null;
+  source_type: string | null; // 'aggregator' | 'user_submitted' | 'scraper'
 }

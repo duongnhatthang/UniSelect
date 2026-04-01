@@ -1,0 +1,52 @@
+name: VietNamNet year scanner
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Weekly Monday 6am UTC (1pm Vietnam)
+  workflow_dispatch:
+    inputs:
+      year:
+        description: 'Year to check'
+        default: '2026'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Playwright
+        run: npx playwright install chromium --with-deps
+
+      - name: Check if new year data available
+        id: check
+        run: npx tsx scripts/check-vietnamnet-year.ts --year ${{ inputs.year || '2026' }}
+        continue-on-error: true
+
+      - name: Fetch data if available
+        if: steps.check.outcome == 'success'
+        run: npx tsx scripts/seed-from-vietnamnet.ts --year ${{ inputs.year || '2026' }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Upload seed data artifact
+        if: steps.check.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vietnamnet-scores-${{ inputs.year || '2026' }}
+          path: data/seed/vietnamnet-scores-*.json
+
+      - name: Create issue if data found
+        if: steps.check.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          YEAR="${{ inputs.year || '2026' }}"
+          gh issue create \
+            --title "VietNamNet has ${YEAR} cutoff score data" \
+            --body "The year scanner detected data for ${YEAR}. Run the seed script to import into database." \
+            --label "data"

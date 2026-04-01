@@ -20,6 +20,7 @@ export function normalize(raw: RawRow): NormalizedRow | null {
     score,
     admission_method: 'THPT',
     source_url: raw.source_url,
+    source_type: raw.source_type ?? 'scraper',
     scraped_at: new Date(),
   };
 }

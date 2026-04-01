@@ -46,6 +46,7 @@ export const cutoffScores = pgTable(
     score: numeric('score', { precision: 5, scale: 2 }), // NULL if not published
     admission_method: text('admission_method').notNull().default('THPT'),
     source_url: text('source_url'),
+    source_type: text('source_type').notNull().default('aggregator'), // 'aggregator' | 'user_submitted' | 'scraper'
     scraped_at: timestamp('scraped_at', { withTimezone: true }).defaultNow(),
   },
   (table) => ({

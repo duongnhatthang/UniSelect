@@ -10,6 +10,7 @@ import { calculateTotal } from '../lib/utils/calculate-total';
 import { ResultsList } from './ResultsList';
 import { NguyenVongList } from './NguyenVongList';
 import type { NvItem } from './NguyenVongList';
+import { SubmitScoreModal } from './SubmitScoreModal';
 
 export function ScoreForm() {
   const t = useTranslations('common');
@@ -35,6 +36,7 @@ export function ScoreForm() {
   const [scoreError, setScoreError] = useState('');
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
 
   // Fetch tohop codes on mount
   useEffect(() => {
@@ -283,7 +285,22 @@ export function ScoreForm() {
           onAddToList={addToList}
           nguyenVong={nguyenVong}
         />
+        {/* Submit score trigger */}
+        {hasSubmitted && (
+          <div className="text-center mt-4">
+            <button
+              type="button"
+              onClick={() => setShowSubmitModal(true)}
+              className="text-sm text-primary hover:underline"
+            >
+              {t('submitScore')}
+            </button>
+          </div>
+        )}
       </div>
+      {showSubmitModal && (
+        <SubmitScoreModal onClose={() => setShowSubmitModal(false)} />
+      )}
     </div>
   );
 }
